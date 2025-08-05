@@ -1,0 +1,345 @@
+* {
+  font-family: 'Vazir', sans-serif !important;
+}
+
+:root {
+    --color-primary: #1F3A93;
+    --color-secondary: #7D3C98;
+    --color-accent: #F4D03F;
+    --color-neutral-dark: #2C3E50;
+    --color-neutral-light: #F8F9F9;
+    --color-highlight: #48C9B0;
+    --color-background: rgba(72, 201, 176, 0.1);
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  font-family: 'Vazir', 'Tahoma', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.content {
+  min-height: calc(100vh - 200px);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: var(--color-highlight);
+}
+
+.container {
+  max-width: 600px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.container h1 {
+  font-weight: bold;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.container p {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+}
+
+.header {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.button-primary {
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+}
+
+.button-primary:hover {
+    background-color: var(--color-accent);
+    color: black;
+}
+
+.faq-question {
+    width: 100%;
+    background: #f1f1f1;
+    padding: 10px;
+    border: none;
+    text-align: right;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+.faq-answer {
+  display: none;
+  padding: 10px;
+  background: #fff;
+  border-right: 2px solid #ddd;
+  border-bottom: 1px solid #eee;
+}
+
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.dot.active {
+  background: white;
+}
+
+/* Home Page Sections */
+.featured-courses,
+.latest-courses,
+.course-categories,
+.teachers,
+.course-guide {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.featured-courses h2,
+.latest-courses h2,
+.course-categories h2,
+.teachers h2,
+.course-guide h2 {
+  text-align: center;
+  color: var(--color-primary);
+  margin-bottom: 30px;
+  font-size: 2.2rem;
+  position: relative;
+}
+
+.featured-courses h2::after,
+.latest-courses h2::after,
+.course-categories h2::after,
+.teachers h2::after,
+.course-guide h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+
+
+.course-guide {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-radius: 20px;
+  margin: 40px auto;
+  max-width: 1200px;
+}
+
+.course-guide h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.course-guide h2::after {
+  background: var(--color-accent);
+}
+
+.course-guide p {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.course-guide ul {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.course-guide li {
+  background: rgba(255, 255, 255, 0.1);
+  margin: 10px 0;
+  padding: 15px 20px;
+  border-radius: 10px;
+  border-right: 4px solid var(--color-accent);
+  transition: background 0.3s ease;
+}
+
+.course-guide li:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* Button Styles */
+.btn-primary {
+  background: var(--color-accent);
+  color: #333;
+}
+
+.btn-primary:hover {
+  background: white;
+  color: var(--color-primary);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: var(--color-primary);
+}
+
+.btn-outline {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-outline:hover {
+  background: white;
+  color: var(--color-primary);
+}
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Loading animation for images */
+.course-image,
+.teacher-card img,
+.category-image {
+  transition: opacity 0.3s ease;
+}
+
+.course-image:not([src]),
+.teacher-card img:not([src]),
+.category-image:not([src]) {
+  opacity: 0;
+}
+
+/* Hover effects for interactive elements */
+.course-card:hover .course-image,
+.category-card:hover .category-image {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+.fraq-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+/* تعیین سطح، مشاوره، همکاری */
+.determination-form, .advice-form, .collabrate-form {
+  max-width: 480px;
+  margin: 40px auto 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(30,60,114,0.08);
+  padding: 32px 28px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Vazir', sans-serif;
+}
+.determination-form label, .advice-form label, .collabrate-form label {
+  font-weight: 600;
+  color: #1e3c72;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+}
+.determination-form input, .advice-form input, .collabrate-form input,
+.determination-form textarea, .advice-form textarea, .collabrate-form textarea {
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  font-family: 'Vazir', sans-serif;
+  background: #f8fafc;
+  color: #222;
+  transition: border 0.2s;
+}
+.determination-form input:focus, .advice-form input:focus, .collabrate-form input:focus,
+.determination-form textarea:focus, .advice-form textarea:focus, .collabrate-form textarea:focus {
+  border-color: #1e3c72;
+  outline: none;
+  background: #fff;
+}
+.determination-form textarea, .advice-form textarea, .collabrate-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.determination-form button, .advice-form button, .collabrate-form button {
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-family: 'Vazir', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.determination-form button:hover, .advice-form button:hover, .collabrate-form button:hover {
+  background: #16305a;
+}
+@media (max-width: 600px) {
+  .determination-form, .advice-form, .collabrate-form {
+    padding: 18px 8px 14px 8px;
+    border-radius: 10px;
+  }
+}

@@ -1,0 +1,103 @@
+.hero-slider {
+  position: relative;
+  overflow: hidden;
+  height: 300px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: rtl;
+}
+
+.slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+  min-width: 100%;
+  padding: 20px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+/* Navigation buttons */
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.slider-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.slider-prev {
+  left: 20px;
+}
+
+.slider-next {
+  right: 20px;
+}
+
+/* Dots indicator */
+.slider-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.hero-slider {
+  height: 500px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  margin-bottom: 0;
+}
+
+.slide h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.slide p {
+  font-size: 1.3rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+  max-width: 600px;
+}
+
+.slide .btn {
+  font-size: 1.1rem;
+  padding: 12px 30px;
+  border-radius: 30px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+}

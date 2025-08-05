@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} | دوره‌های ویژه{% endblock %}
+
+{% block content %}
+<section class="featured-courses-page">
+  <div class="page-header">
+    <h1>دوره‌های ویژه</h1>
+    <p>بهترین و محبوب‌ترین دوره‌های زبان انگلیسی</p>
+  </div>
+
+  {% if courses %}
+    <div class="course-grid">
+      {% for course in courses %}
+        <div class="course-card featured">
+          {% if course.image %}
+            <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+          {% else %}
+            <div class="course-image-placeholder">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+          {% endif %}
+          
+          <div class="course-content">
+            <div class="course-header">
+              <h3>{{ course.title }}</h3>
+              <span class="featured-badge">ویژه</span>
+            </div>
+            
+            <p class="course-description">
+              {{ course.short_description|default:course.description|truncatewords:20 }}
+            </p>
+            
+            <div class="course-meta">
+              <div class="meta-item">
+                <i class="fas fa-user"></i>
+                <span>استاد: {{ course.teacher.full_name }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-signal"></i>
+                <span>سطح: {{ course.get_level_display }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-users"></i>
+                <span>سن: {{ course.get_age_group_display }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-clock"></i>
+                <span>{{ course.total_hours }} جلسه</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{% if course.is_online %}آنلاین{% else %}حضوری{% endif %}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>شروع: {{ course.start_date|date:"Y/m/d" }}</span>
+              </div>
+            </div>
+            
+            <div class="course-footer">
+              <div class="course-info">
+                <span class="price">
+                  {% if course.is_free %}
+                    رایگان
+                  {% else %}
+                    {{ course.price|floatformat:0 }} تومان
+                  {% endif %}
+                </span>
+                <span class="seats">
+                  {{ course.available_seats }} صندلی خالی
+                </span>
+              </div>
+              {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-results">
+      <div class="no-results-content">
+        <i class="fas fa-star"></i>
+        <h3>دوره ویژه‌ای یافت نشد</h3>
+        <p>در حال حاضر دوره ویژه‌ای موجود نیست.</p>
+        <a href="{% url 'course:allcourse' %}" class="btn btn-primary">مشاهده همه دوره‌ها</a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %} 

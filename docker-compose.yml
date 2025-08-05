@@ -1,0 +1,223 @@
+# ==============================================================================
+# Docker Compose Configuration
+# English Teacher Academy - Django + Nginx + PostgreSQL
+# ==============================================================================
+
+version: '3.9'
+
+services:
+  # =============================================================================
+  # PostgreSQL Database Service
+  # =============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: englishteacher_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-englishteacher_db}
+      POSTGRES_USER: ${POSTGRES_USER:-englishteacher_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_change_me}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups  # For database backups
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-englishteacher_user} -d ${POSTGRES_DB:-englishteacher_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Redis Cache Service (Optional - for sessions/caching)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: englishteacher_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password_change_me}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # =============================================================================
+  # Django Application Service
+  # =============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: DockerfileBack
+      target: production
+    container_name: englishteacher_web
+    restart: unless-stopped
+    environment:
+      # Django settings
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-your-very-long-secret-key-change-this}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      
+      # Database configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-englishteacher_user}:${POSTGRES_PASSWORD:-secure_password_change_me}@db:5432/${POSTGRES_DB:-englishteacher_db}
+      
+      # Redis configuration (optional)
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/0
+      
+      # Email configuration
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
+      
+      # Security
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-31536000}
+      
+      # Internationalization
+      LANGUAGE_CODE: fa
+      TIME_ZONE: Asia/Tehran
+      
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    ports:
+      - "${DJANGO_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/", "--max-time", "10"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =============================================================================
+  # Nginx Reverse Proxy Service
+  # =============================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: englishteacher_nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # Celery Worker Service (Optional - for background tasks)
+  # =============================================================================
+  celery_worker:
+    build:
+      context: .
+      dockerfile: DockerfileBack
+      target: production
+    container_name: englishteacher_celery_worker
+    restart: unless-stopped
+    command: celery -A EnglishTeacher worker -l info --concurrency=2
+    environment:
+      # Inherit same environment as web service
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-your-very-long-secret-key-change-this}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-englishteacher_user}:${POSTGRES_PASSWORD:-secure_password_change_me}@db:5432/${POSTGRES_DB:-englishteacher_db}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/1
+    volumes:
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    profiles:
+      - celery  # Only start with --profile celery
+
+  # =============================================================================
+  # Celery Beat Service (Optional - for scheduled tasks)
+  # =============================================================================
+  celery_beat:
+    build:
+      context: .
+      dockerfile: DockerfileBack
+      target: production
+    container_name: englishteacher_celery_beat
+    restart: unless-stopped
+    command: celery -A EnglishTeacher beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      # Inherit same environment as web service
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-your-very-long-secret-key-change-this}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-englishteacher_user}:${POSTGRES_PASSWORD:-secure_password_change_me}@db:5432/${POSTGRES_DB:-englishteacher_db}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password_change_me}@redis:6379/1
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    profiles:
+      - celery  # Only start with --profile celery
+
+# =============================================================================
+# Named Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

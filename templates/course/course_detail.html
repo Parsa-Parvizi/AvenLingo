@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} | {{ course.title }}{% endblock %}
+
+{% block content %}
+<section class="course-detail-page">
+  <div class="course-hero">
+    {% if course.image %}
+      <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-hero-image">
+    {% else %}
+      <div class="course-hero-placeholder"></div>
+    {% endif %}
+    
+    <div class="course-hero-content">
+      <div class="course-badges">
+        {% if course.is_featured %}
+          <span class="badge featured">ویژه</span>
+        {% endif %}
+        {% if course.is_free %}
+          <span class="badge free">رایگان</span>
+        {% endif %}
+        {% if course.is_online %}
+          <span class="badge online">آنلاین</span>
+        {% else %}
+          <span class="badge offline">حضوری</span>
+        {% endif %}
+      </div>
+      
+      <h1>{{ course.title }}</h1>
+      <p class="course-subtitle">{{ course.short_description|default:course.description|truncatewords:30 }}</p>
+      
+      <div class="course-quick-info">
+        <div class="info-item">
+          <i class="fas fa-user"></i>
+          <span>استاد: {{ course.teacher.full_name }}</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-signal"></i>
+          <span>سطح: {{ course.get_level_display }}</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-users"></i>
+          <span>سن: {{ course.get_age_group_display }}</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-clock"></i>
+          <span>{{ course.total_hours }} جلسه</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="course-content-wrapper">
+    <div class="course-main-content">
+      <div class="course-section">
+        <h2>توضیحات دوره</h2>
+        <div class="course-description">
+          {{ course.description|linebreaks }}
+        </div>
+      </div>
+
+      <div class="course-section">
+        <h2>اطلاعات دوره</h2>
+        <div class="course-info-grid">
+          <div class="info-card">
+            <i class="fas fa-calendar"></i>
+            <h3>تاریخ شروع</h3>
+            <p>{{ course.start_date|date:"Y/m/d" }}</p>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-calendar-check"></i>
+            <h3>تاریخ پایان</h3>
+            <p>{{ course.end_date|date:"Y/m/d"|default:"تعیین نشده" }}</p>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-clock"></i>
+            <h3>ساعت برگزاری</h3>
+            <p>{{ course.duration|default:"تعیین نشده" }}</p>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3>محل برگزاری</h3>
+            <p>{{ course.location|default:"تعیین نشده" }}</p>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-users"></i>
+            <h3>ظرفیت کلاس</h3>
+            <p>{{ course.capacity }} نفر</p>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-user-plus"></i>
+            <h3>صندلی‌های خالی</h3>
+            <p>{{ course.available_seats }} نفر</p>
+          </div>
+        </div>
+      </div>
+
+      {% if course.teacher %}
+      <div class="course-section">
+        <h2>مدرس دوره</h2>
+        <div class="teacher-card">
+          {% if course.teacher.image %}
+            <img src="{{ course.teacher.image.url }}" alt="{{ course.teacher.full_name }}" class="teacher-image">
+          {% else %}
+            <div class="teacher-image-placeholder"></div>
+          {% endif %}
+          
+          <div class="teacher-info">
+            <h3>{{ course.teacher.full_name }}</h3>
+            {% if course.teacher.expertise %}
+              <p class="teacher-expertise">{{ course.teacher.expertise }}</p>
+            {% endif %}
+            {% if course.teacher.bio %}
+              <p class="teacher-bio">{{ course.teacher.bio|truncatewords:50 }}</p>
+            {% endif %}
+            <a href="{% url 'teacher:detail' course.teacher.id %}" class="btn btn-outline">مشاهده پروفایل استاد</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="course-sidebar">
+      <div class="enrollment-card">
+        <h3>ثبت‌نام در دوره</h3>
+        
+        <div class="price-section">
+          {% if course.is_free %}
+            <span class="price free">رایگان</span>
+          {% else %}
+            <span class="price">{{ course.price|floatformat:0 }} تومان</span>
+          {% endif %}
+        </div>
+        
+        <div class="seats-info">
+          <span class="seats-available">{{ course.available_seats }} صندلی خالی</span>
+          {% if course.is_full %}
+            <span class="seats-full">کلاس تکمیل شده</span>
+          {% endif %}
+        </div>
+        
+        {% if not course.is_full %}
+          <button class="btn btn-primary btn-large">ثبت‌نام در دوره</button>
+        {% else %}
+          <button class="btn btn-secondary btn-large" disabled>کلاس تکمیل شده</button>
+        {% endif %}
+        
+        <div class="course-meta">
+          <div class="meta-item">
+            <i class="fas fa-clock"></i>
+            <span>{{ course.total_hours }} جلسه</span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-signal"></i>
+            <span>{{ course.get_level_display }}</span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-users"></i>
+            <span>{{ course.get_age_group_display }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if similar_courses %}
+  <div class="similar-courses">
+    <h2>دوره‌های مشابه</h2>
+    <div class="course-grid">
+      {% for similar_course in similar_courses %}
+        <div class="course-card">
+          {% if similar_course.image %}
+            <img src="{{ similar_course.image.url }}" alt="{{ similar_course.title }}" class="course-image">
+          {% else %}
+            <div class="course-image-placeholder"></div>
+          {% endif %}
+          
+          <div class="course-content">
+            <h3>{{ similar_course.title }}</h3>
+            <p class="course-description">{{ similar_course.short_description|default:similar_course.description|truncatewords:15 }}</p>
+            <div class="course-meta">
+              <span class="teacher">استاد: {{ similar_course.teacher.full_name }}</span>
+              <span class="level">سطح: {{ similar_course.get_level_display }}</span>
+            </div>
+            <div class="course-footer">
+              <span class="price">
+                {% if similar_course.is_free %}رایگان{% else %}{{ similar_course.price|floatformat:0 }} تومان{% endif %}
+              </span>
+              {% if similar_course.slug %}<a href="{% url 'course:detail' similar_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %} 

@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %} | Courses{% endblock %}
+
+{% block content %}
+<section class="courses-page">
+  <div class="page-header">
+    <h1>همه دوره‌ها</h1>
+    <p>دوره‌های متنوع زبان انگلیسی برای همه سطوح و سنین</p>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <form method="GET" class="filters-form">
+      <div class="filter-group">
+        <label for="search">جستجو:</label>
+        <input type="text" name="search" id="search" value="{% if search %}{{ search }}{% endif %}" placeholder="نام دوره، استاد یا توضیحات را جستجو کنید...">
+      </div>
+
+      <div class="filter-group">
+        <label for="language">زبان:</label>
+        <select name="language" id="language">
+          <option value="">همه زبان‌ها</option>
+          {% for lang_code, lang_name in languages.items %}
+            <option value="{{ lang_code }}" {% if current_language == lang_code %}selected{% endif %}>
+              {{ lang_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="class_type">نوع کلاس:</label>
+        <select name="class_type" id="class_type">
+          <option value="">همه انواع کلاس</option>
+          {% for type_code, type_name in class_types.items %}
+            <option value="{{ type_code }}" {% if current_class_type == type_code %}selected{% endif %}>
+              {{ type_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="level">سطح:</label>
+        <select name="level" id="level">
+          <option value="">همه سطوح</option>
+          <option value="beginner" {% if current_level == 'beginner' %}selected{% endif %}>مبتدی</option>
+          <option value="intermediate" {% if current_level == 'intermediate' %}selected{% endif %}>متوسط</option>
+          <option value="advanced" {% if current_level == 'advanced' %}selected{% endif %}>پیشرفته</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="age_group">گروه سنی:</label>
+        <select name="age_group" id="age_group">
+          <option value="">همه گروه‌های سنی</option>
+          <option value="kids" {% if current_age_group == 'kids' %}selected{% endif %}>کودکان</option>
+          <option value="teens" {% if current_age_group == 'teens' %}selected{% endif %}>نوجوانان</option>
+          <option value="adults" {% if current_age_group == 'adults' %}selected{% endif %}>بزرگسالان</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="type">نوع دوره:</label>
+        <select name="type" id="type">
+          <option value="">همه انواع</option>
+          <option value="online" {% if current_type == 'online' %}selected{% endif %}>آنلاین</option>
+          <option value="offline" {% if current_type == 'offline' %}selected{% endif %}>حضوری</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">اعمال فیلتر</button>
+        <a href="{% url 'course:allcourse' %}" class="btn btn-secondary">پاک کردن فیلترها</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section">
+    <div class="results-header">
+      <h2>نتایج جستجو</h2>
+      <span class="results-count">{{ courses.count }} دوره یافت شد</span>
+    </div>
+
+    {% if courses %}
+      <div class="course-grid">
+        {% for course in courses %}
+          <div class="course-card {% if course.is_featured %}featured{% endif %}">
+            {% if course.image %}
+              <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+            {% else %}
+              <div class="course-image-placeholder">
+                <i class="fas fa-graduation-cap"></i>
+              </div>
+            {% endif %}
+            
+            <div class="course-content">
+              <div class="course-header">
+                <h3>{{ course.title }}</h3>
+                {% if course.is_featured %}
+                  <span class="featured-badge">ویژه</span>
+                {% endif %}
+              </div>
+              
+              <p class="course-description">
+                {{ course.short_description|default:course.description|truncatewords:20 }}
+              </p>
+              
+              <div class="course-meta">
+                <div class="meta-item">
+                  <i class="fas fa-user"></i>
+                  <span>استاد: {{ course.teacher.full_name }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-signal"></i>
+                  <span>سطح: {{ course.get_level_display }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-users"></i>
+                  <span>سن: {{ course.get_age_group_display }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-clock"></i>
+                  <span>{{ course.total_hours }} جلسه</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{% if course.is_online %}آنلاین{% else %}حضوری{% endif %}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-calendar"></i>
+                  <span>شروع: {{ course.start_date }}</span>
+                </div>
+              </div>
+              
+              <div class="course-footer">
+                <div class="course-info">
+                  <span class="price">
+                    {% if course.is_free %}
+                      رایگان
+                    {% else %}
+                      {{ course.price|floatformat:0 }} تومان
+                    {% endif %}
+                  </span>
+                  <span class="seats">
+                    {{ course.available_seats }} صندلی خالی
+                  </span>
+                </div>
+                {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-results">
+        <div class="no-results-content">
+          <i class="fas fa-search"></i>
+          <h3>دوره‌ای یافت نشد</h3>
+          <p>با فیلترهای انتخابی شما دوره‌ای یافت نشد. لطفاً فیلترها را تغییر دهید.</p>
+          <a href="{% url 'course:allcourse' %}" class="btn btn-primary">مشاهده همه دوره‌ها</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+<section class="request-course-section" style="margin: 40px 0; text-align: center;">
+  <h2>دوره مورد نظر خود را پیدا نکردید؟</h2>
+  <p>اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود.</p>
+  <a href="{% url 'core:request_course' %}" class="btn btn-outline">درخواست دوره جدید</a>
+</section>
+{% endblock %}

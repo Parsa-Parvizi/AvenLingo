@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} | نتایج جستجو{% endblock %}
+
+{% block content %}
+<section class="search-results-page">
+  <div class="search-header">
+    <div class="search-header-content">
+      <h1>نتایج جستجو</h1>
+      {% if query %}
+        <p class="search-query">جستجو برای: <strong>"{{ query }}"</strong></p>
+        <p class="results-count">{{ total_results }} نتیجه یافت شد</p>
+      {% else %}
+        <p>لطفاً عبارت جستجو را وارد کنید</p>
+      {% endif %}
+    </div>
+    
+    <!-- Search Form -->
+    <div class="search-form-container">
+      <form method="GET" action="{% url 'core:search' %}" class="main-search-form">
+        <div class="search-input-group">
+          <input type="text" name="q" value="{{ query }}" placeholder="جستجو در کلاس‌ها و اساتید..." class="search-input" required>
+          <button type="submit" class="search-submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        <div class="search-options">
+          <label class="search-option">
+            <input type="checkbox" name="search_courses" value="1" {% if search_courses %}checked{% endif %}>
+            <span>کلاس‌ها</span>
+          </label>
+          <label class="search-option">
+            <input type="checkbox" name="search_teachers" value="1" {% if search_teachers %}checked{% endif %}>
+            <span>اساتید</span>
+          </label>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if query %}
+    <div class="search-results">
+      <!-- Courses Results -->
+      {% if courses %}
+        <div class="results-section">
+          <h2>
+            <i class="fas fa-graduation-cap"></i>
+            کلاس‌ها ({{ courses|length }})
+          </h2>
+          <div class="course-grid">
+            {% for course in courses %}
+              <div class="course-card {% if course.is_featured %}featured{% endif %}">
+                {% if course.image %}
+                  <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+                {% else %}
+                  <div class="course-image-placeholder">
+                    <i class="fas fa-graduation-cap"></i>
+                  </div>
+                {% endif %}
+                
+                <div class="course-content">
+                  <div class="course-header">
+                    <h3>{{ course.title }}</h3>
+                    {% if course.is_featured %}
+                      <span class="featured-badge">ویژه</span>
+                    {% endif %}
+                  </div>
+                  
+                  <p class="course-description">
+                    {{ course.short_description|default:course.description|truncatewords:20 }}
+                  </p>
+                  
+                  <div class="course-meta">
+                    <div class="meta-item">
+                      <i class="fas fa-user"></i>
+                      <span>استاد: {{ course.teacher.full_name }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <i class="fas fa-signal"></i>
+                      <span>سطح: {{ course.get_level_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <i class="fas fa-clock"></i>
+                      <span>{{ course.total_hours }} جلسه</span>
+                    </div>
+                  </div>
+                  
+                  <div class="course-footer">
+                    <div class="course-info">
+                      <span class="price">
+                        {% if course.is_free %}
+                          رایگان
+                        {% else %}
+                          {{ course.price|floatformat:0 }} تومان
+                        {% endif %}
+                      </span>
+                    </div>
+                    {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Teachers Results -->
+      {% if teachers %}
+        <div class="results-section">
+          <h2>
+            <i class="fas fa-chalkboard-teacher"></i>
+            اساتید ({{ teachers|length }})
+          </h2>
+          <div class="teacher-grid">
+            {% for teacher in teachers %}
+              <div class="teacher-card">
+                {% if teacher.image %}
+                  <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="teacher-image">
+                {% else %}
+                  <div class="teacher-image-placeholder">
+                    <i class="fas fa-user"></i>
+                  </div>
+                {% endif %}
+                
+                <div class="teacher-content">
+                  <h3>{{ teacher.full_name }}</h3>
+                  {% if teacher.specialization %}
+                    <p class="teacher-specialization">{{ teacher.specialization }}</p>
+                  {% endif %}
+                  <p class="teacher-bio">{{ teacher.bio|truncatewords:25 }}</p>
+                  
+                  <div class="teacher-stats">
+                    <div class="stat-item">
+                      <i class="fas fa-graduation-cap"></i>
+                      <span>{{ teacher.courses.count }} دوره</span>
+                    </div>
+                    <div class="stat-item">
+                      <i class="fas fa-star"></i>
+                      <span>{{ teacher.experience_years|default:"5" }} سال تجربه</span>
+                    </div>
+                  </div>
+                  
+                  <a href="{% url 'teacher:detail' teacher.slug %}" class="btn btn-outline">
+                    مشاهده پروفایل
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- No Results -->
+      {% if not courses and not teachers %}
+        <div class="no-results">
+          <div class="no-results-content">
+            <i class="fas fa-search"></i>
+            <h3>نتیجه‌ای یافت نشد</h3>
+            <p>متأسفانه هیچ نتیجه‌ای برای "{{ query }}" پیدا نشد.</p>
+            <div class="suggestions">
+              <h4>پیشنهادات:</h4>
+              <ul>
+                <li>کلمات کلیدی را بررسی کنید</li>
+                <li>از کلمات کلیدی عمومی‌تر استفاده کنید</li>
+                <li>املا کلمات را بررسی کنید</li>
+                <li>گزینه‌های جستجو را تغییر دهید</li>
+              </ul>
+            </div>
+            <a href="{% url 'core:home' %}" class="btn btn-primary">
+              <i class="fas fa-home"></i>
+              بازگشت به صفحه اصلی
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="search-instructions">
+      <div class="instructions-content">
+        <i class="fas fa-search"></i>
+        <h3>جستجو در سایت</h3>
+        <p>برای یافتن کلاس‌ها و اساتید مورد نظر خود، عبارت جستجو را وارد کنید.</p>
+        <div class="search-tips">
+          <h4>نکات جستجو:</h4>
+          <ul>
+            <li>می‌توانید در عنوان، توضیحات و نام اساتید جستجو کنید</li>
+            <li>برای جستجوی دقیق‌تر، از کلمات کلیدی استفاده کنید</li>
+            <li>می‌توانید فقط در کلاس‌ها یا فقط در اساتید جستجو کنید</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %} 

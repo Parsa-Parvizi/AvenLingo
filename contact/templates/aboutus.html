@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if about.title %}{{ about.title }}{% else %}درباره ما{% endif %} | {{ company_info.company_name|default:"آکادمی زبان انگلیسی" }}
+{% endblock %}
+
+{% block meta_description %}
+    {% if about.meta_description %}{{ about.meta_description }}{% else %}آکادمی زبان انگلیسی با سال‌ها تجربه در آموزش زبان انگلیسی{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- About Us Page -->
+<div class="about-page">
+    
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="hero-text">
+                            <h1 class="page-title">
+                                {% if about.title %}
+                                    {{ about.title }}
+                                {% else %}
+                                    درباره آکادمی زبان انگلیسی
+                                {% endif %}
+                            </h1>
+                            
+                            {% if about.subtitle %}
+                                <p class="hero-subtitle">{{ about.subtitle }}</p>
+                            {% endif %}
+                            
+                            <div class="stats-preview">
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ about.students_count|default:"۱۰۰۰+" }}</span>
+                                    <span class="stat-label">دانش‌آموز</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ about.teachers_count|default:"۲۰+" }}</span>
+                                    <span class="stat-label">استاد مجرب</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ about.courses_count|default:"۵۰+" }}</span>
+                                    <span class="stat-label">دوره آموزشی</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ about.experience_years|default:"۱۰+" }}</span>
+                                    <span class="stat-label">سال تجربه</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="hero-image">
+                            {% if about.main_image %}
+                                <img src="{{ about.main_image.url }}" alt="{{ about.title }}" class="img-fluid">
+                            {% else %}
+                                <div class="placeholder-image">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <p>تصویر آکادمی</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <section class="about-content">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="content-main">
+                        <div class="about-text">
+                            <h2>داستان ما</h2>
+                            <div class="text-content">
+                                {% if about.main_content %}
+                                    {{ about.main_content|linebreaks }}
+                                {% else %}
+                                    <p>آکادمی زبان انگلیسی ما با هدف ارائه بهترین خدمات آموزشی در زمینه زبان انگلیسی تأسیس شده است. ما با تیمی از اساتید مجرب و متخصص، دوره‌های متنوعی را برای تمام سطوح ارائه می‌دهیم.</p>
+                                    
+                                    <p>رویکرد ما بر پایه روش‌های نوین آموزشی و استفاده از تکنولوژی‌های روز دنیا استوار است. هدف ما کمک به دانش‌آموزان برای رسیدن به سطح مطلوب در کمترین زمان ممکن است.</p>
+                                    
+                                    <p>در طول سال‌های فعالیت، توانسته‌ایم تعداد زیادی از دانش‌آموزان را به موفقیت برسانیم و آن‌ها امروز در مشاغل مختلف از مهارت‌های زبانی خود استفاده می‌کنند.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Mission, Vision, Values -->
+                        <div class="mvv-section">
+                            {% if about.mission %}
+                                <div class="mvv-item">
+                                    <h3><i class="fas fa-target"></i> ماموریت ما</h3>
+                                    <p>{{ about.mission|linebreaks }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if about.vision %}
+                                <div class="mvv-item">
+                                    <h3><i class="fas fa-eye"></i> چشم‌انداز ما</h3>
+                                    <p>{{ about.vision|linebreaks }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if about.values %}
+                                <div class="mvv-item">
+                                    <h3><i class="fas fa-heart"></i> ارزش‌های ما</h3>
+                                    <p>{{ about.values|linebreaks }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="about-sidebar">
+                        
+                        <!-- Stats Card -->
+                        <div class="stats-card">
+                            <h3>آمار و ارقام</h3>
+                            <div class="stats-list">
+                                <div class="stat-row">
+                                    <span class="stat-icon"><i class="fas fa-users"></i></span>
+                                    <span class="stat-text">دانش‌آموزان فعال</span>
+                                    <span class="stat-value">{{ about.students_count|default:"۱۰۰۰+" }}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                                    <span class="stat-text">اساتید مجرب</span>
+                                    <span class="stat-value">{{ about.teachers_count|default:"۲۰+" }}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-icon"><i class="fas fa-book"></i></span>
+                                    <span class="stat-text">دوره‌های آموزشی</span>
+                                    <span class="stat-value">{{ about.courses_count|default:"۵۰+" }}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
+                                    <span class="stat-text">سال‌های تجربه</span>
+                                    <span class="stat-value">{{ about.experience_years|default:"۱۰+" }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Team Image -->
+                        {% if about.team_image %}
+                            <div class="team-card">
+                                <img src="{{ about.team_image.url }}" alt="تیم آکادمی" class="img-fluid">
+                                <h4>تیم متخصص ما</h4>
+                                <p>اساتید مجرب و متخصص آکادمی</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- Contact CTA -->
+                        <div class="contact-cta">
+                            <h4>سؤالی دارید؟</h4>
+                            <p>با ما تماس بگیرید و از مشاوره رایگان استفاده کنید</p>
+                            <a href="{% url 'contact:contactus' %}" class="btn btn-primary">تماس با ما</a>
+                            <a href="{% url 'core:advice' %}" class="btn btn-outline">مشاوره رایگان</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    {% if featured_testimonials %}
+        <section class="about-testimonials">
+            <div class="container">
+                <h2 class="section-title">نظرات دانش‌آموزان ما</h2>
+                <div class="row">
+                    {% for testimonial in featured_testimonials %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="testimonial-card">
+                                <div class="testimonial-content">
+                                    <div class="rating">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= testimonial.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <p>"{{ testimonial.content }}"</p>
+                                </div>
+                                <div class="testimonial-author">
+                                    {% if testimonial.image %}
+                                        <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}">
+                                    {% else %}
+                                        <div class="avatar-placeholder">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="author-info">
+                                        <h5>{{ testimonial.name }}</h5>
+                                        <span>{{ testimonial.role }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- Call to Action -->
+    <section class="about-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>آماده شروع یادگیری هستید؟</h2>
+                <p>از همین امروز مسیر یادگیری زبان انگلیسی خود را با ما آغاز کنید</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'course:allcourse' %}" class="btn btn-primary">مشاهده دوره‌ها</a>
+                    <a href="{% url 'core:determination' %}" class="btn btn-outline">تعیین سطح</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Styles -->
+<style>
+.about-page {
+    padding-top: 20px;
+}
+
+.about-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 0;
+    margin-bottom: 50px;
+}
+
+.page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.stats-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.hero-image {
+    text-align: center;
+}
+
+.placeholder-image {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 60px;
+    text-align: center;
+}
+
+.placeholder-image i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.about-content {
+    padding: 50px 0;
+}
+
+.content-main h2 {
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.text-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+.mvv-section {
+    margin-top: 50px;
+}
+
+.mvv-item {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-right: 4px solid #667eea;
+}
+
+.mvv-item h3 {
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.mvv-item h3 i {
+    margin-left: 10px;
+    color: #667eea;
+}
+
+.about-sidebar {
+    padding-right: 30px;
+}
+
+.stats-card, .team-card, .contact-cta {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card h3, .team-card h4, .contact-cta h4 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    width: 40px;
+    color: #667eea;
+}
+
+.stat-text {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.team-card img {
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.contact-cta p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 5px;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.about-testimonials {
+    background: #f8f9fa;
+    padding: 80px 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 50px;
+    color: #333;
+    font-weight: 600;
+}
+
+.testimonial-card {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.rating {
+    margin-bottom: 15px;
+}
+
+.rating i {
+    color: #ffd700;
+    margin-left: 2px;
+}
+
+.testimonial-content p {
+    font-style: italic;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+}
+
+.testimonial-author img,
+.avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 15px;
+}
+
+.avatar-placeholder {
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.author-info h5 {
+    margin: 0;
+    color: #333;
+}
+
+.author-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.about-cta {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+}
+
+.cta-content h2 {
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.cta-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.cta-buttons .btn {
+    background: white;
+    color: #667eea;
+    margin: 10px;
+}
+
+.cta-buttons .btn:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .stats-preview {
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .about-sidebar {
+        padding-right: 15px;
+        margin-top: 40px;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+{% endblock %}

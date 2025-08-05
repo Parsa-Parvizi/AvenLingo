@@ -1,0 +1,183 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}داشبورد مدرس{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chalkboard-teacher"></i> خوش آمدید، {{ user.get_full_name }}!</h3>
+                            <p class="mb-0">مدرس گرامی، به پنل کاربری خود خوش آمدید.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <p class="mb-0">آخرین فعالیت: {{ teacher.last_activity|date:"Y/m/d H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <i class="fas fa-book text-primary" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">دوره‌های شما</h5>
+                    <h3 class="text-primary">{{ courses.count|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <i class="fas fa-users text-info" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">دانش‌آموزان</h5>
+                    <h3 class="text-info">{{ total_students|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <i class="fas fa-star text-warning" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">امتیاز</h5>
+                    <h3 class="text-warning">{{ teacher.rating|default:"جدید" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <i class="fas fa-money-bill text-success" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">نرخ ساعتی</h5>
+                    <h3 class="text-success">
+                        {% if teacher.hourly_rate %}
+                            {{ teacher.hourly_rate|floatformat:0 }} تومان
+                        {% else %}
+                            تعین نشده
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Profile Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5><i class="fas fa-user"></i> پروفایل شما</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h6><strong>{{ user.get_full_name }}</strong></h6>
+                    <p class="text-muted mb-2">{{ user.email }}</p>
+                    
+                    {% if teacher.bio %}
+                        <p><small>{{ teacher.bio|truncatewords:20 }}</small></p>
+                    {% endif %}
+                    
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <small class="text-muted">وضعیت</small><br>
+                            {% if teacher.is_verified %}
+                                <span class="badge bg-success">تایید شده</span>
+                            {% else %}
+                                <span class="badge bg-warning">در انتظار تایید</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">عضویت</small><br>
+                            <small>{{ teacher.joined_at|date:"Y/m/d" }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'account:teacher_profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> ویرایش پروفایل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5><i class="fas fa-tasks"></i> عملیات سریع</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-plus-circle text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">ایجاد دوره جدید</h6>
+                                    <a href="#" class="btn btn-primary btn-sm">شروع کنید</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-calendar text-info" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">برنامه کلاس‌ها</h6>
+                                    <a href="#" class="btn btn-info btn-sm">مشاهده</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line text-warning" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">گزارش عملکرد</h6>
+                                    <a href="#" class="btn btn-warning btn-sm">نمایش</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-comments text-success" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">پیام‌های دانش‌آموزان</h6>
+                                    <a href="#" class="btn btn-success btn-sm">پاسخ دهید</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5><i class="fas fa-clock"></i> فعالیت‌های اخیر</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i>
+                        بخش فعالیت‌های اخیر در حال توسعه است. به زودی اطلاعات کاملی از کلاس‌ها و تعاملات شما در اینجا نمایش داده خواهد شد.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

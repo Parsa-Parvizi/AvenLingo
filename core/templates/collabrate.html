@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %} | Collaboration{% endblock %}
+{% block content %}
+<style>* { font-family: 'Vazir', sans-serif !important; } .collabrate-form { direction: rtl; } .collabrate-form button { display: block; margin: 0 auto; text-align: center; } .success-message { color: #198754; text-align: center; margin-top: 18px; font-size: 1.1rem; font-family: 'Vazir', sans-serif; } </style>
+<div class="page-section">
+  <h1>درخواست همکاری</h1>
+  <form method="post" enctype="multipart/form-data" class="collabrate-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">ارسال درخواست</button>
+  </form>
+  {% if message %}
+    <div class="success-message">{{ message }}</div>
+  {% endif %}
+</div>
+{% endblock %} 

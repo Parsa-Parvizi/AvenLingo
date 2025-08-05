@@ -1,0 +1,141 @@
+{% load static %}
+<header>
+  <nav class="navbar">
+    <div class="container">
+      <!-- Center - Logo and Brand Name -->
+      <div class="nav-center">
+        {% comment %}
+        {% comment %} <a href="/" class="brand-link"> {% endcomment %}
+          {% comment %} <img
+            src="{% static 'images/logo.png' %}"
+            alt="Aurora Language Academy"
+            class="logo"
+          />
+          {% endcomment %}
+          <a href="/" class="brand-text">Aven Language Academy</a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        class="hamburger"
+        onclick="toggleMenu()"
+        aria-label="منو"
+      ></button>
+      <div
+        class="auth-buttons"
+        style="display: flex; gap: 10px; align-items: center"
+      >
+        {% if user.is_authenticated %}
+        <a href="{% url 'account:dashboard' %}" class="nav-link dashboard-btn"
+          >داشبورد</a
+        >
+        <a href="{% url 'account:logout' %}" class="nav-link logout-btn"
+          >خروج</a
+        >
+        {% else %}
+        <a href="{% url 'account:login' %}" class="nav-link login-btn">ورود</a>
+        <a href="{% url 'account:student_register' %}" class="nav-link register-btn"
+          >ثبت نام</a
+        >
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Search Dropdown -->
+    <div class="search-dropdown" id="searchDropdown">
+      <form class="search-form" method="GET" action="{% url 'core:search' %}">
+        <div class="search-input-group">
+          <input
+            type="text"
+            name="q"
+            placeholder="جستجو در کلاس‌ها و اساتید..."
+            class="search-input"
+            required
+          />
+          <button type="submit" class="search-submit">
+            <img
+              src="{% static 'icon/search.png' %}"
+              alt=""
+              class="search-icon"
+            />
+          </button>
+        </div>
+        <div class="search-options">
+          <label class="search-option">
+            <input type="checkbox" name="search_courses" value="1" checked />
+            <span>کلاس‌ها</span>
+          </label>
+          <label class="search-option">
+            <input type="checkbox" name="search_teachers" value="1" checked />
+            <span>اساتید</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="container">
+      <div class="navbar-menu" id="navbarMenu">
+        <div class="nav-left">
+          <ul class="nav-links">
+            <li>
+              <a href="{% url 'course:allcourse' %}" class="nav-link"
+                ><i></i> کلاس‌ها</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'teacher:allteacher' %}" class="nav-link"
+                ><i></i> اساتید</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'core:determination' %}" class="nav-link"
+                ><i></i> تعیین سطح</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'core:advice' %}" class="nav-link"
+                ><i></i> درخواست مشاوره</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'core:collabrate' %}" class="nav-link"
+                ><i></i> درخواست همکاری</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'contact:aboutus' %}" class="nav-link"
+                ><i></i> درباره ما</a
+              >
+            </li>
+            <li>
+              <a href="{% url 'contact:contactus' %}" class="nav-link"
+                ><i></i> تماس با ما</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right Side - Search and Dark Mode -->
+        <div class="nav-right">
+          <button
+            class="search-btn"
+            onclick="toggleSearch()"
+            aria-label="جستجو"
+          >
+            <img
+              src="{% static 'icon/search.png' %}"
+              alt=""
+              class="search-icon"
+            />
+          </button>
+          <button
+            onclick="toggleDarkMode()"
+            id="darkmode-toggle"
+            aria-label="تغییر تم"
+          >
+            🌓
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>

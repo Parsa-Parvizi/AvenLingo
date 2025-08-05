@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %} | Dashboard{% endblock %}
+{% block content %}
+<style>* { font-family: 'Vazir', sans-serif !important; }</style>
+<h2>سلام {{ request.user.username }}، خوش آمدی!</h2>
+<p>این داشبورد شماست.</p>
+{% endblock %}

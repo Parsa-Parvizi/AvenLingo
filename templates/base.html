@@ -1,0 +1,88 @@
+{% load static %} {% load tz %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <meta
+      name="keywords"
+      content="زبان انگلیسی, دوره‌های زبان, مبینا گرشاسبی"
+    />
+    <meta
+      name="description"
+      content="وبسایت رسمی معلم حرفه‌ای زبان انگلیسی مبینا گرشاسبی - آموزش زبان انگلیسی به صورت تخصصی و کلاس‌های آنلاین و حضوری"
+    />
+    <meta name="author" content="مبینا گرشاسبی" />
+
+    <title>ALA{% block title %}{% endblock %}</title>
+
+    {% comment %}
+    <link
+      href="https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    {% endcomment %}
+
+    <link
+      rel="icon"
+      href="{% static 'images/logo.png' %}"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/slide.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/search.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/teacher.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/course.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/faq.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    {% block extra_meta %}{% endblock %} {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <main class="content">{% block content %}{% endblock %}</main>
+
+    {% include 'footer.html' %}
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <!-- CDN Darkmode.js -->
+    <script src="https://unpkg.com/darkmode-js/lib/darkmode-js.min.js"></script>
+
+    <script>
+      const options = {
+        bottom: "unset",
+        right: "unset",
+        left: "unset",
+        time: "0.4s",
+        label: "", // چون خودت دکمه‌ رو گذاشتی
+        autoMatchOsTheme: true,
+        saveInCookies: true,
+      };
+
+      const darkmode = new Darkmode(options);
+
+      function toggleDarkMode() {
+        darkmode.toggle();
+      }
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

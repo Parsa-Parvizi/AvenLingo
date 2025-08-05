@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %} | موفقیت{% endblock %}
+{% block content %}
+<style>* { font-family: 'Vazir', sans-serif !important; }</style>
+<div class="page-section">
+  <h1>درخواست با موفقیت ثبت شد</h1>
+  <p>{{ message|default:'درخواست شما با موفقیت ثبت شد. کارشناسان ما به زودی با شما تماس خواهند گرفت.' }}</p>
+  <a href="/" class="btn btn-primary">بازگشت به صفحه اصلی</a>
+</div>
+{% endblock %}

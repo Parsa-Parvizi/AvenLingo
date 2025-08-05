@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="teacher-detail">
+  <div class="teacher-profile">
+    {% if teacher.image %}
+      <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="teacher-image">
+    {% else %}
+      <img src="{% static 'images/default_teacher.jpg' %}" alt="{{ teacher.full_name }}" class="teacher-image">
+    {% endif %}
+    
+    <div class="teacher-info">
+      <h1>{{ teacher.full_name }}</h1>
+      
+      {% if teacher.expertise %}
+        <p class="expertise"><strong>تخصص:</strong> {{ teacher.expertise }}</p>
+      {% endif %}
+      
+      {% if teacher.bio %}
+        <div class="bio">
+          <h3>بیوگرافی</h3>
+          <p>{{ teacher.bio }}</p>
+        </div>
+      {% endif %}
+      
+      {% if teacher.phone_number %}
+        <p class="contact"><strong>شماره تماس:</strong> {{ teacher.phone_number }}</p>
+      {% endif %}
+      
+      <div class="social-links">
+        {% if teacher.linkedin %}
+          <a href="{{ teacher.linkedin }}" target="_blank" class="social-link linkedin">لینکدین</a>
+        {% endif %}
+        {% if teacher.instagram %}
+          <a href="{{ teacher.instagram }}" target="_blank" class="social-link instagram">اینستاگرام</a>
+        {% endif %}
+        {% if teacher.website %}
+          <a href="{{ teacher.website }}" target="_blank" class="social-link website">وب‌سایت</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="teacher-courses">
+    <h2>دوره‌های {{ teacher.full_name }}</h2>
+    {% for course in teacher.courses.all %}
+      {% if course.is_active %}
+        <div class="course-card">
+          <h3>{{ course.title }}</h3>
+          <p>{{ course.description|truncatewords:30 }}</p>
+          <p><strong>سطح:</strong> {{ course.level }} | <strong>سن:</strong> {{ course.age_group }}</p>
+          <a href="{% url 'course:detail' course.id %}" class="btn btn-primary">مشاهده دوره</a>
+        </div>
+      {% endif %}
+    {% empty %}
+      <p>هنوز دوره‌ای برای این استاد ثبت نشده است.</p>
+    {% endfor %}
+  </div>
+  
+  <div class="back-link">
+    <a href="{% url 'teacher:allteacher' %}" class="btn btn-secondary">بازگشت به لیست اساتید</a>
+  </div>
+</section>
+{% endblock %} 

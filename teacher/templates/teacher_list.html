@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} | Teachers{% endblock %}
+{% block content %}
+<section class="teacher-list">
+  <h2>تمامی معلمان ما</h2>
+
+  <div class="teachers">
+    {% for teacher in teachers %}
+      <div class="teacher-card">
+        {% if teacher.image %}
+          <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}">
+        {% else %}
+          <img src="{% static 'images/default_teacher.jpg' %}" alt="{{ teacher.full_name }}">
+        {% endif %}
+        <h3>{{ teacher.full_name }}</h3>
+        <p>{{ teacher.bio|truncatewords:25 }}</p>
+        <a href="{% url 'teacher:detail' teacher.id %}">مشاهده پروفایل</a>
+      </div>
+    {% empty %}
+      <p>هیچ معلمی ثبت نشده است.</p>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">قبلی</a>
+      {% endif %}
+      <span>صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">بعدی</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

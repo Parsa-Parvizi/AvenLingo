@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %} | داشبورد معلم{% endblock %}
+{% block content %}
+<style>* { font-family: 'Vazir', sans-serif !important; }</style>
+<div class="dashboard-container">
+  <h2>سلام {{ request.user.get_full_name|default:request.user.username }}، خوش آمدی!</h2>
+  <div class="teacher-info">
+    <p>نام کامل: {{ request.user.teacher_profile.full_name }}</p>
+    <p>تخصص: {{ request.user.teacher_profile.expertise }}</p>
+    <p>شماره تماس: {{ request.user.teacher_profile.phone_number }}</p>
+  </div>
+  <h3>کلاس‌های من</h3>
+  <table class="dashboard-table">
+    <thead>
+      <tr>
+        <th>عنوان کلاس</th>
+        <th>تاریخ شروع</th>
+        <th>تعداد زبان‌آموز</th>
+        <th>وضعیت</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for course in request.user.teacher_profile.courses.all %}
+        <tr>
+          <td>{{ course.title }}</td>
+          <td>{{ course.start_date }}</td>
+          <td>{{ course.students.count }}</td>
+          <td>{% if course.is_active %}فعال{% else %}غیرفعال{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">کلاسی ثبت نشده است.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

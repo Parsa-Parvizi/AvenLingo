@@ -1,4 +1,3 @@
-from django.core.cache import cache
 from django.conf import settings
 from .models import (
     SiteSettings, FooterSection, SocialMedia, ContactInfo, 
@@ -9,15 +8,7 @@ from .models import (
 def site_data(request):
     """
     Context processor that provides site-wide data for templates
-    Caches data for 1 hour to improve performance
     """
-    
-    # Check cache first
-    cache_key = 'site_context_data'
-    cached_data = cache.get(cache_key)
-    
-    if cached_data:
-        return cached_data
     
     context = {}
     
@@ -86,8 +77,6 @@ def site_data(request):
         except Exception:
             context['featured_testimonials'] = []
         
-        # Cache the data for 1 hour
-        cache.set(cache_key, context, 3600)
         
     except Exception as e:
         # Log error but don't break the site
@@ -111,12 +100,6 @@ def footer_data(request):
     Specific context processor for footer data
     Maintained for backward compatibility
     """
-    
-    cache_key = 'footer_context_data'
-    cached_data = cache.get(cache_key)
-    
-    if cached_data:
-        return cached_data
     
     context = {}
     
@@ -152,9 +135,6 @@ def footer_data(request):
             }
         context['contact_data'] = contact_data
         
-        # Cache for 2 hours
-        cache.set(cache_key, context, 7200)
-        
     except Exception as e:
         if settings.DEBUG:
             print(f"Footer context processor error: {e}")
@@ -171,6 +151,6 @@ def clear_site_cache():
     """
     Utility function to clear site cache when admin makes changes
     Call this in model save methods or admin actions
+    (Note: No caching is used anymore, this function is kept for compatibility)
     """
-    cache.delete('site_context_data')
-    cache.delete('footer_context_data') 
+    pass 

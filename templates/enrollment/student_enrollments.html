@@ -1,0 +1,877 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت‌نام‌های من{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="page-title">
+                    <i class="fas fa-graduation-cap me-3"></i>
+                    ثبت‌نام‌های من
+                </h1>
+                <p class="page-subtitle text-muted">
+                    مدیریت و پیگیری دوره‌های ثبت‌نام شده
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'enrollment:available_courses' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    دوره جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-widget primary">
+                <div class="stats-content">
+                    <div class="stats-number">{{ total_enrollments }}</div>
+                    <div class="stats-label">مجموع دوره‌ها</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-widget success">
+                <div class="stats-content">
+                    <div class="stats-number">{{ confirmed_enrollments }}</div>
+                    <div class="stats-label">تأیید شده</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-widget warning">
+                <div class="stats-content">
+                    <div class="stats-number">{{ pending_enrollments }}</div>
+                    <div class="stats-label">در انتظار تأیید</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-widget info">
+                <div class="stats-content">
+                    <div class="stats-number">{{ cancelled_enrollments }}</div>
+                    <div class="stats-label">لغو شده</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card filter-card mb-4">
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">وضعیت ثبت‌نام</label>
+                        <select name="status" class="form-select">
+                            <option value="">همه وضعیت‌ها</option>
+                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>در انتظار تأیید</option>
+                            <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>تأیید شده</option>
+                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>تکمیل شده</option>
+                            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">وضعیت پرداخت</label>
+                        <select name="payment_status" class="form-select">
+                            <option value="">همه وضعیت‌ها</option>
+                            <option value="paid" {% if request.GET.payment_status == 'paid' %}selected{% endif %}>پرداخت شده</option>
+                            <option value="unpaid" {% if request.GET.payment_status == 'unpaid' %}selected{% endif %}>پرداخت نشده</option>
+                            <option value="partial" {% if request.GET.payment_status == 'partial' %}selected{% endif %}>پرداخت جزئی</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">جستجو</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="جستجو در نام دوره یا مدرس..." 
+                               value="{{ request.GET.search }}">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <a href="{% url 'enrollment:student_enrollments' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enrollments List -->
+    <div class="card enrollments-card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>
+                لیست ثبت‌نام‌ها
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if enrollments %}
+                <div class="enrollment-list">
+                    {% for enrollment in enrollments %}
+                    <div class="enrollment-card">
+                        <div class="enrollment-header">
+                            <div class="row align-items-center">
+                                <div class="col-lg-6">
+                                    <div class="course-info">
+                                        <h5 class="course-title">
+                                            <a href="{% url 'enrollment:enrollment_detail' enrollment.id %}" class="text-decoration-none">
+                                                {{ enrollment.course.title }}
+                                            </a>
+                                        </h5>
+                                        <div class="course-meta">
+                                            <span class="teacher-info">
+                                                <i class="fas fa-user-tie me-1"></i>
+                                                {{ enrollment.course.teacher.user.get_full_name }}
+                                            </span>
+                                            {% if enrollment.course.category %}
+                                            <span class="category-info">
+                                                <i class="fas fa-tag me-1"></i>
+                                                {{ enrollment.course.category.name }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-6">
+                                    <div class="enrollment-status-info">
+                                        <div class="status-badges mb-2">
+                                            {% if enrollment.status == 'confirmed' %}
+                                                <span class="status-badge confirmed">
+                                                    <i class="fas fa-check-circle me-1"></i>تأیید شده
+                                                </span>
+                                            {% elif enrollment.status == 'pending' %}
+                                                <span class="status-badge pending">
+                                                    <i class="fas fa-clock me-1"></i>در انتظار تأیید
+                                                </span>
+                                            {% elif enrollment.status == 'completed' %}
+                                                <span class="status-badge completed">
+                                                    <i class="fas fa-trophy me-1"></i>تکمیل شده
+                                                </span>
+                                            {% elif enrollment.status == 'cancelled' %}
+                                                <span class="status-badge cancelled">
+                                                    <i class="fas fa-times-circle me-1"></i>لغو شده
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if enrollment.payment_status == 'paid' %}
+                                                <span class="payment-badge paid">
+                                                    <i class="fas fa-credit-card me-1"></i>پرداخت شده
+                                                </span>
+                                            {% elif enrollment.payment_status == 'unpaid' %}
+                                                <span class="payment-badge unpaid">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>پرداخت نشده
+                                                </span>
+                                            {% elif enrollment.payment_status == 'partial' %}
+                                                <span class="payment-badge partial">
+                                                    <i class="fas fa-coins me-1"></i>پرداخت جزئی
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="enrollment-dates">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-plus me-1"></i>
+                                                ثبت‌نام: {{ enrollment.enrolled_at|date:"Y/m/d H:i" }}
+                                            </small>
+                                            {% if enrollment.confirmed_at %}
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar-check me-1"></i>
+                                                تأیید: {{ enrollment.confirmed_at|date:"Y/m/d H:i" }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Course Details -->
+                        <div class="enrollment-details">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="course-description">
+                                        {% if enrollment.course.short_description %}
+                                            <p class="text-muted mb-2">{{ enrollment.course.short_description }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="course-features">
+                                            {% if enrollment.course.level %}
+                                                <span class="feature-tag">
+                                                    <i class="fas fa-signal me-1"></i>
+                                                    {{ enrollment.course.get_level_display }}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if enrollment.course.is_online %}
+                                                <span class="feature-tag">
+                                                    <i class="fas fa-globe me-1"></i>آنلاین
+                                                </span>
+                                            {% else %}
+                                                <span class="feature-tag">
+                                                    <i class="fas fa-building me-1"></i>حضوری
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if enrollment.course.duration %}
+                                                <span class="feature-tag">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ enrollment.course.duration }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if enrollment.note %}
+                                        <div class="enrollment-note mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-sticky-note me-1"></i>
+                                                <strong>یادداشت:</strong> {{ enrollment.note }}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <!-- Progress & Payment Info -->
+                                    {% if enrollment.completion_percentage > 0 %}
+                                    <div class="progress-section mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="text-muted">پیشرفت</small>
+                                            <small class="text-muted">{{ enrollment.completion_percentage }}%</small>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: {{ enrollment.completion_percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Payment Information -->
+                                    <div class="payment-info">
+                                        <div class="payment-amount">
+                                            {% if enrollment.course.is_free %}
+                                                <span class="amount free">رایگان</span>
+                                            {% else %}
+                                                <span class="amount">{{ enrollment.course.price|floatformat:0 }} تومان</span>
+                                                {% if enrollment.discount_applied > 0 %}
+                                                    <small class="discount d-block text-success">
+                                                        تخفیف: {{ enrollment.discount_applied|floatformat:0 }} تومان
+                                                    </small>
+                                                {% endif %}
+                                                {% if enrollment.amount_paid > 0 %}
+                                                    <small class="paid-amount d-block text-info">
+                                                        پرداخت شده: {{ enrollment.amount_paid|floatformat:0 }} تومان
+                                                    </small>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="enrollment-actions">
+                            <div class="action-buttons">
+                                <a href="{% url 'enrollment:enrollment_detail' enrollment.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>جزئیات
+                                </a>
+                                
+                                {% if enrollment.status == 'completed' %}
+                                    <a href="{% url 'enrollment:enrollment_certificate' enrollment.id %}" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-certificate me-1"></i>گواهی
+                                    </a>
+                                {% endif %}
+                                
+                                {% if enrollment.can_be_cancelled %}
+                                    <button class="btn btn-outline-danger btn-sm cancel-enrollment" 
+                                            data-enrollment-id="{{ enrollment.id }}"
+                                            data-course-title="{{ enrollment.course.title }}">
+                                        <i class="fas fa-times me-1"></i>لغو
+                                    </button>
+                                {% endif %}
+                                
+                                {% if enrollment.payment_status == 'unpaid' and enrollment.status == 'confirmed' %}
+                                    <button class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-credit-card me-1"></i>پرداخت
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="pagination-wrapper mt-4">
+                    <nav aria-label="صفحه‌بندی ثبت‌نام‌ها">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h4>هیچ ثبت‌نامی یافت نشد</h4>
+                    {% if request.GET.status or request.GET.payment_status or request.GET.search %}
+                        <p class="text-muted">نتیجه‌ای برای فیلترهای انتخاب شده یافت نشد.</p>
+                        <a href="{% url 'enrollment:student_enrollments' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-redo me-2"></i>حذف فیلترها
+                        </a>
+                    {% else %}
+                        <p class="text-muted">هنوز در هیچ دوره‌ای ثبت‌نام نکرده‌اید.</p>
+                        <a href="{% url 'enrollment:available_courses' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>مشاهده دوره‌ها
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancellation Modal -->
+<div class="modal fade" id="cancelEnrollmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">لغو ثبت‌نام</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="cancellation-warning mb-3">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        شما در حال لغو ثبت‌نام در دوره <strong id="courseToCancel"></strong> هستید.
+                    </div>
+                </div>
+                
+                <form id="cancellationForm">
+                    <div class="mb-3">
+                        <label class="form-label">دلیل لغو ثبت‌نام</label>
+                        <select class="form-select" id="cancellationReason" required>
+                            <option value="">انتخاب کنید...</option>
+                            <option value="schedule_conflict">تداخل زمانی</option>
+                            <option value="financial_issues">مشکلات مالی</option>
+                            <option value="course_content">عدم تطابق محتوای دوره</option>
+                            <option value="personal_reasons">دلایل شخصی</option>
+                            <option value="health_issues">مشکلات سلامتی</option>
+                            <option value="relocation">تغییر محل سکونت</option>
+                            <option value="other">سایر دلایل</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">توضیحات اضافی (اختیاری)</label>
+                        <textarea class="form-control" id="additionalComments" rows="3" 
+                                  placeholder="لطفاً توضیحات بیشتری در مورد دلیل لغو ارائه دهید..."></textarea>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmCancellation" required>
+                        <label class="form-check-label" for="confirmCancellation">
+                            تأیید می‌کنم که می‌خواهم این ثبت‌نام را لغو کنم
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-danger" id="submitCancellation" disabled>
+                    <i class="fas fa-times me-2"></i>تأیید لغو
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page styles */
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    margin: 0;
+    font-weight: 700;
+}
+
+.page-subtitle {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+}
+
+/* Stats widgets */
+.stats-widget {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.stats-widget:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.stats-widget.primary { border-left: 4px solid #007bff; }
+.stats-widget.success { border-left: 4px solid #28a745; }
+.stats-widget.warning { border-left: 4px solid #ffc107; }
+.stats-widget.info { border-left: 4px solid #17a2b8; }
+
+.stats-content {
+    flex: 1;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stats-icon {
+    font-size: 3rem;
+    opacity: 0.3;
+}
+
+.stats-widget.primary .stats-number { color: #007bff; }
+.stats-widget.success .stats-number { color: #28a745; }
+.stats-widget.warning .stats-number { color: #ffc107; }
+.stats-widget.info .stats-number { color: #17a2b8; }
+
+/* Filter card */
+.filter-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.filter-form .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* Enrollment cards */
+.enrollments-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.enrollment-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.enrollment-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.enrollment-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.course-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.course-title a:hover {
+    color: #007bff;
+}
+
+.course-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.course-meta span {
+    margin-left: 15px;
+}
+
+.enrollment-status-info {
+    text-align: left;
+}
+
+.status-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-badge.confirmed { background-color: #d4edda; color: #155724; }
+.status-badge.pending { background-color: #fff3cd; color: #856404; }
+.status-badge.completed { background-color: #cce7ff; color: #004085; }
+.status-badge.cancelled { background-color: #f8d7da; color: #721c24; }
+
+.payment-badge {
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.payment-badge.paid { background-color: #d4edda; color: #155724; }
+.payment-badge.unpaid { background-color: #f8d7da; color: #721c24; }
+.payment-badge.partial { background-color: #fff3cd; color: #856404; }
+
+.enrollment-dates {
+    margin-top: 8px;
+    text-align: left;
+}
+
+.enrollment-details {
+    padding: 20px;
+    background: white;
+}
+
+.course-features {
+    margin-top: 10px;
+}
+
+.feature-tag {
+    display: inline-block;
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-left: 8px;
+    margin-bottom: 4px;
+}
+
+.enrollment-note {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+}
+
+.progress-section .progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.payment-info {
+    text-align: left;
+}
+
+.amount {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.amount.free {
+    color: #28a745;
+}
+
+.enrollment-actions {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-state h4 {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+/* Modal styles */
+.cancellation-warning .alert {
+    border-left: 4px solid #ff6b6b;
+}
+
+#courseToCancel {
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .stats-widget {
+        margin-bottom: 15px;
+    }
+    
+    .enrollment-header .row {
+        text-align: center;
+    }
+    
+    .enrollment-status-info {
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .status-badges {
+        justify-content: center;
+    }
+    
+    .enrollment-dates {
+        text-align: center;
+    }
+    
+    .payment-info {
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .action-buttons {
+        justify-content: center;
+    }
+}
+
+/* Loading and animation */
+.enrollment-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let enrollmentToCancel = null;
+    let courseTitle = '';
+    
+    // Cancel enrollment handlers
+    document.querySelectorAll('.cancel-enrollment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            enrollmentToCancel = this.dataset.enrollmentId;
+            courseTitle = this.dataset.courseTitle;
+            
+            document.getElementById('courseToCancel').textContent = courseTitle;
+            
+            const modal = new bootstrap.Modal(document.getElementById('cancelEnrollmentModal'));
+            modal.show();
+        });
+    });
+    
+    // Enable/disable submit button based on checkbox
+    document.getElementById('confirmCancellation').addEventListener('change', function() {
+        document.getElementById('submitCancellation').disabled = !this.checked;
+    });
+    
+    // Handle form submission
+    document.getElementById('submitCancellation').addEventListener('click', function() {
+        if (!enrollmentToCancel) return;
+        
+        const reason = document.getElementById('cancellationReason').value;
+        const comments = document.getElementById('additionalComments').value;
+        
+        if (!reason) {
+            showNotification('لطفاً دلیل لغو را انتخاب کنید.', 'error');
+            return;
+        }
+        
+        // Show loading
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال پردازش...';
+        this.disabled = true;
+        
+        fetch(`{% url 'enrollment:cancel_enrollment' 0 %}`.replace('0', enrollmentToCancel), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value || getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                reason: reason,
+                additional_comments: comments
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showNotification(data.message, 'error');
+                this.innerHTML = '<i class="fas fa-times me-2"></i>تأیید لغو';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('خطایی رخ داد. لطفاً دوباره تلاش کنید.', 'error');
+            this.innerHTML = '<i class="fas fa-times me-2"></i>تأیید لغو';
+            this.disabled = false;
+        });
+    });
+    
+    // Filter form auto-submit
+    document.querySelectorAll('.filter-form select').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; left: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 

@@ -17,22 +17,31 @@ def aboutus_view(request):
     
     # Fallback content if no AboutUs record exists
     if not about:
-        about = {
-            'title': 'درباره آکادمی زبان انگلیسی',
-            'subtitle': 'آموزش با کیفیت، آینده‌ای روشن',
-            'main_content': 'آکادمی زبان انگلیسی ما با هدف ارائه بهترین خدمات آموزشی تأسیس شده است.',
-            'students_count': 1000,
-            'teachers_count': 20,
-            'courses_count': 50,
-            'experience_years': 10,
-        }
+        # Create a simple object-like dict to avoid conflicts with dict.values() method
+        class AboutData:
+            def __init__(self):
+                self.title = 'درباره آکادمی زبان انگلیسی'
+                self.subtitle = 'آموزش با کیفیت، آینده‌ای روشن'
+                self.main_content = 'آکادمی زبان انگلیسی ما با هدف ارائه بهترین خدمات آموزشی تأسیس شده است.'
+                self.mission = 'ارائه بهترین آموزش زبان انگلیسی با استفاده از روش‌های نوین و مدرن.'
+                self.vision = 'ایجاد نسلی از فارسی‌زبانان مسلط به زبان انگلیسی که بتوانند در عرصه جهانی فعالیت کنند.'
+                self.values = 'کیفیت، تعهد، نوآوری، احترام متقابل و یادگیری مادام‌العمر از اصول بنیادین آکادمی ما محسوب می‌شوند.'
+                self.students_count = 1000
+                self.teachers_count = 20
+                self.courses_count = 50
+                self.experience_years = 10
+                self.main_image = None
+                self.team_image = None
+                self.meta_description = None
+        
+        about = AboutData()
     
     context = {
         'about': about,
         'page_title': 'درباره ما',
     }
     
-    return render(request, 'aboutus.html', context)
+    return render(request, 'contact/aboutus.html', context)
 
 
 def contactus_view(request):
@@ -105,7 +114,7 @@ def contactus_view(request):
         'page_title': 'تماس با ما',
     }
     
-    return render(request, 'contactus.html', context)
+    return render(request, 'contact/contactus.html', context)
 
 
 @require_http_methods(["POST"])

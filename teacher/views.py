@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 
 class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = 'teacher_dashboard.html'
+    template_name = 'teacher/teacher_dashboard.html'
 
     def test_func(self):
         return self.request.user.groups.filter(name='Teachers').exists()
@@ -23,31 +23,31 @@ class TeacherCourseView(LoginRequiredMixin, View):
     def get(self, request):
         teacher = request.user
         courses = Course.objects.filter(teacher=teacher) # type: ignore
-        return render(request, 'teacher_courses.html', {'courses': courses})
+        return render(request, 'teacher/teacher_courses.html', {'courses': courses})
 
 
 class TeacherCourseStudentView(LoginRequiredMixin, View):
     def get(self, request, course_id):
         course = get_object_or_404(Course, id=course_id, teacher=request.user)
         students = course.students.all()  # فرض بر اینکه یک related name داری
-        return render(request, 'teacher_course_students.html', {'course': course, 'students': students})
+        return render(request, 'teacher/teacher_course_students.html', {'course': course, 'students': students})
 
 class AllTeacherView(ListView):
     model = Teacher
-    template_name = 'teacher_list.html'
+    template_name = 'teacher/teacher_list.html'
     context_object_name = 'teachers'
     paginate_by = 10
 
 
 class TeacherDetailView(DetailView):
     model = Teacher
-    template_name = 'teacher_detail.html'
+    template_name = 'teacher/teacher_detail.html'
     context_object_name = 'teacher'
     pk_url_kwarg = 'teacher_id'
 
 @method_decorator(login_required, name='dispatch')
 class TeacherCreateCourseView(View):
-    template_name = 'teacher_create_course.html'
+    template_name = 'teacher/teacher_create_course.html'
 
     def get(self, request):
         form = CourseForm()

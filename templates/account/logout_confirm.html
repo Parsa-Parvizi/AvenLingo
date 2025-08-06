@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}خروج از حساب کاربری{% endblock %}
+
+{% block extra_css %}
+<style>
+.logout-page {
+    padding: 60px 0;
+    background: linear-gradient(135deg, #ff7b7b 0%, #667eea 100%);
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+}
+
+.logout-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.logout-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    overflow: hidden;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logout-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+}
+
+.logout-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.1);
+}
+
+.logout-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.logout-header .user-info {
+    margin-top: 10px;
+    opacity: 0.9;
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.logout-body {
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.logout-icon {
+    font-size: 4rem;
+    color: #ff6b6b;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.logout-message {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.logout-stats {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 30px 0;
+    border-left: 4px solid #ff6b6b;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff6b6b;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-logout {
+    padding: 12px 30px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+    color: white;
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.security-note {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #0d47a1;
+}
+
+.security-note i {
+    color: #2196f3;
+    margin-left: 8px;
+}
+
+.back-soon {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border-radius: 12px;
+    border-left: 4px solid #28a745;
+}
+
+.back-soon h4 {
+    color: #28a745;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-links {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+}
+
+.quick-links li {
+    margin: 8px 0;
+}
+
+.quick-links a {
+    color: #28a745;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.quick-links a:hover {
+    color: #1e7e34;
+    transform: translateX(-3px);
+}
+
+@media (max-width: 576px) {
+    .logout-page {
+        padding: 30px 15px;
+    }
+    
+    .logout-header {
+        padding: 25px 20px;
+    }
+    
+    .logout-body {
+        padding: 30px 20px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="logout-page">
+    <div class="logout-container">
+        <div class="logout-card">
+            <div class="logout-header">
+                <h1><i class="fas fa-sign-out-alt"></i> خروج از حساب کاربری</h1>
+                <div class="user-info">
+                    <strong>{{ user_name }}</strong>
+                    {% if user_type_display %}
+                        <span>({{ user_type_display }})</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="logout-body">
+                <div class="logout-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                
+                <div class="logout-message">
+                    آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟
+                </div>
+
+                {% if user_type == 'student' %}
+                <div class="logout-stats">
+                    <h4 style="color: #333; margin-bottom: 10px;">
+                        <i class="fas fa-chart-line"></i>
+                        پیشرفت شما
+                    </h4>
+                    <p style="font-size: 0.9rem; color: #666;">اطلاعات جلسه فعلی شما ذخیره خواهد شد</p>
+                </div>
+                {% endif %}
+
+                <form method="post" id="logoutForm">
+                    {% csrf_token %}
+                    <div class="btn-group">
+                        <button type="submit" class="btn-logout btn-confirm" id="confirmLogout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            بله، خروج
+                        </button>
+                        <a href="{% if user_type == 'student' %}{% url 'account:student_dashboard' %}{% elif user_type == 'teacher' %}{% url 'account:teacher_dashboard' %}{% else %}{% url 'account:dashboard' %}{% endif %}" class="btn-logout btn-cancel">
+                            <i class="fas fa-times"></i>
+                            انصراف
+                        </a>
+                    </div>
+                </form>
+
+                <div class="security-note">
+                    <i class="fas fa-shield-alt"></i>
+                    برای امنیت بیشتر، تمام جلسات فعال شما بسته خواهد شد.
+                </div>
+
+                <div class="back-soon">
+                    <h4>
+                        <i class="fas fa-heart"></i>
+                        به زودی برگردید!
+                    </h4>
+                    <p style="margin: 10px 0; color: #666; font-size: 0.9rem;">
+                        ما همیشه در خدمت شما هستیم. دسترسی سریع:
+                    </p>
+                    <ul class="quick-links">
+                        <li>
+                            <a href="{% url 'core:home' %}">
+                                <i class="fas fa-home"></i>
+                                صفحه اصلی
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'course:allcourse' %}">
+                                <i class="fas fa-book"></i>
+                                مشاهده دوره‌ها
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'contact:contactus' %}">
+                                <i class="fas fa-phone"></i>
+                                تماس با پشتیبانی
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutForm = document.getElementById('logoutForm');
+    const confirmBtn = document.getElementById('confirmLogout');
+    
+    logoutForm.addEventListener('submit', function(e) {
+        // Add loading state
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال خروج...';
+        
+        // Small delay for better UX
+        setTimeout(() => {
+            // Form will submit naturally
+        }, 500);
+    });
+    
+    // Auto-logout after 5 minutes of inactivity on this page
+    let inactivityTimer;
+    
+    function resetTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            // Auto logout
+            logoutForm.submit();
+        }, 300000); // 5 minutes
+    }
+    
+    // Reset timer on user activity
+    document.addEventListener('mousemove', resetTimer);
+    document.addEventListener('keypress', resetTimer);
+    document.addEventListener('click', resetTimer);
+    
+    // Start timer
+    resetTimer();
+});
+</script>
+{% endblock %} 

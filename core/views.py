@@ -74,10 +74,10 @@ def determination(request):
         form = DeterminationRequestForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'application_success.html', {'message': 'درخواست تعیین سطح با موفقیت ثبت شد.'})
+            return render(request, 'core/application_success.html', {'message': 'درخواست تعیین سطح با موفقیت ثبت شد.'})
     else:
         form = DeterminationRequestForm()
-    return render(request, 'determination.html', {'form': form})
+    return render(request, 'core/determination.html', {'form': form})
 
 
 def advice(request):
@@ -86,10 +86,10 @@ def advice(request):
         form = AdviceRequestForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'application_success.html', {'message': 'درخواست مشاوره با موفقیت ثبت شد.'})
+            return render(request, 'core/application_success.html', {'message': 'درخواست مشاوره با موفقیت ثبت شد.'})
     else:
         form = AdviceRequestForm()
-    return render(request, 'advice.html', {'form': form})
+    return render(request, 'core/advice.html', {'form': form})
 
 
 def collabrate(request):
@@ -98,10 +98,10 @@ def collabrate(request):
         form = CollabrateRequestForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'application_success.html', {'message': 'درخواست همکاری با موفقیت ثبت شد.'})
+            return render(request, 'core/application_success.html', {'message': 'درخواست همکاری با موفقیت ثبت شد.'})
     else:
         form = CollabrateRequestForm()
-    return render(request, 'collabrate.html', {'form': form})
+    return render(request, 'core/collabrate.html', {'form': form})
 
 
 def request_course(request):

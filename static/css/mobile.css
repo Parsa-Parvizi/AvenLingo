@@ -490,7 +490,7 @@
   }
 }
 
-/* Footer Responsive Styles */
+/* Legacy Footer Responsive Styles - Disabled for Modern Footer
 @media (max-width: 768px) {
   .footer {
     padding: 30px 0 10px;
@@ -629,6 +629,7 @@
     font-size: 1em;
   }
 }
+*/
 
 @media (max-width: 768px) {
   .newsletter-input {

@@ -13,6 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+# DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -36,7 +37,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'account.middleware.SecurityMiddleware',  # Custom security middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'account.middleware.SessionSecurityMiddleware',  # Session security
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -45,17 +48,17 @@ MIDDLEWARE = [
 ]
 
 # Security settings for production only
-if not DEBUG:
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-else:
-    # Development settings - disable SSL redirects
-    SECURE_SSL_REDIRECT = False
+# if not DEBUG:
+#     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+#     SECURE_BROWSER_XSS_FILTER = True
+#     SECURE_CONTENT_TYPE_NOSNIFF = True
+#     X_FRAME_OPTIONS = 'DENY'
+#     SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+#     SECURE_HSTS_PRELOAD = True
+# else:
+#     # Development settings - disable SSL redirects
+#     SECURE_SSL_REDIRECT = False
 
 ROOT_URLCONF = 'EnglishTeacher.urls'
 
@@ -94,28 +97,14 @@ DATABASES = {
     }
 }
 
-# Caching configuration (Redis)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-    }
-}
+# No caching configuration needed
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 # Internationalization
@@ -154,13 +143,16 @@ if not DEBUG:
 # Admin email for notifications
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@academy.com')
 
-# Logging configuration
+# Create logs directory if it doesn't exist
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# Enhanced Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+        'detailed': {
+            'format': '{levelname} {asctime} [{name}] {process:d} {thread:d} {message}',
             'style': '{',
         },
         'simple': {
@@ -169,30 +161,94 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'formatter': 'verbose',
-        },
         'console': {
-            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-    },
-    'root': {
-        'handlers': ['file', 'console'],
-        'level': os.getenv('LOG_LEVEL', 'INFO'),
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'maxBytes': 1024*1024*10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'detailed',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'security.log'),
+            'maxBytes': 1024*1024*5,  # 5MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+        'account_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'account.log'),
+            'maxBytes': 1024*1024*5,  # 5MB
+            'backupCount': 5,
+            'formatter': 'detailed',
+        },
     },
     'loggers': {
+        'security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'account.login': {
+            'handlers': ['account_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'account.logout': {
+            'handlers': ['account_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'account.registration': {
+            'handlers': ['account_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'account.forms': {
+            'handlers': ['account_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
         'django': {
             'handlers': ['file', 'console'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
     },
+    'root': {
+        'handlers': ['file', 'console'],
+        'level': os.getenv('LOG_LEVEL', 'INFO'),
+    },
 }
 
-# Create logs directory if it doesn't exist
-os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+# Additional Security Settings
+MAX_REQUEST_SIZE = 5 * 1024 * 1024  # 5MB max request size
+CHECK_SESSION_IP = False  # Set to True in production for stricter security
+
+# Session Security Settings
+SESSION_COOKIE_SECURE = not DEBUG  # Only send cookies over HTTPS in production
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_COOKIE_AGE = 3600  # 1 hour default session timeout
+
+# CSRF Security
+CSRF_COOKIE_SECURE = not DEBUG  # Only send CSRF cookies over HTTPS in production
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Content Security Policy (for production)
+if not DEBUG:
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdnjs.cloudflare.com")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "fonts.googleapis.com")
+    CSP_FONT_SRC = ("'self'", "fonts.gstatic.com")
+    CSP_IMG_SRC = ("'self'", "data:")
+    CSP_CONNECT_SRC = ("'self'",)
+
+# Rate Limiting Settings
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'

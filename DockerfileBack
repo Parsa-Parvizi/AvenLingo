@@ -1,5 +1,6 @@
 # =============================================================================
 # English Teacher Academy - Production Dockerfile
+# Enhanced with Security, Performance, and Authentication Features
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -7,12 +8,13 @@
 # -----------------------------------------------------------------------------
 FROM python:3.11-slim as base
 
-# Set environment variables
+# Set environment variables for security and performance
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=100
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -28,10 +30,17 @@ RUN apt-get update && apt-get install -y \
     libxcb1-dev \
     curl \
     gettext \
-    && rm -rf /var/lib/apt/lists/*
+    # Security tools
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    # Logging and monitoring
+    logrotate \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Create non-root user
-RUN groupadd -r django && useradd -r -g django django
+# Create non-root user with specific UID/GID for security
+RUN groupadd -r -g 1000 django && useradd -r -g django -u 1000 django
 
 # Set work directory
 WORKDIR /app
@@ -44,8 +53,9 @@ FROM base as dependencies
 # Copy requirements
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --user --no-cache-dir -r requirements.txt
+# Upgrade pip and install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --user --no-cache-dir -r requirements.txt
 
 # -----------------------------------------------------------------------------
 # Production Stage - Final application image
@@ -56,7 +66,8 @@ FROM python:3.11-slim as production
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
-    PATH="/home/django/.local/bin:$PATH"
+    PATH="/home/django/.local/bin:$PATH" \
+    DJANGO_SETTINGS_MODULE=EnglishTeacher.settings
 
 # Install only runtime dependencies
 RUN apt-get update && apt-get install -y \
@@ -71,14 +82,26 @@ RUN apt-get update && apt-get install -y \
     libxcb1 \
     gettext \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    # Security essentials
+    ca-certificates \
+    # Log management
+    logrotate \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Create non-root user
-RUN groupadd -r django && useradd -r -g django django
+# Create non-root user with specific UID/GID
+RUN groupadd -r -g 1000 django && useradd -r -g django -u 1000 django
 
 # Create app directories with proper permissions
-RUN mkdir -p /app /app/staticfiles /app/media /app/logs /app/temp && \
-    chown -R django:django /app
+RUN mkdir -p /app /app/staticfiles /app/media /app/logs /app/logs/security /app/temp && \
+    chown -R django:django /app && \
+    # Security: Set proper permissions
+    chmod 755 /app && \
+    chmod 755 /app/staticfiles && \
+    chmod 755 /app/media && \
+    chmod 750 /app/logs && \
+    chmod 750 /app/logs/security && \
+    chmod 755 /app/temp
 
 # Copy Python packages from dependencies stage
 COPY --from=dependencies --chown=django:django /root/.local /home/django/.local
@@ -93,18 +116,58 @@ COPY --chown=django:django . .
 COPY --chown=django:django entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Create logrotate configuration for application logs
+RUN echo '/app/logs/*.log {\n\
+    daily\n\
+    missingok\n\
+    rotate 30\n\
+    compress\n\
+    delaycompress\n\
+    notifempty\n\
+    copytruncate\n\
+    su django django\n\
+}' > /etc/logrotate.d/django-app
+
+# Security: Remove sensitive files and set secure permissions
+RUN find /app -name "*.pyc" -delete && \
+    find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove any potential sensitive files
+    rm -f /app/.env* /app/secret_key.txt /app/.secret_key 2>/dev/null || true && \
+    # Set secure permissions on sensitive directories
+    chmod -R go-rwx /app/logs
+
 # Switch to non-root user
 USER django
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+# Health check with better error handling and security considerations
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health/ --max-time 10 --silent --show-error || exit 1
 
 # Expose port
 EXPOSE 8000
 
+# Security: Add labels for better container management
+LABEL maintainer="EnglishTeacher Academy" \
+      version="2.0" \
+      description="Secure Django application with authentication and logging" \
+      security.level="high"
+
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Default command
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "--keep-alive", "2", "--max-requests", "1000", "--max-requests-jitter", "100", "EnglishTeacher.wsgi:application"] 
+# Default command with enhanced security settings
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "3", \
+     "--worker-class", "sync", \
+     "--worker-connections", "1000", \
+     "--timeout", "120", \
+     "--keep-alive", "2", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
+     "--preload", \
+     "--access-logfile", "/app/logs/gunicorn_access.log", \
+     "--error-logfile", "/app/logs/gunicorn_error.log", \
+     "--log-level", "info", \
+     "--capture-output", \
+     "EnglishTeacher.wsgi:application"] 

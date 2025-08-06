@@ -100,10 +100,6 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
 # SageMath parsed files
 *.sage.py
 
@@ -168,6 +164,57 @@ secret_key.txt
 
 # Django debug toolbar
 debug_toolbar_*
+
+# ==============================================================================
+# Authentication & Security Specific
+# ==============================================================================
+
+# Log files (Security sensitive)
+logs/
+*.log
+*.log.*
+security.log
+account.log
+django.log
+
+# Session files
+sessions/
+session_data/
+
+# Cache files
+cache/
+.cache/
+redis_data/
+
+# Security scan results
+security_scan_results/
+*.scan
+
+# SSL/TLS certificates and keys
+ssl/
+certificates/
+private_keys/
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Authentication tokens and secrets
+auth_tokens/
+*.token
+api_keys.txt
+tokens.txt
+.secrets
+
+# Rate limiting data
+rate_limit_data/
+
+# Backup files with potentially sensitive data
+*.backup
+*.bak
+backups/
 
 # ==============================================================================
 # IDE & Editor Files
@@ -289,7 +336,6 @@ docker-compose.local.yml
 
 # Container volumes
 postgres_data/
-redis_data/
 elasticsearch_data/
 
 # ==============================================================================
@@ -364,6 +410,16 @@ api_keys.txt
 tokens.txt
 .secrets
 
+# Security monitoring and audit files
+security_audit/
+audit_logs/
+intrusion_detection/
+
+# Blacklist and security data
+blacklist.txt
+blocked_ips.txt
+security_events.json
+
 # ==============================================================================
 # Performance & Monitoring
 # ==============================================================================
@@ -373,6 +429,10 @@ newrelic.ini
 
 # Sentry
 .sentryclirc
+
+# Performance profiling
+profile_results/
+*.prof
 
 # ==============================================================================
 # Project Specific
@@ -399,3 +459,12 @@ test_data/
 # Third-party integrations
 integrations/local/
 local_integrations/
+
+# Student/Teacher data (GDPR compliance)
+student_data/
+teacher_data/
+personal_data/
+
+# Course content (if sensitive)
+course_materials/private/
+confidential_content/

@@ -1,17 +1,21 @@
-{% extends 'core/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ثبت‌نام دانش‌آموز{% endblock %}
+{% block title %}ثبت‌نام مدرس{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="card shadow">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4><i class="fas fa-user-plus"></i> ثبت‌نام دانش‌آموز</h4>
+                <div class="card-header bg-success text-white text-center">
+                    <h4><i class="fas fa-chalkboard-teacher"></i> ثبت‌نام مدرس</h4>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i> شما در حال ثبت‌نام به عنوان مدرس هستید. درخواست شما قبلاً تایید شده است.
+                    </div>
+
                     {% if messages %}
                         {% for message in messages %}
                             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -28,39 +32,24 @@
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
                                 {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.first_name.errors.0 }}
-                                    </div>
-                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
                                 {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.last_name.errors.0 }}
-                                    </div>
-                                {% endif %}
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
                             {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.email.errors.0 }}
-                                </div>
-                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
-                            {{ form.phone_number }}
-                            {% if form.phone_number.errors %}
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">{{ form.bio.label }}</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.phone_number.errors.0 }}
+                                    {{ form.bio.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
@@ -86,8 +75,8 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-user-plus"></i> ثبت‌نام
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus"></i> ثبت‌نام مدرس
                             </button>
                         </div>
                     </form>
@@ -95,16 +84,9 @@
                     <hr class="my-4">
                     
                     <div class="text-center">
-                        <p class="mb-2">قبلاً ثبت‌نام کرده‌اید؟</p>
+                        <p class="mb-2">قبلاً حساب کاربری دارید؟</p>
                         <a href="{% url 'account:login' %}" class="btn btn-outline-primary">
                             <i class="fas fa-sign-in-alt"></i> ورود
-                        </a>
-                    </div>
-
-                    <div class="text-center mt-3">
-                        <p class="text-muted">مدرس هستید؟</p>
-                        <a href="{% url 'account:teacher_apply' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-chalkboard-teacher"></i> درخواست همکاری
                         </a>
                     </div>
                 </div>

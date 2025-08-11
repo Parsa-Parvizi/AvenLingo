@@ -1,0 +1,63 @@
+# Testing Dependencies for English Teacher Platform
+
+# Core testing frameworks
+pytest==7.4.4
+pytest-django==4.8.0
+pytest-cov==4.1.0
+pytest-xdist==3.5.0
+pytest-mock==3.12.0
+
+# Test data generation
+factory-boy==3.3.0
+Faker==22.0.0
+
+# Database testing
+pytest-factoryboy==2.6.0
+
+# Performance testing
+pytest-benchmark==4.0.0
+
+# HTML reporting
+pytest-html==4.1.1
+
+# Test utilities
+model-bakery==1.17.0
+freezegun==1.4.0
+responses==0.24.1
+
+# Coverage tools
+coverage==7.4.0
+
+# Linting and code quality (for CI)
+flake8==7.0.0
+black==23.12.1
+isort==5.13.2
+mypy==1.8.0
+
+# Security testing
+bandit==1.7.5
+safety==2.3.5
+
+# API testing
+requests==2.31.0
+httpx==0.26.0
+
+# Mock and patching utilities
+mock==5.1.0
+unittest-mock==1.0.1
+
+# Django testing utilities
+django-test-plus==2.2.0
+django-webtest==1.9.11
+
+# Time utilities for testing
+python-dateutil==2.8.2
+
+# Memory profiling for performance tests
+memory-profiler==0.61.0
+
+# Selenium for browser testing (optional)
+selenium==4.16.0
+
+# Load testing (optional)
+locust==2.19.1 

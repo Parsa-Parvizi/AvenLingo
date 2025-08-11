@@ -7,76 +7,59 @@ from .models import (
 
 def site_data(request):
     """
-    Context processor that provides site-wide data for templates
+    Ultra-optimized context processor with minimal database queries
     """
-    
     context = {}
     
     try:
-        # Company/Academy Information (Always available)
-        try:
-            company_info = CompanyInfo.objects.first()
-            if company_info:
-                context['company_info'] = company_info
-            else:
-                # Fallback if no CompanyInfo exists
-                context['company_info'] = {
-                    'company_name': 'آکادمی زبان انگلیسی',
-                    'slogan': 'بهترین آموزش زبان انگلیسی',
-                    'main_phone': '021-12345678',
-                    'main_email': 'info@academy.com',
-                    'address': 'تهران، ایران',
-                    'about_summary': 'آکادمی زبان انگلیسی با سال‌ها تجربه در خدمت شماست',
-                    'copyright_text': 'تمامی حقوق محفوظ است'
-                }
-        except Exception:
-            context['company_info'] = None
+        # Company/Academy Information - Basic query
+        company_info = CompanyInfo.objects.first()
         
-        # Site Settings (Technical settings)
-        try:
-            site_settings = SiteSettings.objects.first()
-            context['site_settings'] = site_settings
-        except Exception:
-            context['site_settings'] = None
+        if company_info:
+            context['company_info'] = company_info
+        else:
+            # Fallback if no CompanyInfo exists
+            context['company_info'] = {
+                'company_name': 'آکادمی زبان انگلیسی',
+                'slogan': 'بهترین آموزش زبان انگلیسی',
+                'main_phone': '021-12345678',
+                'main_email': 'info@academy.com',
+                'address': 'تهران، ایران',
+                'about_summary': 'آکادمی زبان انگلیسی با سال‌ها تجربه در خدمت شماست',
+                'copyright_text': 'تمامی حقوق محفوظ است'
+            }
         
-        # Footer Data
-        try:
-            footer_sections = FooterSection.objects.filter(is_active=True).prefetch_related('links').order_by('order')
-            context['footer_sections'] = footer_sections
-        except Exception:
-            context['footer_sections'] = []
+        # Site Settings - Single query
+        site_settings = SiteSettings.objects.first()
+        context['site_settings'] = site_settings
         
-        # Social Media Links
-        try:
-            social_media = SocialMedia.objects.filter(is_active=True).order_by('order')
-            context['social_media'] = social_media
-        except Exception:
-            context['social_media'] = []
+        # Footer Data - Basic query
+        footer_sections = list(FooterSection.objects.filter(is_active=True)
+            .prefetch_related('links')
+            .order_by('order'))
+        context['footer_sections'] = footer_sections
         
-        # Contact Information
-        try:
-            contact_info = ContactInfo.objects.filter(is_active=True).order_by('order')
-            context['contact_info'] = contact_info
-        except Exception:
-            context['contact_info'] = []
+        # Social Media Links - Basic query
+        social_media = list(SocialMedia.objects.filter(is_active=True)
+            .order_by('order'))
+        context['social_media'] = social_media
+        
+        # Contact Information - Basic query
+        contact_info = list(ContactInfo.objects.filter(is_active=True)
+            .order_by('order'))
+        context['contact_info'] = contact_info
             
-        # Hero Sliders for Home Page
-        try:
-            hero_sliders = HeroSlider.objects.filter(is_active=True).order_by('order')[:5]
-            context['hero_sliders'] = hero_sliders
-        except Exception:
-            context['hero_sliders'] = []
+        # Hero Sliders for Home Page - Basic query
+        hero_sliders = list(HeroSlider.objects.filter(is_active=True)
+            .order_by('order')[:5])
+        context['hero_sliders'] = hero_sliders
             
-        # Featured Testimonials
-        try:
-            featured_testimonials = Testimonial.objects.filter(
-                is_active=True, 
-                is_featured=True
-            ).order_by('-created_at')[:3]
-            context['featured_testimonials'] = featured_testimonials
-        except Exception:
-            context['featured_testimonials'] = []
-        
+        # Featured Testimonials - Basic query
+        featured_testimonials = list(Testimonial.objects.filter(
+            is_active=True, 
+            is_featured=True
+        ).order_by('-created_at')[:3])
+        context['featured_testimonials'] = featured_testimonials
         
     except Exception as e:
         # Log error but don't break the site

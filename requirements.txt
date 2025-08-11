@@ -1,24 +1,42 @@
+# =============================================================================
+# Python Dependencies for English Teacher Academy
+# Development Environment - HTTP Only
+# =============================================================================
+
+# Core Django
+Django==4.2.23
 asgiref==3.9.0
-certifi==2025.7.9
-cffi==1.17.1
-charset-normalizer==3.4.2
-cryptography==45.0.5
-defusedxml==0.7.1
-Django==4.2
-idna==3.10
-oauthlib==3.3.1
+
+# Database
 psycopg2-binary==2.9.10
-pycparser==2.22
+
+# Image Processing
+Pillow==11.3.0
+
+# Authentication & Social Login
+social-auth-app-django==5.5.1
+social-auth-core==4.7.0
 PyJWT==2.10.1
-python-dotenv==1.1.1
+defusedxml==0.7.1
+oauthlib==3.3.1
 python3-openid==3.2.0
 requests==2.32.4
 requests-oauthlib==2.0.0
-social-auth-app-django==5.5.1
-social-auth-core==4.7.0
+
+# Utilities
+python-dotenv==1.1.1
+cryptography==45.0.5
+cffi==1.17.1
+pycparser==2.22
+certifi==2025.7.9
+charset-normalizer==3.4.2
+idna==3.10
+urllib3==2.5.0
 sqlparse==0.5.3
 tzdata==2025.2
-urllib3==2.5.0
-pillow==11.3.0
+
+# Development Server (for Docker)
 gunicorn==21.2.0
-whitenoise==6.6.0
+
+# Static Files (Optional - can be disabled)
+# whitenoise==6.6.0

@@ -158,8 +158,8 @@ EMAIL_HOST_USER=your-academy-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-specific-password
 ADMIN_EMAIL=admin@youracademy.com
 
-# Redis Configuration
-REDIS_URL=redis://redis:6379/1
+# Cache Configuration
+CACHE_DIR=/var/cache/englishteacher
 
 # Media and Static Files
 MEDIA_URL=/media/
@@ -168,8 +168,8 @@ MEDIA_ROOT=/var/www/englishteacher/media
 STATIC_ROOT=/var/www/englishteacher/static
 
 # Security Settings
-SECURE_SSL_REDIRECT=True
-SECURE_BROWSER_XSS_FILTER=True
+SECURE_SSL_REDIRECT=False
+SECURE_BROWSER_XSS_FILTER=False
 SECURE_CONTENT_TYPE_NOSNIFF=True
 X_FRAME_OPTIONS=DENY
 SECURE_HSTS_SECONDS=31536000
@@ -203,12 +203,12 @@ print(f'SECRET_KEY={secret_key}')
 ```bash
 # Create directories for persistent data
 sudo mkdir -p /var/lib/postgresql/data
-sudo mkdir -p /var/lib/redis/data
+sudo mkdir -p /var/cache/englishteacher
 sudo mkdir -p /var/www/englishteacher/{static,media,logs}
 
 # Set permissions
 sudo chown -R 999:999 /var/lib/postgresql/data
-sudo chown -R 999:999 /var/lib/redis/data
+sudo chown -R www-data:www-data /var/cache/englishteacher
 sudo chown -R $USER:$USER /var/www/englishteacher
 ```
 

@@ -56,7 +56,7 @@ class EnhancedValidationMixin:
             return False
             
         cache_key = f"rate_limit_{action_type}_{identifier}"
-        # In a real implementation, you would use Redis or database
+        # In a real implementation, you would use database
         # For now, we'll use session-based simple tracking
         
         current_time = timezone.now()

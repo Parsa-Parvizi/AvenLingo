@@ -34,7 +34,7 @@
 
 ### ✅ **6. Docker Configuration**
 - [x] **DockerfileBack recreated** - Multi-stage production build
-- [x] **Docker Compose updated** - Full stack with PostgreSQL, Redis, Nginx
+- [x] **Docker Compose updated** - Full stack with PostgreSQL, Nginx
 - [x] **Entrypoint script included** - Automated migrations and setup
 - [x] **Health checks implemented** - Service monitoring
 
@@ -119,7 +119,7 @@ Follow the comprehensive guide in: `VPS_DEPLOYMENT_GUIDE.md`
 ### ✅ **4. Technical Verification**
 - [ ] **Database connectivity** - All apps working
 - [ ] **File uploads** - Images save correctly
-- [ ] **Cache functioning** - Redis working (if enabled)
+- [ ] **Cache functioning** - File-based cache working
 - [ ] **Email sending** - Contact form notifications
 
 ---
@@ -195,7 +195,7 @@ Follow the comprehensive guide in: `VPS_DEPLOYMENT_GUIDE.md`
 ### ✅ **Optimization Steps**
 - [ ] **Static files collected** - `collectstatic` completed
 - [ ] **Database indexed** - Common queries optimized
-- [ ] **Caching enabled** - Redis configured
+- [ ] **Caching enabled** - File-based cache configured
 - [ ] **Image optimization** - Proper sizes and formats
 - [ ] **CSS/JS minification** - Production assets
 

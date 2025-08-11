@@ -6,11 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import CreateView, TemplateView, UpdateView, DetailView
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 import secrets
+import json
 
 from .models import User, Student, Teacher, TeacherApplication
 from .forms import (
@@ -552,4 +555,46 @@ def check_teacher_registration(request, email):
     except TeacherApplication.DoesNotExist:
         messages.error(request, 'درخواست تایید شده‌ای برای این ایمیل یافت نشد.')
         return redirect('account:teacher_apply')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def validate_email(request):
+    """
+    AJAX view to check if an email is available for registration
+    """
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return JsonResponse({
+                'available': False,
+                'message': 'ایمیل وارد نشده است'
+            })
+        
+        # Check if email already exists
+        email_exists = User.objects.filter(email=email).exists()
+        
+        if email_exists:
+            return JsonResponse({
+                'available': False,
+                'message': 'این ایمیل قبلاً ثبت شده است'
+            })
+        else:
+            return JsonResponse({
+                'available': True,
+                'message': 'ایمیل در دسترس است'
+            })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'available': False,
+            'message': 'درخواست نامعتبر'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'available': False,
+            'message': 'خطا در بررسی ایمیل'
+        }, status=500)
 

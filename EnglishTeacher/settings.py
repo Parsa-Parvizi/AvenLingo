@@ -35,30 +35,46 @@ INSTALLED_APPS = [
     'enrollment',
 ]
 
+# Conditionally add performance & debugging tools if available
+try:
+    import debug_toolbar
+    INSTALLED_APPS.append('debug_toolbar')
+    HAS_DEBUG_TOOLBAR = True
+except ImportError:
+    HAS_DEBUG_TOOLBAR = False
+
+try:
+    import django_extensions
+    INSTALLED_APPS.append('django_extensions')
+except ImportError:
+    pass
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # Temporarily disabled
+    # 'core.middleware.QueryCountMiddleware',  # Query count monitoring - Disabled
     'account.middleware.SecurityMiddleware',  # Custom security middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'account.middleware.SessionSecurityMiddleware',  # Session security
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'account.middleware.SessionSecurityMiddleware',  # Session security
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Security settings for production only
-# if not DEBUG:
-#     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
-#     SECURE_BROWSER_XSS_FILTER = True
-#     SECURE_CONTENT_TYPE_NOSNIFF = True
-#     X_FRAME_OPTIONS = 'DENY'
-#     SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
-# else:
-#     # Development settings - disable SSL redirects
-#     SECURE_SSL_REDIRECT = False
+# Conditionally add debug toolbar middleware if available
+if DEBUG and HAS_DEBUG_TOOLBAR:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+# Security settings - HTTPS/SSL disabled
+SECURE_SSL_REDIRECT = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
 ROOT_URLCONF = 'EnglishTeacher.urls'
 
@@ -73,8 +89,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.site_data',
-                'core.context_processors.footer_data',
+                # 'core.context_processors.site_data',  # Temporarily disabled for speed
+                # 'core.context_processors.footer_data',  # Temporarily disabled for speed
             ],
         },
     },
@@ -92,7 +108,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
         'OPTIONS': {
-            'connect_timeout': 60,
+            'connect_timeout': 5,  # Reduced from 60 to 5 seconds
         },
     }
 }
@@ -143,8 +159,7 @@ if not DEBUG:
 # Admin email for notifications
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@academy.com')
 
-# Create logs directory if it doesn't exist
-os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+# Logs directory creation disabled for development speed
 
 # Enhanced Logging Configuration
 LOGGING = {
@@ -165,27 +180,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'maxBytes': 1024*1024*10,  # 10MB
-            'backupCount': 5,
-            'formatter': 'detailed',
-        },
-        'security_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'security.log'),
-            'maxBytes': 1024*1024*5,  # 5MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-        'account_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'account.log'),
-            'maxBytes': 1024*1024*5,  # 5MB
-            'backupCount': 5,
-            'formatter': 'detailed',
-        },
+        # File logging disabled for development speed
     },
     'loggers': {
         'security': {
@@ -214,14 +209,14 @@ LOGGING = {
             'propagate': False,
         },
         'django': {
-            'handlers': ['file', 'console'],
-            'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'handlers': ['console'],
+            'level': 'WARNING',  # Only warnings and errors
             'propagate': False,
         },
     },
     'root': {
-        'handlers': ['file', 'console'],
-        'level': os.getenv('LOG_LEVEL', 'INFO'),
+        'handlers': ['console'],
+        'level': 'WARNING',
     },
 }
 
@@ -230,25 +225,172 @@ MAX_REQUEST_SIZE = 5 * 1024 * 1024  # 5MB max request size
 CHECK_SESSION_IP = False  # Set to True in production for stricter security
 
 # Session Security Settings
-SESSION_COOKIE_SECURE = not DEBUG  # Only send cookies over HTTPS in production
+SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 SESSION_COOKIE_AGE = 3600  # 1 hour default session timeout
 
 # CSRF Security
-CSRF_COOKIE_SECURE = not DEBUG  # Only send CSRF cookies over HTTPS in production
+CSRF_COOKIE_SECURE = False  # Allow CSRF cookies over HTTP
 CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# Content Security Policy (for production)
-if not DEBUG:
-    CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdnjs.cloudflare.com")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "fonts.googleapis.com")
-    CSP_FONT_SRC = ("'self'", "fonts.gstatic.com")
-    CSP_IMG_SRC = ("'self'", "data:")
-    CSP_CONNECT_SRC = ("'self'",)
+# Content Security Policy - HTTP only
+CSP_DEFAULT_SRC = ("'self'", "http:", "https:")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "cdnjs.cloudflare.com")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "fonts.googleapis.com")
+CSP_FONT_SRC = ("'self'", "http:", "https:", "fonts.gstatic.com")
+CSP_IMG_SRC = ("'self'", "http:", "https:", "data:")
+CSP_CONNECT_SRC = ("'self'", "http:", "https:")
+
+# =============================================================================
+# PERFORMANCE OPTIMIZATION SETTINGS
+# =============================================================================
+
+# Debug Toolbar Configuration (only if available)
+if HAS_DEBUG_TOOLBAR:
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG and request.META.get('REMOTE_ADDR') in INTERNAL_IPS,
+        'SHOW_TEMPLATE_CONTEXT': True,
+        'ENABLE_STACKTRACES': True,
+    }
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+    'localhost',
+    '0.0.0.0',
+]
+
+# Caching Disabled
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
+print("ℹ️  Caching disabled - using dummy cache")
+print("🚀 ULTRA-FAST DEVELOPMENT MODE:")
+print("   • Database query logging disabled")
+print("   • Query count monitoring disabled")
+print("   • Caching disabled")
+print("   • Connection pooling disabled")
+print("   • Context processors disabled")
+print("   • Heavy logging disabled")
+print("   • File logging disabled")
+print("   • Fast database timeouts (5s)")
+print("   • Minimal overhead for speed")
+
+# Session Configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 3600  # 1 hour
+
+# Database Connection - Basic Settings
+if 'default' in DATABASES:
+    DATABASES['default']['CONN_MAX_AGE'] = 0  # No connection pooling
+    
+    # Basic PostgreSQL settings
+    if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+        DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+        DATABASES['default']['OPTIONS'].update({
+            'application_name': 'EnglishTeacher',
+        })
+    
+    # Basic MySQL settings
+    elif DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
+        DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+        DATABASES['default']['OPTIONS'].update({
+            'charset': 'utf8mb4',
+        })
+
+# Performance Settings
+DEBUG_PROPAGATE_EXCEPTIONS = False
+# USE_ETAGS = True  # Disabled since caching is disabled
+
+# Django Basic Settings
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'  # Standard ID generation
+
+# Database Query - Basic Settings
+CONN_MAX_AGE = 0  # No connection pooling
+OPTIMIZE_TABLE_SCANS = False  # Disable table scan optimization
+
+# Basic Upload Settings
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000  # Basic limit
+
+# Database Performance - Disabled
+DB_OPTIMIZE_QUERIES = False
+DB_OPTIMIZE_JOINS = False
+
+# Query Optimization - Clean Console Output
+if DEBUG:
+    # Clean, minimal logging for development
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'clean': {
+                'format': '{levelname:8} {message}',
+                'style': '{',
+            },
+            'performance': {
+                'format': '⚡ {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'clean',
+            },
+            'performance': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'performance',
+            },
+        },
+        'loggers': {
+            'django.db.backends': {
+                'level': 'WARNING',  # Only show warnings, not every query
+                'handlers': ['console'],
+                'propagate': False,
+            },
+            'django.utils': {
+                'level': 'WARNING',  # Reduce utility logging
+                'handlers': ['console'],
+                'propagate': False,
+            },
+            'core.middleware': {
+                'level': 'INFO',
+                'handlers': ['performance'],
+                'propagate': False,
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    }
+
+# Template Caching Disabled
+# TEMPLATES[0]['OPTIONS']['loaders'] = [
+#     ('django.template.loaders.cached.Loader', [
+#         'django.template.loaders.filesystem.Loader',
+#         'django.template.loaders.app_directories.Loader',
+#     ]),
+# ]
+
+# Static Files Performance
+# Temporarily using Django's default static files storage
+# STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+
+# Cache timeouts disabled
+# CACHE_TIMEOUTS = {
+#     'homepage': 300,      # 5 minutes
+#     'course_list': 600,   # 10 minutes  
+#     'user_profile': 1800, # 30 minutes
+#     'static_content': 3600, # 1 hour
+# }
 
 # Rate Limiting Settings
-RATELIMIT_ENABLE = True
-RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_ENABLE = False
+# RATELIMIT_USE_CACHE = 'default'

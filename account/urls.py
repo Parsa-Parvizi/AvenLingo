@@ -13,6 +13,9 @@ urlpatterns = [
     path('register/teacher/<str:email>/', views.TeacherRegistrationView.as_view(), name='teacher_register'),
     path('check-teacher-registration/<str:email>/', views.check_teacher_registration, name='check_teacher_registration'),
     
+    # AJAX URLs
+    path('validate-email/', views.validate_email, name='validate_email'),
+    
     # Dashboard URLs
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('dashboard/student/', views.StudentDashboardView.as_view(), name='student_dashboard'),

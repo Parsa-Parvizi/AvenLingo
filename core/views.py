@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Prefetch, Count
+from django.core.cache import cache
+from django.conf import settings
 from course.models import Course
 from teacher.models import Teacher
 from .models import FAQ, CourseGuide
@@ -9,52 +11,80 @@ from .forms import AdviceRequestForm, DeterminationRequestForm, CollabrateReques
 
 
 def home_view(request):
-    active_courses = Course.objects.filter(is_active=True)  # type: ignore
-    latest_courses = Course.objects.filter(is_active=True).order_by('-created_at')[:4]  # type: ignore
-    featured_courses = Course.objects.filter(is_active=True, is_featured=True)[:3]  # type: ignore
-    active_teachers = Teacher.objects.filter(is_active=True)  # type: ignore
-    faqs = FAQ.objects.filter(is_active=True)  # type: ignore
-    course_guide = CourseGuide.objects.filter(is_active=True).first()  # type: ignore
-    categories = Category.objects.filter(is_active=True)[:6]  # type: ignore
-
-    return render(request, 'home.html', {
+    """Basic home view for development"""
+    
+    # Basic queries for development
+    courses_queryset = Course.objects.filter(is_active=True).order_by('-created_at')
+    
+    # Get courses
+    latest_courses = courses_queryset[:4]
+    featured_courses = courses_queryset.filter(is_featured=True)[:3]
+    
+    # Basic teacher query
+    active_teachers = Teacher.objects.filter(
+        is_active=True,
+        registration_status='approved'
+    )[:10]
+    
+    # Basic FAQ query
+    faqs = FAQ.objects.filter(is_active=True).order_by('order')[:8]
+    
+    # Basic course guide query
+    course_guide = CourseGuide.objects.filter(is_active=True).first()
+    
+    # Basic categories query
+    categories = Category.objects.filter(is_active=True).order_by('name')[:6]
+    
+    # Prepare context data
+    context_data = {
         'page_title': "Home",
-        'courses': active_courses,
         'latest_courses': latest_courses,
         'featured_courses': featured_courses,
         'teachers': active_teachers,
         'faqs': faqs,
         'course_guide': course_guide,
         'categories': categories
-    })
+    }
+    
+    return render(request, 'home.html', context_data)
 
 
 def search_view(request):
-    query = request.GET.get('q', '')
+    """Optimized search view with query optimization"""
+    query = request.GET.get('q', '').strip()
     search_courses = request.GET.get('search_courses', False)
     search_teachers = request.GET.get('search_teachers', False)
     
     courses = []
     teachers = []
     
-    if query:
+    if query and len(query) >= 2:  # Minimum query length
         if search_courses:
-            courses = Course.objects.filter( # type: ignore
+            # Optimized course search with select_related
+            courses = Course.objects.select_related(
+                'teacher', 'teacher__user', 'category'
+            ).filter(
                 Q(title__icontains=query) |
                 Q(description__icontains=query) |
-                Q(short_description__icontains=query) | # type: ignore
                 Q(teacher__full_name__icontains=query) |
                 Q(category__name__icontains=query),
                 is_active=True
-            ).distinct()
+            ).distinct().only(
+                'id', 'title', 'description', 'price', 'level', 'slug',
+                'teacher__full_name', 'category__name', 'image'
+            )[:20]  # Limit results
         
         if search_teachers:
-            teachers = Teacher.objects.filter( # type: ignore
+            # Optimized teacher search with select_related
+            teachers = Teacher.objects.select_related('user').filter(
                 Q(full_name__icontains=query) |
                 Q(bio__icontains=query) |
-                Q(specialization__icontains=query), # type: ignore
-                is_active=True
-            ).distinct()
+                Q(expertise__icontains=query),
+                is_active=True,
+                registration_status='approved'
+            ).distinct().only(
+                'id', 'full_name', 'bio', 'expertise', 'image'
+            )[:20]  # Limit results
     
     context = {
         'query': query,

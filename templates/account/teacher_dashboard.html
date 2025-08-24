@@ -92,15 +92,21 @@
                     <div class="row text-center mt-3">
                         <div class="col-6">
                             <small class="text-muted">وضعیت</small><br>
-                            {% if teacher.is_verified %}
+                            {% if teacher.registration_status == 'approved' %}
                                 <span class="badge bg-success">تایید شده</span>
-                            {% else %}
+                            {% elif teacher.registration_status == 'pending' %}
                                 <span class="badge bg-warning">در انتظار تایید</span>
+                            {% else %}
+                                <span class="badge bg-info">ثبت‌نام کامل</span>
                             {% endif %}
                         </div>
                         <div class="col-6">
-                            <small class="text-muted">عضویت</small><br>
-                            <small>{{ teacher.joined_at|date:"Y/m/d" }}</small>
+                            <small class="text-muted">فعالیت</small><br>
+                            {% if teacher.is_active %}
+                                <span class="badge bg-success">فعال</span>
+                            {% else %}
+                                <span class="badge bg-danger">غیرفعال</span>
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -163,21 +169,131 @@
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Recent Activities -->
+    {% if recent_activities %}
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-light">
-                    <h5><i class="fas fa-clock"></i> فعالیت‌های اخیر</h5>
+                    <h5><i class="fas fa-history"></i> فعالیت‌های اخیر</h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info" role="alert">
-                        <i class="fas fa-info-circle"></i>
-                        بخش فعالیت‌های اخیر در حال توسعه است. به زودی اطلاعات کاملی از کلاس‌ها و تعاملات شما در اینجا نمایش داده خواهد شد.
+                    <div class="timeline">
+                        {% for activity in recent_activities %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-{{ activity.color }}">
+                                <i class="{{ activity.icon }}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>{{ activity.title }}</h6>
+                                <small class="text-muted">{{ activity.date|date:"Y/m/d H:i" }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+    
+    <!-- Course Management -->
+    {% if courses %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5><i class="fas fa-book"></i> مدیریت دوره‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>عنوان دوره</th>
+                                    <th>دسته‌بندی</th>
+                                    <th>وضعیت</th>
+                                    <th>دانش‌آموزان</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>{{ course.title }}</td>
+                                    <td>{{ course.category.name|default:"تعیین نشده" }}</td>
+                                    <td>
+                                        {% if course.status == 'published' %}
+                                            <span class="badge bg-success">منتشر شده</span>
+                                        {% elif course.status == 'draft' %}
+                                            <span class="badge bg-warning">پیش‌نویس</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ course.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ course.students.count }}</td>
+                                    <td>
+                                        <a href="{% url 'course:detail' course.slug %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.timeline-content h6 {
+    margin: 0;
+    color: #333;
+}
+
+.timeline-content small {
+    font-size: 0.85rem;
+}
+
+.bg-primary { background-color: #007bff !important; }
+.bg-success { background-color: #28a745 !important; }
+.bg-warning { background-color: #ffc107 !important; }
+.bg-info { background-color: #17a2b8 !important; }
+</style>
 {% endblock %} 

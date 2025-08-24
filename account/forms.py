@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -777,4 +777,102 @@ class TeacherProfileForm(forms.ModelForm):
             'bio': 'بیوگرافی',
             'specialties': 'تخصص‌ها',
             'hourly_rate': 'نرخ ساعتی (تومان)',
-        } 
+        }
+
+
+class CustomPasswordResetForm(EnhancedValidationMixin, PasswordResetForm):
+    """Enhanced password reset form with security features"""
+    
+    email = forms.EmailField(
+        label='آدرس ایمیل',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'ایمیل خود را وارد کنید',
+            'autocomplete': 'email',
+            'data-validation': 'email',
+            'required': True
+        })
+    )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').lower().strip()
+        
+        if not email:
+            raise ValidationError('آدرس ایمیل الزامی است.')
+        
+        # Check if user exists
+        if not User.objects.filter(email=email).exists():
+            # Don't reveal if email exists or not for security
+            logger.warning(f'Password reset attempted for non-existent email: {email}')
+            return email
+        
+        # Rate limiting for password reset
+        if self.check_rate_limit(email, 'password_reset', limit=3, window_minutes=15):
+            raise ValidationError('تعداد درخواست‌های شما زیاد است. لطفاً ۱۵ دقیقه صبر کنید.')
+        
+        return email
+
+
+class CustomSetPasswordForm(EnhancedValidationMixin, SetPasswordForm):
+    """Enhanced set password form for password reset"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Enhanced password fields
+        self.fields['new_password1'].help_text = (
+            "رمز عبور جدید باید حداقل ۸ کاراکتر باشد و شامل حروف، اعداد و علائم خاص باشد"
+        )
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'رمز عبور جدید',
+            'autocomplete': 'new-password',
+            'data-validation': 'password',
+            'data-strength-meter': 'true'
+        })
+        
+        self.fields['new_password2'].help_text = "رمز عبور جدید را مجدداً وارد کنید"
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'تکرار رمز عبور جدید',
+            'autocomplete': 'new-password',
+            'data-validation': 'password-confirm',
+            'data-match': 'new_password1'
+        })
+    
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        
+        if password:
+            # Enhanced password validation
+            if len(password) < 8:
+                raise ValidationError('رمز عبور باید حداقل ۸ کاراکتر باشد.')
+            
+            # Check for common patterns
+            common_patterns = [
+                r'(12345|password|123456|qwerty|admin)',
+                r'(.)\1{3,}',  # Repeated characters
+                r'^[a-z]+$',  # Only lowercase
+                r'^[A-Z]+$',  # Only uppercase
+                r'^\d+$',     # Only numbers
+            ]
+            
+            for pattern in common_patterns:
+                if re.search(pattern, password, re.IGNORECASE):
+                    raise ValidationError('رمز عبور خیلی ساده است. لطفاً رمز عبور قوی‌تری انتخاب کنید.')
+            
+            # Check password strength
+            strength_score = 0
+            if re.search(r'[a-z]', password):
+                strength_score += 1
+            if re.search(r'[A-Z]', password):
+                strength_score += 1
+            if re.search(r'\d', password):
+                strength_score += 1
+            if re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+                strength_score += 1
+            
+            if strength_score < 3:
+                raise ValidationError('رمز عبور باید شامل حروف کوچک، بزرگ، اعداد و علائم خاص باشد.')
+        
+        return password 

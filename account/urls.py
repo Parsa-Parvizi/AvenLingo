@@ -8,6 +8,16 @@ urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
     
+    # Password Reset URLs
+    path('password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
+    path('password-reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    
+    # Email Verification URLs
+    path('email-verification/', views.EmailVerificationView.as_view(), name='email_verification'),
+    path('verify-email/<int:user_id>/<str:token>/', views.verify_email, name='verify_email'),
+    
     # Registration URLs
     path('register/student/', views.StudentRegistrationView.as_view(), name='student_register'),
     path('register/teacher/<str:email>/', views.TeacherRegistrationView.as_view(), name='teacher_register'),

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -12,13 +12,20 @@ from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.tokens import default_token_generator
 import secrets
 import json
 
 from .models import User, Student, Teacher, TeacherApplication
 from .forms import (
     StudentRegistrationForm, TeacherRegistrationForm, CustomLoginForm,
-    TeacherApplicationForm, StudentProfileForm, TeacherProfileForm
+    TeacherApplicationForm, StudentProfileForm, TeacherProfileForm,
+    CustomPasswordResetForm, CustomSetPasswordForm
 )
 
 
@@ -27,7 +34,7 @@ class StudentRegistrationView(CreateView):
     model = User
     form_class = StudentRegistrationForm
     template_name = 'account/student_register.html'
-    success_url = reverse_lazy('account:login')
+    success_url = reverse_lazy('account:email_verification')
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -42,11 +49,19 @@ class StudentRegistrationView(CreateView):
             
         response = super().form_valid(form)
         
+        # Set user as inactive until email verification
+        user = form.instance
+        user.is_active = False  # Will be activated after email verification
+        user.save(update_fields=['is_active'])
+        
+        # Send verification email
+        self.send_welcome_email(user)
+        
         # Enhanced success message with user's name
         user_name = form.cleaned_data.get('first_name', 'کاربر')
         messages.success(
             self.request,
-            f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد. لطفاً وارد شوید.'
+            f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد. لطفاً ایمیل خود را تایید کنید.'
         )
         
         # Log successful registration
@@ -55,6 +70,30 @@ class StudentRegistrationView(CreateView):
         logger.info(f'Student registered successfully: {form.cleaned_data["email"]}')
         
         return response
+    
+    def send_welcome_email(self, user):
+        """Send welcome email with verification link"""
+        token = secrets.token_urlsafe(32)
+        user.email_verification_token = token
+        user.save(update_fields=['email_verification_token'])
+        
+        current_site = get_current_site(self.request)
+        verification_url = f"http://{current_site.domain}/auth/verify-email/{user.id}/{token}/"
+        
+        subject = 'خوش آمدید به آکادمی زبان مبینا - تایید ایمیل'
+        message = render_to_string('account/welcome_email.html', {
+            'user': user,
+            'verification_url': verification_url,
+            'site_name': current_site.name,
+        })
+        
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email='noreply@academy.com',
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
     
     def form_invalid(self, form):
         # Log invalid form submission
@@ -160,8 +199,14 @@ class CustomLoginView(LoginView):
         return reverse_lazy('account:dashboard')
     
     def form_valid(self, form):
-        # Enhanced security logging
+        # Check if user is active (email verified)
         user = form.get_user()
+        if not user.is_active:
+            messages.error(self.request, 'حساب کاربری شما فعال نیست. لطفاً ایمیل خود را تایید کنید.')
+            logout(self.request)
+            return redirect('account:email_verification')
+        
+        # Enhanced security logging
         import logging
         logger = logging.getLogger('account.login')
         logger.info(f'Successful login: {user.email} ({user.user_type}) from IP: {self.get_client_ip()}')
@@ -412,7 +457,7 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
 
 class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    """Dashboard for teachers"""
+    """Enhanced dashboard for teachers"""
     template_name = 'account/teacher_dashboard.html'
     
     def test_func(self):
@@ -423,11 +468,79 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         teacher = get_object_or_404(Teacher, user=self.request.user)
         context['teacher'] = teacher
         
-        # Get teacher's courses and students (if course app is implemented)
-        # context['courses'] = teacher.courses.filter(is_active=True)
-        # context['total_students'] = sum(course.enrollments.count() for course in context['courses'])
+        # Get teacher's courses and students
+        from course.models import Course
+        from enrollment.models import Enrollment
+        
+        courses = Course.objects.filter(teacher=teacher, is_active=True).select_related('category')
+        context['courses'] = courses
+        
+        # Calculate total students across all courses
+        total_students = sum(course.students.count() for course in courses)
+        context['total_students'] = total_students
+        
+        # Get recent enrollments
+        recent_enrollments = Enrollment.objects.filter(
+            course__teacher=teacher
+        ).select_related('student__user', 'course').order_by('-enrolled_at')[:5]
+        context['recent_enrollments'] = recent_enrollments
+        
+        # Get course statistics
+        context['course_stats'] = {
+            'total_courses': courses.count(),
+            'published_courses': courses.filter(status='published').count(),
+            'draft_courses': courses.filter(status='draft').count(),
+            'total_students': total_students,
+            'active_students': sum(
+                course.students.filter(
+                    enrollments__status='confirmed'
+                ).count() for course in courses
+            )
+        }
+        
+        # Get recent activities
+        context['recent_activities'] = self.get_recent_activities(teacher)
         
         return context
+    
+    def get_recent_activities(self, teacher):
+        """Get recent activities for teacher dashboard"""
+        from enrollment.models import Enrollment
+        from course.models import Course
+        
+        activities = []
+        
+        # Recent course creations
+        recent_courses = Course.objects.filter(
+            teacher=teacher
+        ).order_by('-created_at')[:3]
+        
+        for course in recent_courses:
+            activities.append({
+                'type': 'course_created',
+                'title': f'دوره "{course.title}" ایجاد شد',
+                'date': course.created_at,
+                'icon': 'fas fa-book',
+                'color': 'primary'
+            })
+        
+        # Recent enrollments
+        recent_enrollments = Enrollment.objects.filter(
+            course__teacher=teacher
+        ).select_related('student__user', 'course').order_by('-enrolled_at')[:3]
+        
+        for enrollment in recent_enrollments:
+            activities.append({
+                'type': 'student_enrolled',
+                'title': f'{enrollment.student.user.get_full_name()} در دوره "{enrollment.course.title}" ثبت‌نام کرد',
+                'date': enrollment.enrolled_at,
+                'icon': 'fas fa-user-plus',
+                'color': 'success'
+            })
+        
+        # Sort activities by date
+        activities.sort(key=lambda x: x['date'], reverse=True)
+        return activities[:5]
 
 
 class TeacherApplicationView(CreateView):
@@ -485,6 +598,170 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
         return super().form_valid(form)
+
+
+# Password Reset Views
+class CustomPasswordResetView(PasswordResetView):
+    """Enhanced password reset view with security features"""
+    template_name = 'account/password_reset.html'
+    email_template_name = 'account/password_reset_email.html'
+    subject_template_name = 'account/password_reset_subject.txt'
+    success_url = reverse_lazy('account:password_reset_done')
+    form_class = CustomPasswordResetForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'بازیابی رمز عبور'
+        return context
+    
+    def form_valid(self, form):
+        # Rate limiting for password reset
+        email = form.cleaned_data['email']
+        if self.check_rate_limit(email):
+            messages.error(self.request, 'تعداد درخواست‌های شما زیاد است. لطفاً ۱۵ دقیقه صبر کنید.')
+            return self.form_invalid(form)
+        
+        # Log password reset request
+        import logging
+        logger = logging.getLogger('account.password_reset')
+        logger.info(f'Password reset requested for: {email} from IP: {self.get_client_ip()}')
+        
+        return super().form_valid(form)
+    
+    def check_rate_limit(self, email):
+        """Check rate limit for password reset requests"""
+        cache_key = f'password_reset_rate_limit_{email}'
+        from django.core.cache import cache
+        
+        if cache.get(cache_key):
+            return True
+        
+        cache.set(cache_key, True, 900)  # 15 minutes
+        return False
+    
+    def get_client_ip(self):
+        """Get client IP address"""
+        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = self.request.META.get('REMOTE_ADDR')
+        return ip
+
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    """Enhanced password reset done view"""
+    template_name = 'account/password_reset_done.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'ایمیل ارسال شد'
+        return context
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    """Enhanced password reset confirm view"""
+    template_name = 'account/password_reset_confirm.html'
+    success_url = reverse_lazy('account:password_reset_complete')
+    form_class = CustomSetPasswordForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'تغییر رمز عبور'
+        return context
+
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    """Enhanced password reset complete view"""
+    template_name = 'account/password_reset_complete.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'رمز عبور تغییر یافت'
+        return context
+
+
+# Email Verification Views
+class EmailVerificationView(LoginRequiredMixin, TemplateView):
+    """View for email verification"""
+    template_name = 'account/email_verification.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        context['page_title'] = 'تایید ایمیل'
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Send verification email"""
+        user = request.user
+        
+        if user.is_email_verified:
+            messages.info(request, 'ایمیل شما قبلاً تایید شده است.')
+            return redirect('account:dashboard')
+        
+        # Generate verification token
+        token = self.generate_verification_token(user)
+        
+        # Send verification email
+        self.send_verification_email(user, token)
+        
+        messages.success(request, 'ایمیل تایید ارسال شد. لطفاً صندوق ورودی خود را بررسی کنید.')
+        return redirect('account:email_verification')
+    
+    def generate_verification_token(self, user):
+        """Generate email verification token"""
+        token = secrets.token_urlsafe(32)
+        user.email_verification_token = token
+        user.save(update_fields=['email_verification_token'])
+        return token
+    
+    def send_verification_email(self, user, token):
+        """Send verification email"""
+        current_site = get_current_site(self.request)
+        verification_url = f"http://{current_site.domain}/auth/verify-email/{user.id}/{token}/"
+        
+        subject = 'تایید ایمیل - آکادمی زبان مبینا'
+        message = render_to_string('account/email_verification_email.html', {
+            'user': user,
+            'verification_url': verification_url,
+            'site_name': current_site.name,
+        })
+        
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email='noreply@academy.com',
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+
+def verify_email(request, user_id, token):
+    """Verify email with token"""
+    try:
+        user = User.objects.get(id=user_id, email_verification_token=token)
+        
+        if user.is_email_verified:
+            messages.info(request, 'ایمیل شما قبلاً تایید شده است.')
+        else:
+            user.is_email_verified = True
+            user.is_active = True  # Activate user after email verification
+            user.email_verification_token = ''
+            user.save(update_fields=['is_email_verified', 'is_active', 'email_verification_token'])
+            
+            messages.success(request, 'ایمیل شما با موفقیت تایید شد! حالا می‌توانید وارد شوید.')
+            
+            # Log successful verification
+            import logging
+            logger = logging.getLogger('account.email_verification')
+            logger.info(f'Email verified successfully for: {user.email}')
+        
+        return redirect('account:login')
+        
+    except User.DoesNotExist:
+        messages.error(request, 'لینک تایید نامعتبر است.')
+        return redirect('account:login')
 
 
 # Admin views for managing teacher applications

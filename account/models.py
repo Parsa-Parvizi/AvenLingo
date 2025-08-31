@@ -103,8 +103,8 @@ class AuthSystemSettings(models.Model):
     admin_phone = models.CharField('تلفن ادمین', max_length=20, default='09123456789')
     
     # Social Media
-    instagram_url = models.URLField('اینستاگرام', blank=True, default='https://instagram.com/academy')
-    telegram_url = models.URLField('تلگرام', blank=True, default='https://t.me/academy')
+    instagram_url = models.URLField('اینستاگرام', blank=True)
+    telegram_url = models.URLField('تلگرام', blank=True)
     whatsapp_number = models.CharField('واتساپ', max_length=20, blank=True, default='09123456789')
     
     created_at = models.DateTimeField('تاریخ ایجاد', auto_now_add=True)
@@ -116,6 +116,20 @@ class AuthSystemSettings(models.Model):
     
     def __str__(self):
         return f'تنظیمات {self.site_name}'
+    
+    def get_instagram_url(self):
+        """Get Instagram URL with fallback to settings default"""
+        from django.conf import settings
+        if self.instagram_url:
+            return self.instagram_url
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('INSTAGRAM_DEFAULT', '')
+    
+    def get_telegram_url(self):
+        """Get Telegram URL with fallback to settings default"""
+        from django.conf import settings
+        if self.telegram_url:
+            return self.telegram_url
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('TELEGRAM_DEFAULT', '')
     
     def save(self, *args, **kwargs):
         # Ensure only one instance exists

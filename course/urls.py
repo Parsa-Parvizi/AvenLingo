@@ -10,7 +10,7 @@ from .views import (
 app_name = 'course'
 
 urlpatterns = [
-    path('', all_courses_view, name='allcourse'),
+    path('', all_courses_view, name='all-courses'),
     path('featured/', featured_courses_view, name='featured'),
     path('latest/', latest_courses_view, name='latest'),
     path('category/<slug:category_slug>/', category_courses_view, name='category'),

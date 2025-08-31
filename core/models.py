@@ -265,7 +265,7 @@ class SiteSettings(models.Model):
 
     developer_name = models.CharField(max_length=100, default='پارسا پرویزی')
     developer_text = models.CharField(max_length=150, default='تهیه شده توسط پارسا پرویزی')
-    developer_link = models.URLField(blank=True, default='https://github.com/Parsa-Parvizi')
+    developer_link = models.URLField(blank=True)
     
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
 
@@ -275,6 +275,13 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.site_name
+    
+    def get_developer_link(self):
+        """Get developer link with fallback to settings default"""
+        from django.conf import settings
+        if self.developer_link:
+            return self.developer_link
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('GITHUB_DEVELOPER', '')
 
     def save(self, *args, **kwargs):
         if not self.pk and SiteSettings.objects.exists():

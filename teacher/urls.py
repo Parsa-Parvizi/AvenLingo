@@ -4,10 +4,10 @@ from .views import TeacherDashboardView, TeacherCourseStudentView, TeacherCourse
 app_name = 'teacher'
 
 urlpatterns = [
-    path('allteacher', AllTeacherView.as_view(), name='allteacher'),
-    path('detail/<uuid:teacher_id>', TeacherDetailView.as_view(), name='detail'),
-    path('dashboard', TeacherDashboardView.as_view(), name='teacherdashboard'),
-    path('course', TeacherCourseView.as_view, name='teachercourse'),
-    path('course/student', TeacherCourseStudentView.as_view, name='teachercourse'),
-    path('create-course/', TeacherCreateCourseView.as_view(), name='teacher_create_course'),
+    path('all-teachers/', AllTeacherView.as_view(), name='all-teachers'),
+    path('detail/<uuid:teacher_id>/', TeacherDetailView.as_view(), name='detail'),
+    path('dashboard/', TeacherDashboardView.as_view(), name='dashboard'),
+    path('courses/', TeacherCourseView.as_view, name='courses'),
+    path('courses/students/', TeacherCourseStudentView.as_view, name='course-students'),
+    path('create-course/', TeacherCreateCourseView.as_view(), name='create-course'),
 ]

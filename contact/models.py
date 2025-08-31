@@ -46,14 +46,12 @@ class ContactUs(models.Model):
     instagram = models.URLField(
         blank=True, 
         verbose_name="اینستاگرام",
-        default='https://instagram.com/academy',
         help_text="آدرس کامل صفحه اینستاگرام"
     )
     
     telegram = models.URLField(
         blank=True, 
         verbose_name="تلگرام",
-        default='https://t.me/academy',
         help_text="آدرس کانال یا گروه تلگرام"
     )
     
@@ -69,14 +67,12 @@ class ContactUs(models.Model):
     linkedin = models.URLField(
         blank=True, 
         verbose_name="لینکدین",
-        default='https://linkedin.com/company/academy',
         help_text="آدرس صفحه لینکدین شرکت"
     )
     
     youtube = models.URLField(
         blank=True, 
         verbose_name="یوتیوب",
-        default='https://youtube.com/@academy',
         help_text="آدرس کانال یوتیوب"
     )
     
@@ -116,6 +112,34 @@ class ContactUs(models.Model):
         if self.whatsapp:
             return f"https://wa.me/98{self.whatsapp[1:]}"  # حذف 0 و اضافه کردن کد کشور
         return ""
+    
+    def get_instagram_url(self):
+        """Get Instagram URL with fallback to settings default"""
+        from django.conf import settings
+        if self.instagram:
+            return self.instagram
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('INSTAGRAM_DEFAULT', '')
+    
+    def get_telegram_url(self):
+        """Get Telegram URL with fallback to settings default"""
+        from django.conf import settings
+        if self.telegram:
+            return self.telegram
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('TELEGRAM_DEFAULT', '')
+    
+    def get_linkedin_url(self):
+        """Get LinkedIn URL with fallback to settings default"""
+        from django.conf import settings
+        if self.linkedin:
+            return self.linkedin
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('LINKEDIN_DEFAULT', '')
+    
+    def get_youtube_url(self):
+        """Get YouTube URL with fallback to settings default"""
+        from django.conf import settings
+        if self.youtube:
+            return self.youtube
+        return getattr(settings, 'EXTERNAL_URLS', {}).get('YOUTUBE_DEFAULT', '')
 
 
 class AboutUs(models.Model):

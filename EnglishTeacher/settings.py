@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     # 'whitenoise.middleware.WhiteNoiseMiddleware',  # Temporarily disabled
     # 'core.middleware.QueryCountMiddleware',  # Query count monitoring - Disabled
+    'core.middleware.URLSecurityMiddleware',  # URL security and validation
+    'core.middleware.URLValidationMiddleware',  # External URL validation
+    'core.middleware.BrokenURLMiddleware',  # Handle broken URLs
     'account.middleware.SecurityMiddleware',  # Custom security middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -89,6 +92,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.external_urls',  # External URLs and CDN
+                'core.context_processors.url_security_settings',  # URL security settings
                 # 'core.context_processors.site_data',  # Temporarily disabled for speed
                 # 'core.context_processors.footer_data',  # Temporarily disabled for speed
             ],
@@ -162,63 +167,63 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@academy.com')
 # Logs directory creation disabled for development speed
 
 # Enhanced Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'detailed': {
-            'format': '{levelname} {asctime} [{name}] {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        # File logging disabled for development speed
-    },
-    'loggers': {
-        'security': {
-            'handlers': ['security_file', 'console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'account.login': {
-            'handlers': ['account_file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'account.logout': {
-            'handlers': ['account_file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'account.registration': {
-            'handlers': ['account_file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'account.forms': {
-            'handlers': ['account_file', 'console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'django': {
-            'handlers': ['console'],
-            'level': 'WARNING',  # Only warnings and errors
-            'propagate': False,
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'detailed': {
+#             'format': '{levelname} {asctime} [{name}] {process:d} {thread:d} {message}',
+#             'style': '{',
+#         },
+#         'simple': {
+#             'format': '{levelname} {message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'simple',
+#         },
+#         # File logging disabled for development speed
+#     },
+#     'loggers': {
+#         'security': {
+#             'handlers': ['security_file', 'console'],
+#             'level': 'WARNING',
+#             'propagate': False,
+#         },
+#         'account.login': {
+#             'handlers': ['account_file', 'console'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'account.logout': {
+#             'handlers': ['account_file', 'console'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'account.registration': {
+#             'handlers': ['account_file', 'console'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#         'account.forms': {
+#             'handlers': ['account_file', 'console'],
+#             'level': 'WARNING',
+#             'propagate': False,
+#         },
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'WARNING',  # Only warnings and errors
+#             'propagate': False,
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'WARNING',
+#     },
+# }
 
 # Additional Security Settings
 MAX_REQUEST_SIZE = 5 * 1024 * 1024  # 5MB max request size
@@ -243,10 +248,6 @@ CSP_FONT_SRC = ("'self'", "http:", "https:", "fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "http:", "https:", "data:")
 CSP_CONNECT_SRC = ("'self'", "http:", "https:")
 
-# =============================================================================
-# PERFORMANCE OPTIMIZATION SETTINGS
-# =============================================================================
-
 # Debug Toolbar Configuration (only if available)
 if HAS_DEBUG_TOOLBAR:
     DEBUG_TOOLBAR_CONFIG = {
@@ -259,6 +260,7 @@ INTERNAL_IPS = [
     '127.0.0.1',
     'localhost',
     '0.0.0.0',
+
 ]
 
 # Caching Disabled
@@ -267,18 +269,6 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
-
-print("ℹ️  Caching disabled - using dummy cache")
-print("🚀 ULTRA-FAST DEVELOPMENT MODE:")
-print("   • Database query logging disabled")
-print("   • Query count monitoring disabled")
-print("   • Caching disabled")
-print("   • Connection pooling disabled")
-print("   • Context processors disabled")
-print("   • Heavy logging disabled")
-print("   • File logging disabled")
-print("   • Fast database timeouts (5s)")
-print("   • Minimal overhead for speed")
 
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -394,3 +384,62 @@ if DEBUG:
 # Rate Limiting Settings
 RATELIMIT_ENABLE = False
 # RATELIMIT_USE_CACHE = 'default'
+
+# External URLs and Social Media Configuration
+EXTERNAL_URLS = {
+    # Social Media URLs
+    'INSTAGRAM_DEFAULT': 'https://instagram.com/academy',
+    'TELEGRAM_DEFAULT': 'https://t.me/academy',
+    'LINKEDIN_DEFAULT': 'https://linkedin.com/company/academy',
+    'YOUTUBE_DEFAULT': 'https://youtube.com/@academy',
+    'WHATSAPP_DEFAULT': 'https://wa.me/989123456789',
+    
+    # External CDN URLs
+    'FONT_AWESOME_CDN': 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+    'DARKMODE_JS_CDN': 'https://unpkg.com/darkmode-js/lib/darkmode-js.min.js',
+    
+    # Development URLs
+    'LOCALHOST_DEV': 'http://127.0.0.1:8000',
+    'LOCALHOST_PROD': 'http://localhost:8000',
+    
+    # GitHub URLs
+    'GITHUB_DEVELOPER': 'https://github.com/Parsa-Parvizi',
+    'GITHUB_REPO': 'https://github.com/Parsa-Parvizi/MobinaGarshasbi.git',
+    
+    # Docker and deployment URLs
+    'DOCKER_COMPOSE_RELEASE': 'https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)',
+    'DOCKER_UBUNTU_REPO': 'https://download.docker.com/linux/ubuntu',
+}
+
+# URL Validation Settings
+URL_VALIDATION = {
+    'ENABLE_EXTERNAL_URL_VALIDATION': True,
+    'TIMEOUT_SECONDS': 10,
+    'MAX_REDIRECTS': 5,
+    'ALLOWED_SCHEMES': ['http', 'https'],
+    'BLOCKED_DOMAINS': [
+        'malicious-site.com',
+        'phishing-site.com',
+    ],
+    # Development overrides
+    'SKIP_VALIDATION_IN_DEBUG': True,
+    'ALLOW_LOCALHOST_IN_DEBUG': True,
+    'DEBUG_LOGGING': True,
+}
+
+# Security Settings for URLs
+URL_SECURITY = {
+    'ENABLE_HTTPS_REDIRECT': not DEBUG,
+    'ENABLE_HSTS': not DEBUG,
+    'HSTS_SECONDS': 31536000,  # 1 year
+    'ENABLE_CONTENT_SECURITY_POLICY': True,
+    'CSP_DEFAULT_SRC': ["'self'"],
+    'CSP_SCRIPT_SRC': ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+    'CSP_STYLE_SRC': ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+    'CSP_FONT_SRC': ["'self'", "https://cdnjs.cloudflare.com"],
+    'CSP_IMG_SRC': ["'self'", "data:", "https:"],
+    # Development overrides
+    'SKIP_SECURITY_IN_DEBUG': True,
+    'ALLOW_LOCALHOST_IN_DEBUG': True,
+    'DEBUG_LOGGING': True,
+}

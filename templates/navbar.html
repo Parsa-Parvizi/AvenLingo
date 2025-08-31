@@ -2,20 +2,17 @@
 <header>
   <nav class="navbar">
     <div class="container">
-      <!-- Center - Logo and Brand Name -->
       <div class="nav-center">
-        {% comment %}
-        {% comment %} <a href="/" class="brand-link"> {% endcomment %}
-          {% comment %} <img
+        
+        <a href="/" class="brand-link">
+          <img
             src="{% static 'images/logo.png' %}"
             alt="Aurora Language Academy"
             class="logo"
           />
-          {% endcomment %}
           <h1 href="/" class="brand-text">Aven Language Academy</h1>
       </div>
 
-      <!-- Mobile Menu Button -->
       <button
         class="hamburger"
         onclick="toggleMenu()"
@@ -77,12 +74,12 @@
         <div class="nav-left">
           <ul class="nav-links">
             <li>
-              <a href="{% url 'course:allcourse' %}" class="nav-link"
+              <a href="{% url 'course:all-courses' %}" class="nav-link"
                 ><i></i> کلاس‌ها</a
               >
             </li>
             <li>
-              <a href="{% url 'teacher:allteacher' %}" class="nav-link"
+              <a href="{% url 'teacher:all-teachers' %}" class="nav-link"
                 ><i></i> اساتید</a
               >
             </li>
@@ -97,24 +94,22 @@
               >
             </li>
             <li>
-              <a href="{% url 'core:collabrate' %}" class="nav-link"
+              <a href="{% url 'core:collaborate' %}" class="nav-link"
                 ><i></i> درخواست همکاری</a
               >
             </li>
             <li>
-              <a href="{% url 'contact:aboutus' %}" class="nav-link"
+              <a href="{% url 'contact:about-us' %}" class="nav-link"
                 ><i></i> درباره ما</a
               >
             </li>
             <li>
-              <a href="{% url 'contact:contactus' %}" class="nav-link"
+              <a href="{% url 'contact:contact-us' %}" class="nav-link"
                 ><i></i> تماس با ما</a
               >
             </li>
           </ul>
         </div>
-
-        <!-- Right Side - Search and Dark Mode -->
         <div class="nav-right">
           <button
             class="search-btn"
@@ -127,13 +122,13 @@
               class="search-icon"
             />
           </button>
-          <button
+          {% comment %} <button
             onclick="toggleDarkMode()"
             id="darkmode-toggle"
             aria-label="تغییر تم"
           >
             🌓
-          </button>
+          </button> {% endcomment %}
         </div>
       </div>
     </div>

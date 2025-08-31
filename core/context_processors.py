@@ -133,7 +133,24 @@ def footer_data(request):
 def clear_site_cache():
     """
     Utility function to clear site cache when admin makes changes
-    Call this in model save methods or admin actions
+    Call this in model save methods or admin admin actions
     (Note: No caching is used anymore, this function is kept for compatibility)
     """
-    pass 
+    pass
+
+def external_urls(request):
+    """Context processor to provide external URLs to templates"""
+    return {
+        'EXTERNAL_URLS': getattr(settings, 'EXTERNAL_URLS', {}),
+        'CDN_URLS': {
+            'FONT_AWESOME': getattr(settings, 'EXTERNAL_URLS', {}).get('FONT_AWESOME_CDN', ''),
+            'DARKMODE_JS': getattr(settings, 'EXTERNAL_URLS', {}).get('DARKMODE_JS_CDN', ''),
+        }
+    }
+
+def url_security_settings(request):
+    """Context processor to provide URL security settings to templates"""
+    return {
+        'URL_SECURITY': getattr(settings, 'URL_SECURITY', {}),
+        'URL_VALIDATION': getattr(settings, 'URL_VALIDATION', {}),
+    } 

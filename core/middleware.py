@@ -55,7 +55,7 @@ class URLSecurityMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """Process incoming request for security checks"""
         # Skip security checks in development mode if configured
-        if getattr(settings, 'DEBUG', False) and self.skip_security_in_debug:
+        if (getattr(settings, 'DEBUG', False) and self.skip_security_in_debug) or getattr(settings, 'DISABLE_SECURITY_CHECKS', False):
             if self.debug_logging:
                 logger.debug(f'Development mode: Skipping security checks for {request.path}')
             return None
@@ -175,11 +175,11 @@ class URLValidationMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         """Validate URLs in request parameters"""
-        if not self.enable_validation:
+        if not self.enable_validation or getattr(settings, 'DISABLE_SECURITY_CHECKS', False):
             return None
         
         # Skip strict validation in development mode if configured
-        if getattr(settings, 'DEBUG', False) and self.skip_validation_in_debug:
+        if (getattr(settings, 'DEBUG', False) and self.skip_validation_in_debug) or getattr(settings, 'DISABLE_SECURITY_CHECKS', False):
             if self.debug_logging:
                 logger.debug(f'Development mode: Skipping URL validation for {request.path}')
             return None

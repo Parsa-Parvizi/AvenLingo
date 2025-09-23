@@ -286,7 +286,7 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
         
         # Enhanced password fields with better UX
         self.fields['password1'].help_text = (
-            "رمز عبور باید حداقل ۸ کاراکتر باشد و شامل حروف، اعداد و علائم خاص باشد"
+            "رمز عبور باید حداقل ۸ کاراکتر باشد"
         )
         self.fields['password1'].widget.attrs.update({
             'class': 'form-control',
@@ -386,36 +386,8 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
         password = self.cleaned_data.get('password1')
         
         if password:
-            # Enhanced password validation
             if len(password) < 8:
                 raise ValidationError('رمز عبور باید حداقل ۸ کاراکتر باشد.')
-            
-            # Check for common patterns
-            common_patterns = [
-                r'(12345|password|123456|qwerty|admin)',
-                r'(.)\1{3,}',  # Repeated characters
-                r'^[a-z]+$',  # Only lowercase
-                r'^[A-Z]+$',  # Only uppercase
-                r'^\d+$',     # Only numbers
-            ]
-            
-            for pattern in common_patterns:
-                if re.search(pattern, password, re.IGNORECASE):
-                    raise ValidationError('رمز عبور خیلی ساده است. لطفاً رمز عبور قوی‌تری انتخاب کنید.')
-            
-            # Check password strength
-            strength_score = 0
-            if re.search(r'[a-z]', password):
-                strength_score += 1
-            if re.search(r'[A-Z]', password):
-                strength_score += 1
-            if re.search(r'\d', password):
-                strength_score += 1
-            if re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-                strength_score += 1
-            
-            if strength_score < 3:
-                raise ValidationError('رمز عبور باید شامل حروف کوچک، بزرگ، اعداد و علائم خاص باشد.')
         
         return password
 
@@ -446,6 +418,7 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        user.user_type = 'student'
         user.is_active = True  # Will be set to False if email verification is required
         
         if commit:
@@ -460,7 +433,7 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
                 goals=', '.join(self.cleaned_data.get('learning_goals', []))
             )
             
-            logger.info(f"New student registered: {user.username} ({user.email})")
+            logger.info(f"New student registered: {user.email}")
         
         return user
 
@@ -536,14 +509,15 @@ class TeacherRegistrationForm(UserCreationForm):
 class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
     """Enhanced login form with security features and better UX"""
     
-    username = forms.EmailField(
-        label='آدرس ایمیل',
-        widget=forms.EmailInput(attrs={
+    username = forms.CharField(
+        label='ایمیل یا شماره موبایل',
+        widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'آدرس ایمیل خود را وارد کنید',
-            'autocomplete': 'email',
+            'placeholder': 'ایمیل یا شماره موبایل (0912...)',
+            'autocomplete': 'username',
             'required': True,
-            'data-validation': 'email',
+            'inputmode': 'email',
+            'data-validation': 'identifier',
             'data-realtime': 'true'
         })
     )
@@ -582,10 +556,6 @@ class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        # Remove username field since we're using email
-        if 'username' in self.fields:
-            del self.fields['username']
 
     def clean_website(self):
         """Enhanced honeypot validation"""
@@ -601,7 +571,7 @@ class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
         username = self.cleaned_data.get('username', '').lower().strip()
         
         if not username:
-            raise ValidationError('آدرس ایمیل الزامی است.')
+            raise ValidationError('ایمیل یا شماره موبایل الزامی است.')
         
         # Rate limiting for login attempts
         if self.check_rate_limit(username, 'login_attempt', limit=5, window_minutes=15):
@@ -615,24 +585,35 @@ class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
         password = self.cleaned_data.get('password')
         
         if username and password:
+            # Normalize identifier: if it looks like a phone, resolve to user's email
+            identifier = username.strip().lower()
+            phone_digits = re.sub(r'\D', '', identifier)
+            if re.match(r'^09\d{9}$', phone_digits):
+                try:
+                    student = Student.objects.get(phone_number=phone_digits)
+                    identifier = student.user.email.lower()
+                except Student.DoesNotExist:
+                    # No student with this phone
+                    pass
+            
             # Check for suspicious activity patterns
             if self.is_suspicious_activity():
-                logger.warning(f"Suspicious login activity detected for {username}")
+                logger.warning(f"Suspicious login activity detected for {identifier}")
                 raise ValidationError('فعالیت مشکوک شناسایی شد. لطفاً بعداً تلاش کنید.')
             
-            # Standard authentication
+            # Standard authentication (Django expects username=email here)
             self.user_cache = authenticate(
                 self.request, 
-                username=username, 
+                username=identifier, 
                 password=password
             )
             
             if self.user_cache is None:
-                self.log_failed_attempt(username)
-                raise ValidationError('آدرس ایمیل یا رمز عبور اشتباه است.')
+                self.log_failed_attempt(identifier)
+                raise ValidationError('شناسه (ایمیل/موبایل) یا رمز عبور اشتباه است.')
             else:
                 self.confirm_login_allowed(self.user_cache)
-                self.clear_failed_attempts(username)
+                self.clear_failed_attempts(identifier)
 
         return self.cleaned_data
 
@@ -821,7 +802,7 @@ class CustomSetPasswordForm(EnhancedValidationMixin, SetPasswordForm):
         
         # Enhanced password fields
         self.fields['new_password1'].help_text = (
-            "رمز عبور جدید باید حداقل ۸ کاراکتر باشد و شامل حروف، اعداد و علائم خاص باشد"
+            "رمز عبور جدید باید حداقل ۸ کاراکتر باشد"
         )
         self.fields['new_password1'].widget.attrs.update({
             'class': 'form-control',
@@ -844,35 +825,7 @@ class CustomSetPasswordForm(EnhancedValidationMixin, SetPasswordForm):
         password = self.cleaned_data.get('new_password1')
         
         if password:
-            # Enhanced password validation
             if len(password) < 8:
                 raise ValidationError('رمز عبور باید حداقل ۸ کاراکتر باشد.')
-            
-            # Check for common patterns
-            common_patterns = [
-                r'(12345|password|123456|qwerty|admin)',
-                r'(.)\1{3,}',  # Repeated characters
-                r'^[a-z]+$',  # Only lowercase
-                r'^[A-Z]+$',  # Only uppercase
-                r'^\d+$',     # Only numbers
-            ]
-            
-            for pattern in common_patterns:
-                if re.search(pattern, password, re.IGNORECASE):
-                    raise ValidationError('رمز عبور خیلی ساده است. لطفاً رمز عبور قوی‌تری انتخاب کنید.')
-            
-            # Check password strength
-            strength_score = 0
-            if re.search(r'[a-z]', password):
-                strength_score += 1
-            if re.search(r'[A-Z]', password):
-                strength_score += 1
-            if re.search(r'\d', password):
-                strength_score += 1
-            if re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-                strength_score += 1
-            
-            if strength_score < 3:
-                raise ValidationError('رمز عبور باید شامل حروف کوچک، بزرگ، اعداد و علائم خاص باشد.')
         
         return password 

@@ -372,6 +372,15 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
     def test_func(self):
         return self.request.user.user_type == 'student'
     
+    def dispatch(self, request, *args, **kwargs):
+        # Ensure student profile exists (create if missing)
+        try:
+            _ = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            if request.user.user_type == 'student':
+                Student.objects.create(user=request.user)
+        return super().dispatch(request, *args, **kwargs)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         student = get_object_or_404(Student, user=self.request.user)
@@ -462,6 +471,21 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
     
     def test_func(self):
         return self.request.user.user_type == 'teacher'
+    
+    def handle_no_permission(self):
+        from django.contrib import messages
+        messages.error(self.request, 'دسترسی غیرمجاز به داشبورد مدرس.')
+        return redirect('account:dashboard')
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Ensure teacher profile exists, otherwise guide user instead of 404
+        try:
+            _ = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            if request.user.user_type == 'teacher':
+                messages.error(request, 'حساب مدرس شما هنوز تکمیل/تایید نشده است. لطفاً پس از تایید ادمین ثبت‌نام مدرس را تکمیل کنید.')
+                return redirect('account:teacher_apply')
+        return super().dispatch(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

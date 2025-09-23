@@ -30,6 +30,9 @@ urlpatterns = [
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('dashboard/student/', views.StudentDashboardView.as_view(), name='student_dashboard'),
     path('dashboard/teacher/', views.TeacherDashboardView.as_view(), name='teacher_dashboard'),
+    # Plural-friendly aliases
+    path('dashboard/students/', views.StudentDashboardView.as_view(), name='students_dashboard'),
+    path('dashboard/teachers/', views.TeacherDashboardView.as_view(), name='teachers_dashboard'),
     
     # Profile URLs
     path('profile/student/', views.StudentProfileView.as_view(), name='student_profile'),

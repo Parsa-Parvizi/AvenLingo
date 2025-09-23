@@ -21,15 +21,18 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
 class TeacherCourseView(LoginRequiredMixin, View):
     def get(self, request):
-        teacher = request.user
-        courses = Course.objects.filter(teacher=teacher) # type: ignore
+        # Map logged-in user to Teacher profile
+        teacher = get_object_or_404(Teacher, user=request.user)
+        courses = Course.objects.filter(teacher=teacher).select_related('category')
         return render(request, 'teacher/teacher_courses.html', {'courses': courses})
 
 
 class TeacherCourseStudentView(LoginRequiredMixin, View):
     def get(self, request, course_id):
-        course = get_object_or_404(Course, id=course_id, teacher=request.user)
-        students = course.students.all()  # فرض بر اینکه یک related name داری
+        teacher = get_object_or_404(Teacher, user=request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        # Prefetch students; enrollment status rendering kept simple in template
+        students = course.students.select_related('user').all()
         return render(request, 'teacher/teacher_course_students.html', {'course': course, 'students': students})
 
 class AllTeacherView(ListView):
@@ -57,9 +60,11 @@ class TeacherCreateCourseView(View):
         form = CourseForm(request.POST, request.FILES)
         if form.is_valid():
             course = form.save(commit=False)
-            course.teacher = request.user.teacher_profile
-            course.status = 'pending'
+            # Assign to teacher profile
+            teacher = get_object_or_404(Teacher, user=request.user)
+            course.teacher = teacher
+            course.status = 'draft'
             course.save()
-            messages.success(request, 'کلاس شما با موفقیت ثبت شد و پس از تایید ادمین منتشر خواهد شد.')
+            messages.success(request, 'کلاس شما با موفقیت ذخیره شد. پس از تایید ادمین منتشر خواهد شد.')
             return render(request, self.template_name, {'form': CourseForm()})
         return render(request, self.template_name, {'form': form})

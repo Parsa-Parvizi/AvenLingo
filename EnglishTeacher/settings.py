@@ -71,13 +71,14 @@ if DEBUG and HAS_DEBUG_TOOLBAR:
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 # Security settings - HTTPS/SSL disabled
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = False # Should be True in production
 SECURE_BROWSER_XSS_FILTER = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_HSTS_SECONDS = 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
+# SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False # Should be True in production
+SECURE_HSTS_PRELOAD = False # Should be True in production
 
 ROOT_URLCONF = 'EnglishTeacher.urls'
 
@@ -126,6 +127,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+
 ]
 
 # Internationalization
@@ -230,13 +233,13 @@ MAX_REQUEST_SIZE = 5 * 1024 * 1024  # 5MB max request size
 CHECK_SESSION_IP = False  # Set to True in production for stricter security
 
 # Session Security Settings
-SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP
+SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP ; Should be True in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 SESSION_COOKIE_AGE = 3600  # 1 hour default session timeout
 
 # CSRF Security
-CSRF_COOKIE_SECURE = False  # Allow CSRF cookies over HTTP
+CSRF_COOKIE_SECURE = False  # Allow CSRF cookies over HTTP ; Should be True in production
 CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
 CSRF_COOKIE_SAMESITE = 'Lax'
 

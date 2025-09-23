@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}دوره‌های من{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <h2 class="mb-0 text-gradient d-flex align-items-center"><i class="fas fa-list me-2"></i>دوره‌های من</h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'teacher:create-course' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>ایجاد دوره جدید</a>
+    </div>
+  </div>
+
+  <div class="card modern-card mb-3">
+    <div class="card-body">
+      <form class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small text-muted">جستجو</label>
+          <input type="text" class="form-control" name="q" value="{{ request.GET.q }}" placeholder="عنوان دوره...">
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small text-muted">وضعیت</label>
+          <select class="form-select" name="status">
+            <option value="">همه</option>
+            <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>منتشر شده</option>
+            <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>پیش‌نویس</option>
+            <option value="archived" {% if request.GET.status == 'archived' %}selected{% endif %}>آرشیو</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small text-muted">مرتب‌سازی</label>
+          <select class="form-select" name="order">
+            <option value="-created_at" {% if request.GET.order == '-created_at' or not request.GET.order %}selected{% endif %}>جدیدترین</option>
+            <option value="created_at" {% if request.GET.order == 'created_at' %}selected{% endif %}>قدیمی‌ترین</option>
+            <option value="title" {% if request.GET.order == 'title' %}selected{% endif %}>عنوان</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3 d-flex gap-2">
+          <button class="btn btn-outline-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>اعمال</button>
+          <a class="btn btn-outline-secondary" href="?">حذف فیلتر</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card modern-card">
+    <div class="card-body p-0">
+      {% if courses %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 course-table">
+          <thead class="table-light">
+            <tr>
+              <th>عنوان</th>
+              <th>تاریخ شروع</th>
+              <th>ظرفیت</th>
+              <th>ثبت‌نام‌شده</th>
+              <th>وضعیت</th>
+              <th class="text-end">اقدامات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in courses %}
+            <tr>
+              <td class="fw-600">{{ course.title }}</td>
+              <td>{{ course.start_date }}</td>
+              <td>{{ course.capacity }}</td>
+              <td>
+                <span class="chip chip-soft-primary"><i class="fas fa-user me-1"></i>{{ course.enrolled_count }}</span>
+              </td>
+              <td>
+                {% if course.status == 'published' %}<span class="badge bg-success">منتشر شده</span>
+                {% elif course.status == 'draft' %}<span class="badge bg-secondary">پیش‌نویس</span>
+                {% else %}<span class="badge bg-warning text-dark">آرشیو</span>{% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm" role="group">
+                  <a href="{% url 'teacher:course-students' course.id %}" class="btn btn-outline-secondary"><i class="fas fa-users me-1"></i>دانش‌آموزان</a>
+                  <a href="{% url 'course:detail' course.slug %}" class="btn btn-outline-primary"><i class="fas fa-eye me-1"></i>نمایش</a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state text-center p-5">
+        <div class="empty-illustration mb-3">📚</div>
+        <h5 class="mb-1">دوره‌ای پیدا نشد</h5>
+        <p class="text-muted mb-3">می‌توانید با دکمه بالا اولین دوره خود را ایجاد کنید.</p>
+        <a href="{% url 'teacher:create-course' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>ایجاد دوره</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.text-gradient{background:linear-gradient(135deg,#1F3A93,#2C3E50);-webkit-background-clip:text;background-clip:text;color:transparent}
+.modern-card{border:none;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+.fw-600{font-weight:600}
+.course-table tbody tr{transition:background .2s}
+.course-table tbody tr:hover{background:#fafbfc}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .5rem;border-radius:999px;font-size:.85rem}
+.chip-soft-primary{background:rgba(31,58,147,.08);color:#1F3A93}
+.empty-illustration{font-size:2rem}
+</style>
+{% endblock %}

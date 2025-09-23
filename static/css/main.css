@@ -178,9 +178,31 @@ a:hover {
 
 
 /* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-primary {
   background: var(--color-accent);
   color: #333;
+  border-color: var(--color-accent);
 }
 
 .btn-primary:hover {
@@ -188,6 +210,8 @@ a:hover {
   color: var(--color-primary);
 }
 
+/* Default secondary was designed for dark backgrounds.
+   Keep it for legacy sections (e.g., hero) but provide a light-surface override below for courses. */
 .btn-secondary {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -210,6 +234,14 @@ a:hover {
   color: var(--color-primary);
 }
 
+/* Sizes */
+.btn-large,
+.btn-lg {
+  padding: 12px 20px;
+  font-size: 1rem;
+}
+
+/* Accessibility focus */
 a:focus,
 button:focus,
 input:focus,
@@ -217,6 +249,25 @@ select:focus,
 textarea:focus {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Courses page refinements for light background */
+.courses-page .filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.courses-page .btn-secondary {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.courses-page .btn-secondary:hover {
+  background: var(--color-primary);
+  color: #fff;
 }
 
 /* Loading animation for images */
@@ -325,4 +376,17 @@ textarea:focus {
     padding: 18px 8px 14px 8px;
     border-radius: 10px;
   }
+}
+
+/* Request course CTA - black background only on this section */
+.request-course-section .btn-outline {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.request-course-section .btn-outline:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }

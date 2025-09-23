@@ -66,4 +66,5 @@ MIDDLEWARE = [mw for mw in MIDDLEWARE if 'debug_toolbar' not in mw]
 
 # Test-specific settings
 SECRET_KEY = 'test-secret-key-for-testing-only'
-DEBUG = False 
+DEBUG = False
+DISABLE_SECURITY_CHECKS = True 

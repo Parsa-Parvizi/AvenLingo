@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
         ('course', '0001_initial'),
         ('account', '0001_initial'),
         ('teacher', '0001_initial'),
-        ('enrollment', '0001_initial'),
+        ('enrollment', '0002_enrollmenthistory_alter_enrollment_options_and_more'),
     ]
 
     operations = [

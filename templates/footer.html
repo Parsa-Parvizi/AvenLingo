@@ -10,7 +10,7 @@
                 <!-- Brand Section -->
                 <div class="footer-brand-section">
                     <div class="footer-logo">
-                        <img src="{% static 'images/logo.png' %}" alt="Aurora Language Academy" class="logo-img">
+                        {% comment %} <img src="{% static 'images/logo.png' %}" alt="Aurora Language Academy" class="logo-img"> {% endcomment %}
                         <div class="brand-text">
                             <h3>{{ company_info.company_name|default:"آکادمی زبان آون" }}</h3>
                             <span class="brand-slogan">{{ company_info.slogan|default:"مسیر موفقیت در زبان" }}</span>
@@ -23,11 +23,11 @@
                     
                     <div class="contact-quick">
                         <div class="contact-item">
-                            <i class="fas fa-phone-alt"></i>
+                            <span aria-hidden="true">☎</span>
                             <span>{{ company_info.main_phone|default:"021-12345678" }}</span>
                         </div>
                         <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
+                            <span aria-hidden="true">✉️</span>
                             <span>{{ company_info.main_email|default:"info@academy.com" }}</span>
                         </div>
                     </div>
@@ -36,48 +36,48 @@
                 <!-- Quick Links -->
                 <div class="footer-section">
                     <h4 class="section-title">
-                        <i class="fas fa-link"></i>
+                        <span aria-hidden="true">🔗</span>
                         دسترسی سریع
                     </h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'core:home' %}"><i class="fas fa-home"></i>صفحه اصلی</a></li>
-                        <li><a href="{% url 'course:all-courses' %}"><i class="fas fa-book-open"></i>دوره‌های آموزشی</a></li>
-                        <li><a href="{% url 'teacher:all-teachers' %}"><i class="fas fa-chalkboard-teacher"></i>اساتید</a></li>
-                        <li><a href="{% url 'contact:about-us' %}"><i class="fas fa-info-circle"></i>درباره ما</a></li>
-                        <li><a href="{% url 'contact:contact-us' %}"><i class="fas fa-phone"></i>تماس با ما</a></li>
+                        <li><a href="{% url 'core:home' %}">🏠 صفحه اصلی</a></li>
+                        <li><a href="{% url 'course:all-courses' %}">📘 دوره‌های آموزشی</a></li>
+                        <li><a href="{% url 'teacher:all-teachers' %}">👩‍🏫 اساتید</a></li>
+                        <li><a href="{% url 'contact:about-us' %}">ℹ️ درباره ما</a></li>
+                        <li><a href="{% url 'contact:contact-us' %}">☎ تماس با ما</a></li>
                     </ul>
                 </div>
 
                 <!-- Services -->
                 <div class="footer-section">
                     <h4 class="section-title">
-                        <i class="fas fa-cogs"></i>
+                        <span aria-hidden="true">🛠️</span>
                         خدمات ما
                     </h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'core:advice' %}"><i class="fas fa-user-graduate"></i>مشاوره رایگان</a></li>
-                        <li><a href="{% url 'core:determination' %}"><i class="fas fa-chart-line"></i>تعیین سطح</a></li>
-                        <li><a href="{% url 'core:collaborate' %}"><i class="fas fa-handshake"></i>همکاری با ما</a></li>
-                        <li><a href="{% url 'core:request-course' %}"><i class="fas fa-plus-circle"></i>درخواست دوره</a></li>
-                        <li><a href="{% url 'account:login' %}"><i class="fas fa-user-circle"></i>ناحیه کاربری</a></li>
+                        <li><a href="{% url 'core:advice' %}">🎓 مشاوره رایگان</a></li>
+                        <li><a href="{% url 'core:determination' %}">📈 تعیین سطح</a></li>
+                        <li><a href="{% url 'core:collaborate' %}">🤝 همکاری با ما</a></li>
+                        <li><a href="{% url 'core:request-course' %}">➕ درخواست دوره</a></li>
+                        <li><a href="{% url 'account:login' %}">👤 ناحیه کاربری</a></li>
                     </ul>
                 </div>
 
                 <!-- Contact & Social -->
                 <div class="footer-section contact-social">
                     <h4 class="section-title">
-                        <i class="fas fa-users"></i>
+                        <span aria-hidden="true">👥</span>
                         ارتباط با ما
                     </h4>
                     
                     <div class="contact-info">
                         <div class="contact-item">
-                            <i class="fas fa-map-marker-alt"></i>
+                            <span aria-hidden="true">📍</span>
                             <span>{{ company_info.address|default:"تهران، خیابان ولیعصر" }}</span>
                         </div>
                         {% if company_info.working_hours %}
                         <div class="contact-item">
-                            <i class="fas fa-clock"></i>
+                            <span aria-hidden="true">⏰</span>
                             <span>{{ company_info.working_hours }}</span>
                         </div>
                         {% endif %}
@@ -91,23 +91,23 @@
                                    target="_blank" rel="noopener noreferrer" 
                                    title="{{ social.get_platform_display }}">
                                     {% if social.platform == 'instagram' %}
-                                        <i class="fab fa-instagram"></i>
+                                        <i class="fa-brands fa-instagram"></i>
                                     {% elif social.platform == 'telegram' %}
-                                        <i class="fab fa-telegram"></i>
+                                        <i class="fa-brands fa-telegram"></i>
                                     {% elif social.platform == 'whatsapp' %}
-                                        <i class="fab fa-whatsapp"></i>
+                                        <i class="fa-brands fa-whatsapp"></i>
                                     {% elif social.platform == 'youtube' %}
-                                        <i class="fab fa-youtube"></i>
+                                        <i class="fa-brands fa-youtube"></i>
                                     {% elif social.platform == 'facebook' %}
-                                        <i class="fab fa-facebook"></i>
+                                        <i class="fa-brands fa-facebook"></i>
                                     {% else %}
-                                        <i class="fas fa-link"></i>
+                                        <span aria-hidden="true">🔗</span>
                                     {% endif %}
                                 </a>
                             {% empty %}
-                                <a href="#" class="social-btn instagram"><i class="fab fa-instagram"></i></a>
-                                <a href="#" class="social-btn telegram"><i class="fab fa-telegram"></i></a>
-                                <a href="#" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="#" class="social-btn instagram"><i class="fa-brands fa-instagram"></i></a>
+                                <a href="#" class="social-btn telegram"><i class="fa-brands fa-telegram"></i></a>
+                                <a href="#" class="social-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>
                             {% endfor %}
                         </div>
                     </div>
@@ -121,7 +121,7 @@
                             <div class="input-group">
                                 <input type="email" name="email" placeholder="ایمیل شما" required>
                                 <button type="submit">
-                                    <i class="fas fa-paper-plane"></i>
+                                    ✉️
                                 </button>
                             </div>
                         </form>
@@ -133,7 +133,7 @@
 
     <!-- Back to Top Button -->
     <button class="back-to-top" id="backToTop" aria-label="بازگشت به بالا">
-        <i class="fas fa-chevron-up"></i>
+        ↑
     </button>
 </footer>
 
@@ -229,14 +229,11 @@
 }
 
 .section-title::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 40px !important;
-    height: 3px !important;
-    background: linear-gradient(90deg, #F4D03F, #48C9B0) !important;
-    border-radius: 2px !important;
+    content: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: none !important;
+    border: none !important;
 }
 
 .section-title i {
@@ -551,17 +548,17 @@ document.querySelector('.newsletter-form')?.addEventListener('submit', function(
         // Add loading state
         const button = this.querySelector('button');
         const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         
         // Simulate subscription
         setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.innerHTML = '<i class="fa-solid fa-check"></i>';
             this.reset();
             
             // Show success message
             const successMsg = document.createElement('div');
             successMsg.className = 'success-message';
-            successMsg.innerHTML = '<i class="fas fa-check-circle"></i> ایمیل شما با موفقیت ثبت شد!';
+            successMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ایمیل شما با موفقیت ثبت شد!';
             this.appendChild(successMsg);
             
             setTimeout(() => {

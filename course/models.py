@@ -4,6 +4,10 @@ from account.models import Student
 from datetime import date
 from django.utils.text import slugify
 
+def generate_slug(value: str) -> str:
+    slug = slugify(value or "", allow_unicode=True)
+    return slug or "item"
+
 LANGUAGE_CHOICES = [
     ('english', 'انگلیسی'),
     ('french', 'فرانسه'),
@@ -36,7 +40,7 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = generate_slug(self.name)
         super().save(*args, **kwargs)
 
 
@@ -123,7 +127,7 @@ class Course(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = generate_slug(self.title or str(self.id or "course"))
         super().save(*args, **kwargs)
 
     @property

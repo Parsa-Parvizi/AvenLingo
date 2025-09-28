@@ -61,7 +61,7 @@ class PerformanceMonitor:
     def test_database_queries(self):
         """Test database query performance"""
         from course.models import Course
-        from teacher.models import Teacher
+        from account.models import Teacher
         from account.models import User
         
         query_tests = {

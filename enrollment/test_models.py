@@ -36,7 +36,7 @@ class TestEnrollmentModel(TestCase):
             password='pass123',
             user_type='teacher'
         )
-        from teacher.models import Teacher
+        from account.models import Teacher
         self.teacher = Teacher.objects.create(
             user=self.teacher_user,
             full_name='Test Teacher'
@@ -247,7 +247,7 @@ class TestEnrollmentPaymentModel(TestCase):
             password='pass123',
             user_type='teacher'
         )
-        from teacher.models import Teacher
+        from account.models import Teacher
         self.teacher = Teacher.objects.create(
             user=self.teacher_user,
             full_name='Test Teacher'

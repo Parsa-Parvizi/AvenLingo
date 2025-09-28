@@ -9,10 +9,13 @@
 .teacher-card {
     background: white;
     border-radius: 15px;
-    padding: 25px;
+    /* padding: 25px; */ /* Removed as card-body handles padding */
     text-align: center;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex; /* Added for flex column layout */
+    flex-direction: column; /* Added for flex column layout */
+    margin-top: 10px;
 }
 
 .teacher-card:hover {
@@ -20,22 +23,101 @@
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
-.teacher-card img {
+/* New Styles for Teacher Card Header and Image */
+.teacher-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Gradient background */
+    color: white;
+    padding-bottom: 0; /* Adjust padding to bring image up */
+    border-radius: 15px 15px 0 0;
+}
+
+.teacher-profile-img {
     width: 120px;
     height: 120px;
-    border-radius: 50%;
     object-fit: cover;
-    margin: 0 auto 20px;
-    border: 4px solid var(--color-primary);
+    border: 4px solid white; /* White border for contrast */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-top: 15px; /* Adjust to position correctly */
+    transition: transform 0.3s ease;
 }
 
-.teacher-card h4 {
-    color: var(--color-primary);
-    margin-bottom: 15px;
+.teacher-profile-img:hover {
+    transform: scale(1.05);
+}
+
+.teacher-profile-img.placeholder-image {
+    background: #ccc; /* Placeholder background */
+    font-size: 3rem;
+    color: #eee;
+}
+
+/* Adjustments for existing elements within the new structure */
+.teacher-card .card-title {
     font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
 }
 
-.teacher-card p {
-    color: #666;
+.teacher-card .text-muted.small {
+    font-size: 0.9rem;
+    color: #666 !important;
+}
+
+.teacher-card .card-text {
+    font-size: 0.95rem;
     line-height: 1.6;
-    margin: 0; }
+}
+
+/* Social Icons */
+.social-icons-compact {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.social-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-icon.linkedin {
+    background: #0077b5;
+}
+
+.social-icon.instagram {
+    background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af, #517fa4);
+}
+
+.social-icon.website {
+    background: #6c757d;
+}
+
+.social-icon:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+
+@media (max-width: 768px) {
+    .teacher-list {
+        grid-template-columns: 1fr;
+    }
+
+    .teacher-card {
+        padding: 20px;
+    }
+
+    .teacher-profile-img {
+        width: 100px;
+        height: 100px;
+    }
+}

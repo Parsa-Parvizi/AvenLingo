@@ -1,16 +1,198 @@
 {% extends 'base.html' %}
-{% block title %} | Collaboration{% endblock %}
+{% block title %} | درخواست همکاری{% endblock %}
 {% block content %}
-<style>* { font-family: 'Vazir', sans-serif !important; } .collabrate-form { direction: rtl; } .collabrate-form button { display: block; margin: 0 auto; text-align: center; } .success-message { color: #198754; text-align: center; margin-top: 18px; font-size: 1.1rem; font-family: 'Vazir', sans-serif; } </style>
+<style>
+* { 
+    font-family: 'Vazir', sans-serif !important; 
+} 
+.collabrate-form { 
+    direction: rtl; 
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+} 
+.collabrate-form button { 
+    display: block; 
+    margin: 20px auto; 
+    text-align: center; 
+} 
+.success-message { 
+    color: #198754; 
+    text-align: center; 
+    margin-top: 18px; 
+    font-size: 1.1rem; 
+    font-family: 'Vazir', sans-serif; 
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    direction: rtl;
+}
+.form-control:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+.file-upload-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+.file-preview {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    display: none;
+}
+.file-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.btn-remove {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+}
+</style>
 <div class="page-section">
   <h1>درخواست همکاری</h1>
-  <form method="post" enctype="multipart/form-data" class="collabrate-form">
+  <form method="post" enctype="multipart/form-data" class="collabrate-form" id="collaborationForm">
     {% csrf_token %}
-    {{ form.as_p }}
+    
+    <div class="form-group">
+        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+        {{ form.name }}
+        {% if form.name.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.name.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.email.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.phone.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+        {{ form.message }}
+        {% if form.message.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.message.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.resume.id_for_label }}">{{ form.resume.label }} (اختیاری)</label>
+        {{ form.resume }}
+        <div class="file-upload-info">
+            فرمت مجاز: PDF | حداکثر حجم: 5 مگابایت
+        </div>
+        <div class="file-preview" id="filePreview">
+            <div class="file-info">
+                <span id="fileName"></span>
+                <button type="button" class="btn-remove" onclick="removeFile()">حذف</button>
+            </div>
+        </div>
+        {% if form.resume.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.resume.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
     <button type="submit" class="btn btn-primary">ارسال درخواست</button>
   </form>
   {% if message %}
     <div class="success-message">{{ message }}</div>
   {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('{{ form.resume.id_for_label }}');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // بررسی نوع فایل
+                if (!file.name.toLowerCase().endsWith('.pdf')) {
+                    alert('فقط فایل‌های PDF مجاز هستند.');
+                    this.value = '';
+                    return;
+                }
+                
+                // بررسی حجم فایل (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('حجم فایل نباید بیشتر از 5 مگابایت باشد.');
+                    this.value = '';
+                    return;
+                }
+                
+                // نمایش پیش‌نمایش فایل
+                fileName.textContent = file.name;
+                filePreview.style.display = 'block';
+            } else {
+                filePreview.style.display = 'none';
+            }
+        });
+    }
+});
+
+function removeFile() {
+    const fileInput = document.getElementById('{{ form.resume.id_for_label }}');
+    const filePreview = document.getElementById('filePreview');
+    
+    fileInput.value = '';
+    filePreview.style.display = 'none';
+}
+
+// Form validation
+document.getElementById('collaborationForm').addEventListener('submit', function(e) {
+    const requiredFields = this.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.style.borderColor = '#dc3545';
+        } else {
+            field.style.borderColor = '#ddd';
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('لطفاً تمام فیلدهای الزامی را پر کنید.');
+    }
+});
+</script>
 {% endblock %} 

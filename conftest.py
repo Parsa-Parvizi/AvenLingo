@@ -8,7 +8,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from account.models import Student
-from teacher.models import Teacher
+from account.models import Teacher
 from course.models import Course, Category
 from enrollment.models import Enrollment
 

@@ -1,5 +1,5 @@
 * {
-  font-family: 'Vazir', sans-serif !important;
+    font-family: 'Vazir', sans-serif !important;
 }
 
 :root {
@@ -17,7 +17,7 @@ body {
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
-  font-family: 'Vazir', 'Tahoma', sans-serif;
+      font-family: 'Vazir', sans-serif;
   line-height: 1.6;
   color: #333;
   background-color: #f8f9fa;
@@ -318,7 +318,7 @@ textarea:focus {
 /* تعیین سطح، مشاوره، همکاری */
 .determination-form, .advice-form, .collabrate-form {
   max-width: 480px;
-  margin: 40px auto 0 auto;
+  margin: 40px auto 40px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(30,60,114,0.08);
@@ -333,6 +333,9 @@ textarea:focus {
   color: #1e3c72;
   margin-bottom: 6px;
   font-size: 1.05rem;
+  padding: 10px;
+  text-align: right;
+  direction: rtl;
 }
 .determination-form input, .advice-form input, .collabrate-form input,
 .determination-form textarea, .advice-form textarea, .collabrate-form textarea {
@@ -354,13 +357,15 @@ textarea:focus {
 .determination-form textarea, .advice-form textarea, .collabrate-form textarea {
   min-height: 90px;
   resize: vertical;
+  margin-top: 10px;
+  padding: 10px;
 }
 .determination-form button, .advice-form button, .collabrate-form button {
   background: #1e3c72;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 12px 0;
+  padding: 10px;
   font-size: 1.1rem;
   font-family: 'Vazir', sans-serif;
   font-weight: 700;

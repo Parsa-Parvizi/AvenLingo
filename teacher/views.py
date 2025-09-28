@@ -4,13 +4,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import View
 from django.shortcuts import render, get_object_or_404
 from course.models import Course
-from django.views.generic import ListView, DetailView
-from .models import Teacher
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from account.models import Teacher
 from course.forms import CourseForm
 from course.models import Course
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from enrollment.models import Enrollment
+
 
 class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'teacher/teacher_dashboard.html'
@@ -34,6 +36,25 @@ class TeacherCourseStudentView(LoginRequiredMixin, View):
         # Prefetch students; enrollment status rendering kept simple in template
         students = course.students.select_related('user').all()
         return render(request, 'teacher/teacher_course_students.html', {'course': course, 'students': students})
+
+class TeacherScheduleView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'teacher/schedule.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+
+class TeacherPerformanceView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'teacher/performance.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+
+class TeacherMessagesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'teacher/messages.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+
 
 class AllTeacherView(ListView):
     model = Teacher

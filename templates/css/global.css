@@ -63,7 +63,7 @@
     --spacing-2xl: 3rem;
     
     /* Typography */
-    --font-family-base: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-base: 'Vazir', sans-serif;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-md: 1rem;

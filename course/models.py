@@ -1,6 +1,6 @@
+from email.policy import default
 from django.db import models
-from teacher.models import Teacher
-from account.models import Student
+from account.models import Student, Teacher
 from datetime import date
 from django.utils.text import slugify
 
@@ -101,6 +101,7 @@ class Course(models.Model):
     start_date = models.DateField("تاریخ شروع", default=date.today)
     end_date = models.DateField("تاریخ پایان", null=True, blank=True)
     duration = models.CharField("ساعت برگزاری", max_length=50, null=True, blank=True)
+    class_time = models.CharField("طول کلاس", max_length=50, null=True, blank=True, default=0)
     total_hours = models.PositiveIntegerField("تعداد جلسات", default=10)  #type: ignore
 
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True, blank=True)
@@ -110,7 +111,7 @@ class Course(models.Model):
 
     capacity = models.PositiveIntegerField("ظرفیت", default=20) #type: ignore
     enrolled_count = models.PositiveIntegerField("تعداد ثبت‌نام شده", default=0, editable=False)  #type: ignore
-    price = models.DecimalField("شهریه", max_digits=10, decimal_places=0, default=0)
+    price = models.IntegerField("شهریه", default=0)
     location = models.CharField("محل برگزاری", max_length=150, null=True, blank=True)
 
     is_active = models.BooleanField("فعال است؟", default=True) #type: ignore

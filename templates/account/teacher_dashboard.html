@@ -3,20 +3,57 @@
 
 {% block title %}داشبورد مدرس{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<!-- Animation styles are now included in framework.css -->
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-    <!-- Welcome Header -->
+<div class="container-fluid py-4">
+    <!-- Welcome Header with Enhanced Design -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-success text-white">
-                <div class="card-body">
+            <div class="welcome-header teacher-welcome-header animate__animated animate__fadeInDown">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h3><i class="fas fa-chalkboard-teacher"></i> خوش آمدید، {{ user.get_full_name }}!</h3>
-                            <p class="mb-0">مدرس گرامی، به پنل کاربری خود خوش آمدید.</p>
+                        <div class="d-flex align-items-center">
+                            <div class="teacher-avatar-container me-3">
+                                {% if teacher.image %}
+                                    <img src="{{ teacher.image.url }}" alt="{{ user.get_full_name }}" class="teacher-avatar">
+                                {% else %}
+                                    <div class="teacher-avatar placeholder-avatar">
+                                        <i class="icon-user-tie"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="status-indicator {% if teacher.is_active %}active{% else %}inactive{% endif %}"></div>
+                            </div>
+                            <div>
+                                <h2 class="mb-1">
+                                    <i class="icon-chalkboard-teacher text-primary me-2"></i>
+                                    سلام {{ user.get_full_name }}!
+                                </h2>
+                                <p class="mb-0 text-muted">خوش آمدید به پنل مدیریت آموزشی شما</p>
+                                <div class="teacher-badges mt-2">
+                                    {% if teacher.registration_status == 'approved' %}
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>تایید شده</span>
+                                    {% endif %}
+                                    {% if teacher.is_verified %}
+                                        <span class="badge bg-info"><i class="fas fa-shield-alt me-1"></i>احراز هویت شده</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                         </div>
                         <div class="col-md-4 text-md-end">
-                            <p class="mb-0">آخرین فعالیت: {{ teacher.last_activity|date:"Y/m/d H:i" }}</p>
+                        <div class="welcome-stats">
+                            <div class="stat-item">
+                                <small class="text-muted">آخرین فعالیت</small>
+                                <div class="fw-bold">{{ teacher.last_activity|date:"Y/m/d H:i" }}</div>
+                            </div>
+                            <div class="stat-item mt-2">
+                                <small class="text-muted">عضویت از</small>
+                                <div class="fw-bold">{{ teacher.joined_at|date:"Y/m/d" }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -24,218 +61,277 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Enhanced Stats Cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card text-center border-primary">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stats-card modern-stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                 <div class="card-body">
-                    <i class="fas fa-book text-primary" style="font-size: 2rem;"></i>
-                    <h5 class="card-title mt-2">دوره‌های شما</h5>
-                    <h3 class="text-primary">{{ courses.count|default:0 }}</h3>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title text-primary">{{ course_stats.total_courses }}</h3>
+                            <p class="card-subtitle">مجموع دوره‌ها</p>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                {{ course_stats.published_courses }} منتشر شده
+                            </small>
+                        </div>
+                        <div class="stats-icon bg-primary-light">
+                            <i class="fas fa-book text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="progress-mini mt-3">
+                        <div class="progress-bar bg-primary" style="width: {% if course_stats.total_courses > 0 %}{% widthratio course_stats.published_courses course_stats.total_courses 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center border-info">
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stats-card modern-stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                 <div class="card-body">
-                    <i class="fas fa-users text-info" style="font-size: 2rem;"></i>
-                    <h5 class="card-title mt-2">دانش‌آموزان</h5>
-                    <h3 class="text-info">{{ total_students|default:0 }}</h3>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title text-info">{{ course_stats.total_students }}</h3>
+                            <p class="card-subtitle">مجموع دانش‌آموزان</p>
+                            <small class="text-success">
+                                <i class="fas fa-users me-1"></i>
+                                {{ course_stats.active_students }} فعال
+                            </small>
+                        </div>
+                        <div class="stats-icon bg-info-light">
+                            <i class="fas fa-users text-info"></i>
+                        </div>
+                    </div>
+                    <div class="progress-mini mt-3">
+                        <div class="progress-bar bg-info" style="width: {% if course_stats.total_students > 0 %}{% widthratio course_stats.active_students course_stats.total_students 100 %}{% else %}0{% endif %}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center border-warning">
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stats-card modern-stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
                 <div class="card-body">
-                    <i class="fas fa-star text-warning" style="font-size: 2rem;"></i>
-                    <h5 class="card-title mt-2">امتیاز</h5>
-                    <h3 class="text-warning">{{ teacher.rating|default:"جدید" }}</h3>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title text-warning">
+                                {% if teacher.rating %}
+                                    {{ teacher.rating|floatformat:1 }}
+                                    <small class="fs-6">/5</small>
+                                {% else %}
+                                    جدید
+                                {% endif %}
+                            </h3>
+                            <p class="card-subtitle">امتیاز شما</p>
+                            {% if teacher.rating %}
+                                <div class="rating-stars">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= teacher.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">هنوز امتیازی ندارید</small>
+                            {% endif %}
+                        </div>
+                        <div class="stats-icon bg-warning-light">
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center border-success">
+
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stats-card modern-stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
                 <div class="card-body">
-                    <i class="fas fa-money-bill text-success" style="font-size: 2rem;"></i>
-                    <h5 class="card-title mt-2">نرخ ساعتی</h5>
-                    <h3 class="text-success">
-                        {% if teacher.hourly_rate %}
-                            {{ teacher.hourly_rate|floatformat:0 }} تومان
-                        {% else %}
-                            تعین نشده
-                        {% endif %}
-                    </h3>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="card-title text-success">
+                                {% if teacher.hourly_rate %}
+                                    {{ teacher.hourly_rate|floatformat:0 }}
+                                    <small class="fs-6">تومان</small>
+                                {% else %}
+                                    تعیین نشده
+                                {% endif %}
+                            </h3>
+                            <p class="card-subtitle">نرخ ساعتی</p>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                هر جلسه
+                            </small>
+                        </div>
+                        <div class="stats-icon bg-success-light">
+                            <i class="fas fa-money-bill-wave text-success"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Dashboard Content -->
     <div class="row">
-        <!-- Profile Summary -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5><i class="fas fa-user"></i> پروفایل شما</h5>
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Quick Actions Enhanced -->
+            <div class="card modern-card mb-4 animate__animated animate__fadeInLeft">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-primary"></i>
+                        عملیات سریع
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-user-circle text-muted" style="font-size: 4rem;"></i>
-                    </div>
-                    <h6><strong>{{ user.get_full_name }}</strong></h6>
-                    <p class="text-muted mb-2">{{ user.email }}</p>
-                    
-                    {% if teacher.bio %}
-                        <p><small>{{ teacher.bio|truncatewords:20 }}</small></p>
-                    {% endif %}
-                    
-                    <div class="row text-center mt-3">
-                        <div class="col-6">
-                            <small class="text-muted">وضعیت</small><br>
-                            {% if teacher.registration_status == 'approved' %}
-                                <span class="badge bg-success">تایید شده</span>
-                            {% elif teacher.registration_status == 'pending' %}
-                                <span class="badge bg-warning">در انتظار تایید</span>
-                            {% else %}
-                                <span class="badge bg-info">ثبت‌نام کامل</span>
-                            {% endif %}
+                    <div class="row quick-actions-grid">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'teacher:create-course' %}" class="quick-action-card modern-quick-action">
+                                <div class="action-icon bg-primary-light">
+                                    <i class="fas fa-plus-circle text-primary"></i>
+                                </div>
+                                <h6>ایجاد دوره جدید</h6>
+                                <p>دوره آموزشی جدید خود را اضافه کنید</p>
+                            </a>
                         </div>
-                        <div class="col-6">
-                            <small class="text-muted">فعالیت</small><br>
-                            {% if teacher.is_active %}
-                                <span class="badge bg-success">فعال</span>
-                            {% else %}
-                                <span class="badge bg-danger">غیرفعال</span>
-                            {% endif %}
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'teacher:schedule' %}" class="quick-action-card modern-quick-action">
+                                <div class="action-icon bg-info-light">
+                                    <i class="fas fa-calendar-alt text-info"></i>
+                                </div>
+                                <h6>برنامه کلاس‌ها</h6>
+                                <p>برنامه کلاس‌های خود را مدیریت کنید</p>
+                            </a>
                         </div>
-                    </div>
-                    
-                    <div class="d-grid gap-2 mt-3">
-                        <a href="{% url 'account:teacher_profile' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-edit"></i> ویرایش پروفایل
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'teacher:performance' %}" class="quick-action-card modern-quick-action">
+                                <div class="action-icon bg-warning-light">
+                                    <i class="fas fa-chart-line text-warning"></i>
+                                </div>
+                                <h6>گزارش عملکرد</h6>
+                                <p>آمار و تحلیل عملکرد خود را ببینید</p>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'teacher:messages' %}" class="quick-action-card modern-quick-action">
+                                <div class="action-icon bg-success-light">
+                                    <i class="fas fa-comments text-success"></i>
+                                </div>
+                                <h6>پیام‌های دانش‌آموزان</h6>
+                                <p>به سوالات دانش‌آموزان پاسخ دهید</p>
+                                {% if unread_messages_count %}
+                                    <span class="notification-badge">{{ unread_messages_count }}</span>
+                                {% endif %}
+                            </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Course Management Enhanced -->
+            {% if courses %}
+            <div class="card modern-card mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-book-reader me-2 text-primary"></i> 
+                        مدیریت دوره‌ها
+                    </h5>
+                    <div class="header-actions">
+                        <a href="{% url 'teacher:teacher_courses' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>مشاهده همه
+                        </a>
+                        <a href="{% url 'teacher:create-course' %}" class="btn btn-primary btn-sm ms-2">
+                            <i class="fas fa-plus me-1"></i>دوره جدید
                         </a>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="col-md-8 mb-4">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5><i class="fas fa-tasks"></i> عملیات سریع</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-primary">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-plus-circle text-primary" style="font-size: 2rem;"></i>
-                                    <h6 class="mt-2">ایجاد دوره جدید</h6>
-                                    <a href="#" class="btn btn-primary btn-sm">شروع کنید</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-info">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-calendar text-info" style="font-size: 2rem;"></i>
-                                    <h6 class="mt-2">برنامه کلاس‌ها</h6>
-                                    <a href="#" class="btn btn-info btn-sm">مشاهده</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-warning">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-chart-line text-warning" style="font-size: 2rem;"></i>
-                                    <h6 class="mt-2">گزارش عملکرد</h6>
-                                    <a href="#" class="btn btn-warning btn-sm">نمایش</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-success">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-comments text-success" style="font-size: 2rem;"></i>
-                                    <h6 class="mt-2">پیام‌های دانش‌آموزان</h6>
-                                    <a href="#" class="btn btn-success btn-sm">پاسخ دهید</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activities -->
-    {% if recent_activities %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5><i class="fas fa-history"></i> فعالیت‌های اخیر</h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        {% for activity in recent_activities %}
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-{{ activity.color }}">
-                                <i class="{{ activity.icon }}"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6>{{ activity.title }}</h6>
-                                <small class="text-muted">{{ activity.date|date:"Y/m/d H:i" }}</small>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Course Management -->
-    {% if courses %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5><i class="fas fa-book"></i> مدیریت دوره‌ها</h5>
-                </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>عنوان دوره</th>
+                                    <th>دوره</th>
                                     <th>دسته‌بندی</th>
                                     <th>وضعیت</th>
                                     <th>دانش‌آموزان</th>
-                                    <th>عملیات</th>
+                                    <th>تاریخ ایجاد</th>
+                                    <th class="text-center">عملیات</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for course in courses %}
-                                <tr>
-                                    <td>{{ course.title }}</td>
-                                    <td>{{ course.category.name|default:"تعیین نشده" }}</td>
+                                {% for course in courses|slice:":5" %}
+                                <tr class="course-row">
                                     <td>
-                                        {% if course.status == 'published' %}
-                                            <span class="badge bg-success">منتشر شده</span>
-                                        {% elif course.status == 'draft' %}
-                                            <span class="badge bg-warning">پیش‌نویس</span>
+                                        <div class="d-flex align-items-center">
+                                            {% if course.image %}
+                                                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-thumb me-3">
+                                            {% else %}
+                                                <div class="course-thumb placeholder-thumb me-3">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <a href="{% url 'course:detail' course.slug %}" class="course-title-link">
+                                                    {{ course.title }}
+                                                </a>
+                                                {% if course.is_featured %}
+                                                    <span class="badge bg-warning ms-1">
+                                                        <i class="fas fa-star"></i>
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ course.category.name|default:"تعیین نشده" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if course.is_active %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>فعال
+                                            </span>
                                         {% else %}
-                                            <span class="badge bg-secondary">{{ course.get_status_display }}</span>
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle me-1"></i>غیرفعال
+                                            </span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ course.students.count }}</td>
                                     <td>
-                                        <a href="{% url 'course:detail' course.slug %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
+                                        <div class="d-flex align-items-center">
+                                            <span class="student-count">{{ course.enrolled_count }}</span>
+                                            <small class="text-muted ms-1">/ {{ course.capacity }}</small>
+                                            <div class="capacity-indicator ms-2">
+                                                <div class="capacity-bar">
+                                                    <div class="capacity-fill" style="width: {% widthratio course.enrolled_count course.capacity 100 %}%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ course.created_at|date:"Y/m/d" }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'teacher:edit-course' course.slug %}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               title="ویرایش دوره">
+                                            <i class="fas fa-edit"></i>
                                         </a>
+                                            <a href="{% url 'teacher:teacher_course_students' course.slug %}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="مشاهده دانش‌آموزان">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+                                            <a href="{% url 'course:detail' course.slug %}" 
+                                               class="btn btn-sm btn-outline-secondary" 
+                                               title="مشاهده دوره">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -244,56 +340,225 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
+
+            <!-- Recent Activities Enhanced -->
+            {% if recent_activities %}
+            <div class="card modern-card animate__animated animate__fadeInLeft" style="animation-delay: 0.3s;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2 text-primary"></i> 
+                        فعالیت‌های اخیر
+                    </h5>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-list me-1"></i>مشاهده همه
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="activity-timeline">
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon bg-{{ activity.color }}-light">
+                                <i class="{{ activity.icon }} text-{{ activity.color }}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h6 class="activity-title">{{ activity.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ activity.date|date:"Y/m/d H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Profile Summary Enhanced -->
+            <div class="card modern-card mb-4 animate__animated animate__fadeInRight">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i> 
+                        پروفایل شما
+                    </h5>
+                    <a href="{% url 'account:teacher_profile' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>ویرایش
+                    </a>
+                </div>
+                <div class="card-body text-center">
+                    <div class="profile-avatar-section mb-4">
+                        {% if teacher.image %}
+                            <img src="{{ teacher.image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
+                        {% else %}
+                            <div class="profile-avatar placeholder-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        {% endif %}
+                        <div class="profile-completion-ring">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring-circle" stroke="var(--color-primary)" 
+                                        stroke-width="4" fill="transparent" r="52" cx="60" cy="60"
+                                        style="stroke-dasharray: 327; stroke-dashoffset: {{ teacher.get_profile_completion_offset }}"/>
+                            </svg>
+                            <div class="completion-text">
+                                <span class="completion-percent">{{ teacher.get_profile_completion_percentage }}%</span>
+                                <small>تکمیل پروفایل</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-1">{{ user.get_full_name }}</h5>
+                    <p class="text-muted mb-2">{{ user.email }}</p>
+                    
+                    {% if teacher.bio %}
+                        <p class="profile-bio">{{ teacher.bio|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <div class="profile-stats row text-center mt-4">
+                        <div class="col-4">
+                            <div class="stat-number">{{ course_stats.total_courses }}</div>
+                            <small class="text-muted">دوره</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-number">{{ course_stats.total_students }}</div>
+                            <small class="text-muted">دانش‌آموز</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-number">
+                                {% if teacher.rating %}
+                                    {{ teacher.rating|floatformat:1 }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">امتیاز</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Overview -->
+            <div class="card modern-card mb-4 animate__animated animate__fadeInRight" style="animation-delay: 0.2s;">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i> 
+                        درآمد این ماه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="earnings-summary">
+                        <div class="earning-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="earning-label">درآمد کل</span>
+                                <span class="earning-amount text-success">
+                                    {{ monthly_earnings.total|default:0|floatformat:0 }} تومان
+                                </span>
+                            </div>
+                        </div>
+                        <div class="earning-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="earning-label">ثبت‌نام‌های جدید</span>
+                                <span class="earning-count text-info">
+                                    {{ monthly_earnings.new_enrollments|default:0 }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="earning-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="earning-label">میانگین درآمد روزانه</span>
+                                <span class="earning-amount text-primary">
+                                    {{ monthly_earnings.daily_average|default:0|floatformat:0 }} تومان
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="earnings-chart mt-3">
+                        <canvas id="earningsChart" width="100" height="50"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications & Messages -->
+            <div class="card modern-card animate__animated animate__fadeInRight" style="animation-delay: 0.3s;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bell me-2 text-primary"></i> 
+                        اعلانات
+                    </h5>
+                    <span class="badge bg-primary">{{ notifications_count|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                        <div class="notifications-list">
+                            {% for notification in notifications|slice:":5" %}
+                            <div class="notification-item">
+                                <div class="notification-icon bg-{{ notification.type }}-light">
+                                    <i class="{{ notification.icon }} text-{{ notification.type }}"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">{{ notification.title }}</h6>
+                                    <small class="text-muted">{{ notification.created_at|date:"Y/m/d H:i" }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>مشاهده همه اعلانات
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="empty-notifications text-center py-4">
+                            <i class="fas fa-bell-slash text-muted mb-3" style="font-size: 2rem;"></i>
+                            <p class="text-muted mb-0">اعلان جدیدی ندارید</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
-<style>
-.timeline {
-    position: relative;
-    padding: 20px 0;
+<!-- Chart.js for Analytics -->
+<!-- Chart.js replaced with custom charts.js -->
+<script>
+// Earnings Chart using custom library
+const ctx = document.getElementById('earningsChart');
+if (ctx) {
+    const chart = createChart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['هفته 1', 'هفته 2', 'هفته 3', 'هفته 4'],
+            datasets: [{
+                label: 'درآمد هفتگی',
+                data: [{{ weekly_earnings|default:"0,0,0,0" }}],
+                borderColor: '#1f3a93',
+                backgroundColor: 'rgba(31, 58, 147, 0.1)',
+                fill: true
+            }]
+        }
+    });
 }
 
-.timeline-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.timeline-item:hover {
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.timeline-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin-left: 15px;
-    flex-shrink: 0;
-}
-
-.timeline-content h6 {
-    margin: 0;
-    color: #333;
-}
-
-.timeline-content small {
-    font-size: 0.85rem;
-}
-
-.bg-primary { background-color: #007bff !important; }
-.bg-success { background-color: #28a745 !important; }
-.bg-warning { background-color: #ffc107 !important; }
-.bg-info { background-color: #17a2b8 !important; }
-</style>
+// Profile completion animation
+document.addEventListener('DOMContentLoaded', function() {
+    const circle = document.querySelector('.progress-ring-circle');
+    if (circle) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+        
+        setTimeout(() => {
+            const offset = circumference - ({{ teacher.get_profile_completion_percentage }} / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }, 500);
+    }
+});
+</script>
 {% endblock %} 

@@ -12,7 +12,7 @@ from django.test.utils import override_settings
 from unittest.mock import patch
 
 from account.models import Student
-from teacher.models import Teacher
+from account.models import Teacher
 from course.models import Course, Category
 from enrollment.models import Enrollment
 from core.models import FAQ, HeroSlider, Testimonial

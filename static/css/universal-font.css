@@ -1,0 +1,281 @@
+/*
+ * Universal Vazir Font Override
+ * فونت یکپارچه وزیر برای تمام سایت - اولویت بالا
+ */
+
+/* Global Font Override - Maximum Priority */
+* {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+*::before,
+*::after {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* HTML and Body */
+html {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+body {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* All Typography Elements */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+p, span, div, section, article, aside, header, footer, main, nav {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+a, strong, em, b, i, u, small, mark, del, ins, sub, sup {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* List Elements */
+ul, ol, li, dl, dt, dd {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Table Elements */
+table, thead, tbody, tfoot, tr, th, td, caption {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Form Elements */
+form, fieldset, legend, label {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+input, textarea, select, option, optgroup {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"] {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+}
+
+/* Button Elements */
+button, .btn {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Framework Specific Overrides */
+
+/* Bootstrap Classes */
+.form-control,
+.form-select,
+.form-check-label,
+.form-label,
+.form-text,
+.form-floating > label {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+}
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-light,
+.btn-dark,
+.btn-outline-primary,
+.btn-outline-secondary {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.card,
+.card-body,
+.card-title,
+.card-text,
+.card-header,
+.card-footer {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.alert,
+.alert-primary,
+.alert-secondary,
+.alert-success,
+.alert-danger,
+.alert-warning,
+.alert-info,
+.alert-light,
+.alert-dark {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.badge,
+.breadcrumb,
+.breadcrumb-item,
+.dropdown-item,
+.dropdown-menu,
+.list-group-item,
+.nav-item,
+.nav-link,
+.navbar-brand,
+.navbar-nav,
+.pagination,
+.page-link {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.modal,
+.modal-title,
+.modal-body,
+.modal-footer,
+.modal-header {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.tooltip,
+.tooltip-inner,
+.popover,
+.popover-body,
+.popover-header {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Custom Classes */
+.navbar,
+.navbar-collapse,
+.navbar-toggler {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.sidebar,
+.sidebar-menu,
+.sidebar-item {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.dashboard,
+.dashboard-card,
+.dashboard-widget {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Admin Panel Override */
+.admin-panel,
+.admin-panel *,
+.django-admin,
+.django-admin * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Third-party Libraries */
+.select2-container,
+.select2-container *,
+.select2-dropdown,
+.select2-dropdown * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.datepicker,
+.datepicker *,
+.ui-datepicker,
+.ui-datepicker * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.chosen-container,
+.chosen-container *,
+.chosen-drop,
+.chosen-drop * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Chart and Graph Libraries */
+.chart-container,
+.chart-container *,
+.chartjs-tooltip,
+.chartjs-tooltip * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Editor Libraries */
+.ck-editor,
+.ck-editor *,
+.tox,
+.tox *,
+.mce-content-body,
+.mce-content-body * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Media Queries for Different Devices */
+@media screen {
+    * {
+        font-family: 'Vazir', sans-serif !important;
+    }
+}
+
+@media print {
+    * {
+        font-family: 'Vazir', sans-serif !important;
+    }
+}
+
+@media (max-width: 768px) {
+    * {
+        font-family: 'Vazir', sans-serif !important;
+    }
+}
+
+/* Specific Element Targeting for Stubborn Elements */
+[class*="font-"],
+[class*="text-"],
+[style*="font-family"] {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Override any inline styles */
+[style] {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Ensure RTL Direction for Persian Content */
+.persian,
+.fa,
+.rtl,
+[dir="rtl"],
+[lang="fa"],
+[lang="fa-IR"] {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* Final Catch-All Rule */
+body *,
+body *::before,
+body *::after {
+    font-family: 'Vazir', sans-serif !important;
+} 

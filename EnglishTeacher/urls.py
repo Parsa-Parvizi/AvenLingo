@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import aboutus_view, contactus_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -11,8 +12,11 @@ urlpatterns = [
     path('teachers/', include('teacher.urls')),
     path('courses/', include('course.urls')),
     path('enrollment/', include('enrollment.urls')),
-    path('contact/', include('contact.urls')),
+    path('dashboard/', include('dashboard.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+
+    path('aboutus/', aboutus_view, name='aboutus'),
+    path('contactus/', contactus_view, name='contactus'),
 ]
 
 if settings.DEBUG:

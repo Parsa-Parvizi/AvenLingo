@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from course.models import Category, Course, LANGUAGE_CHOICES
-from teacher.models import Teacher
+from account.models import Teacher
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

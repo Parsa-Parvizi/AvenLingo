@@ -1,10 +1,140 @@
+/* 
+ * Universal Vazir Font Configuration
+ * فونت یکپارچه وزیر برای تمام سایت
+ */
+
 @font-face {
     font-family: 'Vazir';
     src: url('/static/fonts/Vazir.woff2') format('woff2'),
          url('/static/fonts/Vazir.woff') format('woff');
-    font-weight: normal;
+    font-weight: 100 900;
     font-style: normal;
+    font-display: swap;
+    unicode-range: U+0600-06FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE80-FEFC, U+0020-007E;
 }
+
+/* Universal Font Application */
+* {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Base Elements */
+html {
+    font-family: 'Vazir', sans-serif;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 body {
     font-family: 'Vazir', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Typography Elements */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Vazir', sans-serif !important;
+    font-weight: 700;
+}
+
+p, span, div, a, li, td, th, label, input, textarea, select, button {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Form Elements */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+}
+
+/* Button Elements */
+button,
+.btn,
+input[type="submit"],
+input[type="button"] {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Table Elements */
+table, th, td {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Navigation Elements */
+nav, .navbar, .nav-link {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Card and Panel Elements */
+.card, .panel, .modal {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Font Weight Utilities */
+.font-thin { font-weight: 100 !important; }
+.font-light { font-weight: 300 !important; }
+.font-normal { font-weight: 400 !important; }
+.font-medium { font-weight: 500 !important; }
+.font-semibold { font-weight: 600 !important; }
+.font-bold { font-weight: 700 !important; }
+.font-extrabold { font-weight: 800 !important; }
+.font-black { font-weight: 900 !important; }
+
+/* Override Common Framework Fonts */
+.bootstrap-override,
+.material-override,
+.tailwind-override {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Specific Element Overrides */
+.form-control,
+.form-select,
+.form-check-label,
+.form-label {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.alert,
+.badge,
+.breadcrumb,
+.dropdown-item,
+.list-group-item,
+.nav-item,
+.navbar-brand,
+.pagination {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Admin Panel Override */
+.admin-panel *,
+.django-admin * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Third-party Library Overrides */
+.select2-container *,
+.datepicker *,
+.tooltip *,
+.popover * {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+/* Print Media */
+@media print {
+    * {
+        font-family: 'Vazir', sans-serif !important;
+    }
 }

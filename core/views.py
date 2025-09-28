@@ -3,7 +3,7 @@ from django.db.models import Q, Prefetch, Count
 from django.core.cache import cache
 from django.conf import settings
 from course.models import Course
-from teacher.models import Teacher
+from account.models import Teacher
 from .models import FAQ, CourseGuide
 from course.models import Category
 from django.shortcuts import render, redirect
@@ -22,8 +22,7 @@ def home_view(request):
     
     # Basic teacher query
     active_teachers = Teacher.objects.filter(
-        is_active=True,
-        registration_status='approved'
+        is_active=True, is_verified=True
     )[:10]
     
     # Basic FAQ query
@@ -80,8 +79,7 @@ def search_view(request):
                 Q(full_name__icontains=query) |
                 Q(bio__icontains=query) |
                 Q(expertise__icontains=query),
-                is_active=True,
-                registration_status='approved'
+                is_active=True, is_verified=True
             ).distinct().only(
                 'id', 'full_name', 'bio', 'expertise', 'image'
             )[:20]  # Limit results
@@ -159,3 +157,23 @@ def custom_403(request, exception):
 
 def custom_400(request, exception):
     return render(request, 'errors/400.html', status=400)
+
+
+
+def aboutus_view(request):
+    return render(request, 'contact/aboutus.html')
+
+
+def contactus_view(request):
+    # Hard-coded contact info since we removed the model
+    contact_info = {
+        'mobile': '09123456789',
+        'email': 'info@academy.com'
+    }
+    
+    context = {
+        'contact_info': contact_info
+    }
+    
+    return render(request, 'contact/contactus.html', context)
+

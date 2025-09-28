@@ -458,7 +458,7 @@
   }
   
   .course-quick-info {
-    display: grid;
+    display: block;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
   }
@@ -590,7 +590,7 @@
   }
   
   .price {
-    font-size: 2rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: var(--color-secondary);
   }

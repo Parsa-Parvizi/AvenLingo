@@ -6,24 +6,23 @@
 {% block extra_css %}
 <style>
 .auth-page {
-    padding: 40px 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px 0;
+    background: #fff;
     min-height: calc(100vh - 200px);
     display: flex;
     align-items: center;
 }
 
 .auth-container {
-    max-width: 450px;
+    max-width: 420px;
     margin: 0 auto;
 }
 
 .auth-card {
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
     overflow: hidden;
-    animation: slideUp 0.6s ease-out;
 }
 
 @keyframes slideUp {
@@ -38,56 +37,57 @@
 }
 
 .auth-header {
-    background: linear-gradient(135deg, var(--color-primary, #1F3A93) 0%, var(--color-secondary, #2C3E50) 100%);
-    color: white;
-    padding: 30px;
+    background: transparent;
+    color: #111;
+    padding: 20px 24px 0 24px;
     text-align: center;
 }
 
 .auth-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     margin: 0;
     font-weight: 700;
 }
 
 .auth-header p {
-    margin: 10px 0 0;
-    opacity: 0.9;
-    font-size: 1rem;
+    margin: 6px 0 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
 }
 
 .auth-body {
-    padding: 30px;
+    padding: 20px 24px 24px 24px;
 }
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 16px;
     position: relative;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    {% comment %} margin-bottom: 8px; {% endcomment %}
     font-weight: 600;
     color: #333;
     font-size: 0.95rem;
 }
 
 .form-control {
-    width: 100%;
-    padding: 15px 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
+    width: 80%;
+    height: 30px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fff;
 }
 
 .form-control:focus {
     border-color: var(--color-primary, #1F3A93);
-    box-shadow: 0 0 0 0.2rem rgba(31, 58, 147, 0.15);
+    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.08);
     outline: none;
-    background: white;
+    background: #fff;
 }
 
 .form-control:valid {
@@ -105,21 +105,20 @@
 
 .btn-auth {
     width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, var(--color-primary, #1F3A93), var(--color-secondary, #2C3E50));
+    padding: 12px 16px;
+    background: var(--color-primary, #1F3A93);
     color: white;
     border: none;
-    border-radius: 12px;
-    font-size: 1.1rem;
+    border-radius: 10px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 12px;
 }
 
 .btn-auth:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(31, 58, 147, 0.3);
+    box-shadow: 0 8px 20px rgba(31, 58, 147, 0.2);
 }
 
 .btn-auth:active {
@@ -128,10 +127,10 @@
 
 .divider {
     text-align: center;
-    margin: 25px 0;
+    margin: 16px 0;
     position: relative;
-    color: #6c757d;
-    font-size: 0.9rem;
+    color: #6b7280;
+    font-size: 0.85rem;
 }
 
 .divider::before {
@@ -175,13 +174,11 @@
 .auth-link.primary {
     background: linear-gradient(135deg, #28a745, #20c997);
     color: white;
-    border-color: transparent;
 }
 
 .auth-link.secondary {
     background: linear-gradient(135deg, #17a2b8, #6f42c1);
     color: white;
-    border-color: transparent;
 }
 
 .auth-link:hover {
@@ -224,6 +221,52 @@
     color: #6c757d;
     cursor: pointer;
     font-size: 1.1rem;
+}
+
+/* Auth actions (remember + forgot) */
+.auth-actions {
+    gap: 12px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.auth-actions > * {
+    white-space: nowrap;
+}
+
+.remember-me {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    height: 40px;
+}
+
+.remember-me input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary, #1F3A93);
+}
+
+.forgot-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-primary, #1F3A93);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    height: 40px;
+}
+
+.forgot-link:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
 }
 
 .form-floating {
@@ -284,8 +327,7 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <h1><i class="fas fa-sign-in-alt"></i> ورود به حساب کاربری</h1>
-                <p>لطفاً اطلاعات خود را وارد کنید تا وارد حساب کاربری خود شوید.</p>
+                <h1> ورود به حساب کاربری</h1>
             </div>
             <div class="auth-body">
                 {% if messages %}
@@ -320,7 +362,6 @@
                         <label for="{{ form.username.id_for_label }}" class="form-label">ایمیل یا شماره موبایل</label>
                         <div class="form-floating">
                             {{ form.username }}
-                            <span class="input-icon"><i class="fas fa-user"></i></span>
                         </div>
                         {% if form.username.errors %}
                             <div class="invalid-feedback d-block">
@@ -333,7 +374,7 @@
                         <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
                         <div class="form-floating">
                             {{ form.password }}
-                            <span class="input-icon"><i class="fas fa-lock"></i></span>
+                            <span></span>
                         </div>
                         {% if form.password.errors %}
                             <div class="invalid-feedback d-block">
@@ -343,22 +384,21 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="form-check">
+                        <div class="d-flex justify-content-between align-items-center auth-actions">
+                            <div class="form-check remember-me">
                                 {{ form.remember_me }}
                                 <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">
                                     {{ form.remember_me.label }}
                                 </label>
                             </div>
-                            <a href="{% url 'account:password_reset' %}" class="text-decoration-none text-primary">
+                            <a href="{% url 'account:password_reset' %}" class="forgot-link">
                                 <small>فراموشی رمز عبور؟</small>
                             </a>
                         </div>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-auth">
-                            <i class="fas fa-sign-in-alt"></i> ورود
+                        <button type="submit" class="btn btn-auth">ورود
                         </button>
                     </div>
                 </form>

@@ -160,7 +160,7 @@ header {
 }
 
 .brand-text {
-  font-family: 'Vazir', 'Tahoma', sans-serif;
+      font-family: 'Vazir', sans-serif;
   font-weight: 700;
   font-size: 1.5rem;
   color: #1e3c72;
@@ -588,7 +588,7 @@ header {
   color: #444;
   font-weight: 500;
   text-decoration: none;
-  font-family: Roboto, sans-serif;
+      font-family: 'Vazir', sans-serif;
   transition: background 0.2s;
 }
 
@@ -602,7 +602,7 @@ header {
 }
 
 /* Universal centering for all pages */
-body, .container, .content, main.content, .page-section, .footer, .footer-content, .footer-brand, .footer-sections, .footer-section, .footer-social, .newsletter, .newsletter-form, .search-header, .search-results-page, .teacher-list, .category-grid, .course-grid, .fraq-list, .page-header, .course-content-wrapper, .course-hero-content, .course-info-grid, .course-quick-info, .teacher-card, .determination-form, .advice-form, .collabrate-form {
+body, .container, .content, main.content, .page-section, .footer, .footer-content, .footer-brand, .footer-sections, .footer-section, .footer-social, .newsletter, .newsletter-form, .search-header, .search-results-page, .teacher-list, .category-grid, .course-grid, .fraq-list, .page-header, .course-hero-content, .course-info-grid, .course-quick-info, .teacher-card, .determination-form, .advice-form, .collabrate-form {
   text-align: center !important;
   margin-left: auto !important;
   margin-right: auto !important;

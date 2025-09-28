@@ -8,7 +8,7 @@ import string
 from datetime import timedelta, date
 
 from account.models import Student, TeacherApplication
-from teacher.models import Teacher as LegacyTeacher
+from account.models import Teacher
 from course.models import Category, Course, LANGUAGE_CHOICES
 from enrollment.models import Enrollment
 from core.models import AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse
@@ -67,7 +67,7 @@ class Command(BaseCommand):
       Enrollment.objects.all().delete()
       Course.objects.all().delete()
       Category.objects.all().delete()
-      LegacyTeacher.objects.all().delete()
+      Teacher.objects.all().delete()
       Student.objects.all().delete()
       TeacherApplication.objects.all().delete()
       AdviceRequest.objects.all().delete()
@@ -124,7 +124,7 @@ class Command(BaseCommand):
       if created:
         user.set_password('teacher1234')
         user.save()
-      legacy_teacher, _ = LegacyTeacher.objects.get_or_create(
+      legacy_teacher, _ = Teacher.objects.get_or_create(
         user=user,
         defaults={
           'full_name': f'Teacher {i+1} User',

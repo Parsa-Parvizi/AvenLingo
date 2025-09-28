@@ -37,20 +37,19 @@
 }
 
 .footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-bottom: 25px !important;
 }
 
 .logo-img {
     width: 50px;
     height: 50px;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     background: rgba(255, 255, 255, 0.1);
     padding: 8px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* backdrop-filter: blur(10px); */
+    /* border: 1px solid rgba(255, 255, 255, 0.2); */
 }
 
 .brand-text h3 {
@@ -80,6 +79,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    align-items: center !important;
 }
 
 .contact-quick .contact-item {
@@ -124,7 +124,6 @@
     margin-bottom: 25px;
     color: #ffffff;
     position: relative;
-    padding-bottom: 15px;
 }
 
 .section-title::after {
@@ -134,7 +133,7 @@
     left: 0;
     width: 40px;
     height: 3px;
-    background: linear-gradient(90deg, var(--color-accent, #F4D03F), var(--color-highlight, #48C9B0));
+    /* background: linear-gradient(90deg, var(--color-accent, #F4D03F), var(--color-highlight, #48C9B0)); */
     border-radius: 2px;
 }
 
@@ -173,7 +172,7 @@
     top: 50%;
     width: 0;
     height: 2px;
-    background: var(--color-accent, #F4D03F);
+    /* background: var(--color-accent, #F4D03F); */
     transition: width 0.3s ease;
     transform: translateY(-50%);
     border-radius: 1px;
@@ -239,9 +238,10 @@
 
 /* Social Media */
 .social-media h5 {
-    font-size: 1rem;
+    font-size: 2rem;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
+    margin-top: 0px;
     color: #ffffff;
 }
 
@@ -250,6 +250,7 @@
     gap: 12px;
     margin-bottom: 25px;
     flex-wrap: wrap;
+    justify-content: center; /* Centering for all screen sizes */
 }
 
 .social-btn {
@@ -258,11 +259,10 @@
     justify-content: center;
     width: 45px;
     height: 45px;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     text-decoration: none;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* border: 1px solid rgba(255, 255, 255, 0.2); */
     color: #ffffff;
     font-size: 1.2rem;
     position: relative;
@@ -313,8 +313,9 @@
 .newsletter {
     background: rgba(255, 255, 255, 0.08);
     padding: 20px;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     border: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 0px !important;
 }
 
 .newsletter h5 {
@@ -484,7 +485,7 @@
     }
     
     .footer-logo {
-        justify-content: center;
+        justify-content: center !important;
     }
 }
 

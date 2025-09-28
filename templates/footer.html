@@ -13,102 +13,59 @@
                         {% comment %} <img src="{% static 'images/logo.png' %}" alt="Aurora Language Academy" class="logo-img"> {% endcomment %}
                         <div class="brand-text">
                             <h3>{{ company_info.company_name|default:"آکادمی زبان آون" }}</h3>
-                            <span class="brand-slogan">{{ company_info.slogan|default:"مسیر موفقیت در زبان" }}</span>
+                            <span class="brand-slogan">{{ company_info.slogan }}</span>
                         </div>
                     </div>
-                    
-                    {% comment %} <p class="brand-description">
-                        {{ company_info.about_summary|default:"آکادمی ما با بیش از ۱۰ سال تجربه، بهترین آموزش زبان انگلیسی را با متدهای نوین و اساتید مجرب ارائه می‌دهد." }}
-                    </p> {% endcomment %}
-                    
                     <div class="contact-quick">
                         <div class="contact-item">
-                            <span aria-hidden="true">☎</span>
                             <span>{{ company_info.main_phone|default:"021-12345678" }}</span>
                         </div>
                         <div class="contact-item">
-                            <span aria-hidden="true">✉️</span>
-                            <span>{{ company_info.main_email|default:"info@academy.com" }}</span>
+                            <span>{{ company_info.main_email|default:"avenlingo@academy.com" }}</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Quick Links -->
                 <div class="footer-section">
                     <h4 class="section-title">
-                        <span aria-hidden="true">🔗</span>
                         دسترسی سریع
                     </h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'core:home' %}">🏠 صفحه اصلی</a></li>
-                        <li><a href="{% url 'course:all-courses' %}">📘 دوره‌های آموزشی</a></li>
-                        <li><a href="{% url 'teacher:all-teachers' %}">👩‍🏫 اساتید</a></li>
-                        <li><a href="{% url 'contact:about-us' %}">ℹ️ درباره ما</a></li>
-                        <li><a href="{% url 'contact:contact-us' %}">☎ تماس با ما</a></li>
+                        <li><a href="{% url 'core:home' %}"> صفحه اصلی</a></li>
+                        <li><a href="{% url 'course:all-courses' %}"> دوره‌های آموزشی</a></li>
+                        <li><a href="{% url 'teacher:all-teachers' %}"> اساتید</a></li>
+                                        <li><a href="{% url 'aboutus' %}"> درباره ما</a></li>
+                <li><a href="{% url 'contactus' %}"> تماس با ما</a></li>
                     </ul>
                 </div>
-
-                <!-- Services -->
                 <div class="footer-section">
                     <h4 class="section-title">
-                        <span aria-hidden="true">🛠️</span>
+                        <span aria-hidden="true"></span>
                         خدمات ما
                     </h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'core:advice' %}">🎓 مشاوره رایگان</a></li>
-                        <li><a href="{% url 'core:determination' %}">📈 تعیین سطح</a></li>
-                        <li><a href="{% url 'core:collaborate' %}">🤝 همکاری با ما</a></li>
-                        <li><a href="{% url 'core:request-course' %}">➕ درخواست دوره</a></li>
-                        <li><a href="{% url 'account:login' %}">👤 ناحیه کاربری</a></li>
+                        <li><a href="{% url 'core:advice' %}"> مشاوره رایگان</a></li>
+                        <li><a href="{% url 'core:determination' %}"> تعیین سطح</a></li>
+                        <li><a href="{% url 'core:collaborate' %}"> همکاری با ما</a></li>
+                        <li><a href="{% url 'core:request-course' %}"> درخواست دوره</a></li>
+                        <li><a href="{% url 'account:login' %}"> ناحیه کاربری</a></li>
                     </ul>
                 </div>
-
-                <!-- Contact & Social -->
                 <div class="footer-section contact-social">
-                    <h4 class="section-title">
-                        <span aria-hidden="true">👥</span>
-                        ارتباط با ما
-                    </h4>
-                    
-                    <div class="contact-info">
-                        <div class="contact-item">
-                            <span aria-hidden="true">📍</span>
-                            <span>{{ company_info.address|default:"تهران، خیابان ولیعصر" }}</span>
-                        </div>
-                        {% if company_info.working_hours %}
-                        <div class="contact-item">
-                            <span aria-hidden="true">⏰</span>
-                            <span>{{ company_info.working_hours }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-
                     <div class="social-media">
                         <h5>شبکه‌های اجتماعی</h5>
                         <div class="social-links">
-                            {% for social in social_media %}
-                                <a href="{{ social.url }}" class="social-btn {{ social.platform }}" 
-                                   target="_blank" rel="noopener noreferrer" 
-                                   title="{{ social.get_platform_display }}">
-                                    {% if social.platform == 'instagram' %}
-                                        <i class="fa-brands fa-instagram"></i>
-                                    {% elif social.platform == 'telegram' %}
-                                        <i class="fa-brands fa-telegram"></i>
-                                    {% elif social.platform == 'whatsapp' %}
-                                        <i class="fa-brands fa-whatsapp"></i>
-                                    {% elif social.platform == 'youtube' %}
-                                        <i class="fa-brands fa-youtube"></i>
-                                    {% elif social.platform == 'facebook' %}
-                                        <i class="fa-brands fa-facebook"></i>
-                                    {% else %}
-                                        <span aria-hidden="true">🔗</span>
-                                    {% endif %}
+                                <a href="https://www.instagram.com/" class="social-btn instagram" target="_blank" rel="noopener noreferrer" title="اینستاگرام">
+                                    <img src="{% static 'icon/instagram.png' %}" alt="Instagram" class="social-icon-img">
                                 </a>
-                            {% empty %}
-                                <a href="#" class="social-btn instagram"><i class="fa-brands fa-instagram"></i></a>
-                                <a href="#" class="social-btn telegram"><i class="fa-brands fa-telegram"></i></a>
-                                <a href="#" class="social-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>
-                            {% endfor %}
+                                <a href="https://telegram.org/" class="social-btn telegram" target="_blank" rel="noopener noreferrer" title="تلگرام">
+                                    <img src="{% static 'icon/telegram.png' %}" alt="Telegram" class="social-icon-img">
+                                </a>
+                                <a href="https://www.whatsapp.com/" class="social-btn whatsapp" target="_blank" rel="noopener noreferrer" title="واتساپ">
+                                    <img src="{% static 'icon/whatsapp.png' %}" alt="WhatsApp" class="social-icon-img">
+                                </a>
+                                <a href="https://www.youtube.com/" class="social-btn youtube" target="_blank" rel="noopener noreferrer" title="یوتیوب">
+                                    <img src="{% static 'icon/youtube.png' %}" alt="YouTube" class="social-icon-img">
+                                </a>
                         </div>
                     </div>
 
@@ -144,7 +101,7 @@
     position: relative !important;
     background: linear-gradient(135deg, #1F3A93 0%, #2C3E50 100%) !important;
     color: #ffffff !important;
-    margin-top: 30px !important;
+    margin-top: 0px !important;
     overflow: hidden !important;
     font-family: 'Vazir', sans-serif !important;
 }
@@ -154,13 +111,9 @@
 .footer-container {
     position: relative !important;
     z-index: 2 !important;
-    padding: 40px 20px 0 !important;
+    padding: 0px 20px 0 !important;
     max-width: 1200px !important;
     margin: 0 auto !important;
-}
-
-.footer-main {
-    padding: 40px 0 !important;
 }
 
 .footer-grid {
@@ -174,12 +127,7 @@
     padding-right: 20px !important;
 }
 
-.footer-logo {
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-    margin-bottom: 25px !important;
-}
+
 
 .logo-img {
     width: 50px !important;
@@ -219,13 +167,13 @@
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
-    font-size: 1.1rem !important;
+    font-size: 1.4rem !important;
     font-weight: 600 !important;
     margin-bottom: 25px !important;
     color: #ffffff !important;
     position: relative !important;
-    padding-bottom: 15px !important;
     font-family: 'Vazir', sans-serif !important;
+    margin-top: 0px;
 }
 
 .section-title::after {
@@ -278,13 +226,13 @@
 .contact-social {
     background: rgba(255, 255, 255, 0.05) !important;
     padding: 25px !important;
-    border-radius: 15px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    {% comment %} border-radius: 15px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; {% endcomment %}
     backdrop-filter: blur(10px) !important;
 }
 
 .contact-quick, .contact-info {
-    margin-bottom: 20px !important;
+    align-items: center !important;
 }
 
 .contact-item {
@@ -294,7 +242,7 @@
     color: rgba(255, 255, 255, 0.8) !important;
     margin-bottom: 12px !important;
     padding: 8px 0 !important;
-    font-size: 0.9rem !important;
+    font-size: 1.2rem !important;
     transition: all 0.3s ease !important;
 }
 
@@ -309,19 +257,12 @@
     font-size: 1rem !important;
 }
 
-.social-media h5 {
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    margin-bottom: 15px !important;
-    color: #ffffff !important;
-    font-family: 'Vazir', sans-serif !important;
-}
-
 .social-links {
     display: flex !important;
     gap: 12px !important;
-    margin-bottom: 25px !important;
+    margin-bottom: 15px !important;
     flex-wrap: wrap !important;
+    border: none;
 }
 
 .social-btn {
@@ -330,12 +271,8 @@
     justify-content: center !important;
     width: 45px !important;
     height: 45px !important;
-    border-radius: 12px !important;
     text-decoration: none !important;
     transition: all 0.3s ease !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: #ffffff !important;
     font-size: 1.2rem !important;
 }
 
@@ -361,6 +298,7 @@
     padding: 20px !important;
     border-radius: 12px !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding-top: 0px !important;
 }
 
 .newsletter h5 {
@@ -388,7 +326,7 @@
     padding: 12px 15px !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    {% comment %} background: rgba(255, 255, 255, 0.1) !important; {% endcomment %}
     color: #ffffff !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
@@ -473,10 +411,6 @@
         grid-column: 1 / -1 !important;
         text-align: center !important;
         padding-right: 0 !important;
-    }
-    
-    .footer-logo {
-        justify-content: center !important;
     }
 }
 

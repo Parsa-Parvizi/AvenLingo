@@ -1,14 +1,6 @@
-
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
-from django.utils import timezone
 from django.db import connection
-from .models import Log
 import threading
 
-# Helper to get current user from thread local (for admin actions)
 _user = threading.local()
 
 def set_current_user(user):
@@ -41,53 +33,53 @@ class CurrentUserMiddleware:
 
         return response
 
-# Signal for logging saves
-@receiver(post_save)
-def log_save(sender, instance, created, **kwargs):
-    if sender == Log:
-        return
-    
-    # Check if the core_log table exists before trying to use it
-    if not table_exists('core_log'):
-        return
-        
-    try:
-        user = get_current_user()
-        model_name = sender.__name__
-        if created:
-            action = f"ایجاد {model_name} (ID: {instance.pk})"
-            level = 'info'
-        else:
-            action = f"ویرایش {model_name} (ID: {instance.pk})"
-            level = 'warning'
-        Log.objects.create(
-            message=action,
-            level=level,
-            user=user
-        )
-    except Exception:
-        # Silently fail during migrations to avoid breaking the migration process
-        pass
+# Signal for logging saves - DISABLED
+# @receiver(post_save)
+# def log_save(sender, instance, created, **kwargs):
+#     if sender == Log:
+#         return
+#     
+#     # Check if the core_log table exists before trying to use it
+#     if not table_exists('core_log'):
+#         return
+#         
+#     try:
+#         user = get_current_user()
+#         model_name = sender.__name__
+#         if created:
+#             action = f"ایجاد {model_name} (ID: {instance.pk})"
+#             level = 'info'
+#         else:
+#             action = f"ویرایش {model_name} (ID: {instance.pk})"
+#             level = 'warning'
+#         Log.objects.create(
+#             message=action,
+#             level=level,
+#             user=user
+#         )
+#     except Exception:
+#         # Silently fail during migrations to avoid breaking the migration process
+#         pass
 
-# Signal for logging deletes
-@receiver(post_delete)
-def log_delete(sender, instance, **kwargs):
-    if sender == Log:
-        return
-    
-    # Check if the core_log table exists before trying to use it
-    if not table_exists('core_log'):
-        return
-        
-    try:
-        user = get_current_user()
-        model_name = sender.__name__
-        action = f"حذف {model_name} (ID: {instance.pk})"
-        Log.objects.create(
-            message=action,
-            level='error',
-            user=user
-        )
-    except Exception:
-        # Silently fail during migrations to avoid breaking the migration process
-        pass
+# Signal for logging deletes - DISABLED
+# @receiver(post_delete)
+# def log_delete(sender, instance, **kwargs):
+#     if sender == Log:
+#         return
+#     
+#     # Check if the core_log table exists before trying to use it
+#     if not table_exists('core_log'):
+#         return
+#         
+#     try:
+#         user = get_current_user()
+#         model_name = sender.__name__
+#         action = f"حذف {model_name} (ID: {instance.pk})"
+#         Log.objects.create(
+#             message=action,
+#             level='error',
+#             user=user
+#         )
+#     except Exception:
+#         # Silently fail during migrations to avoid breaking the migration process
+#         pass

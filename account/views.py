@@ -191,12 +191,12 @@ class CustomLoginView(LoginView):
         # Redirect based on user type
         user = self.request.user
         if user.user_type == 'student':
-            return reverse_lazy('account:student_dashboard')
+            return reverse_lazy('dashboard:dashboard_home')
         elif user.user_type == 'teacher':
-            return reverse_lazy('account:teacher_dashboard')
+            return reverse_lazy('dashboard:teacher_dashboard')
         elif user.user_type == 'admin':
             return reverse_lazy('admin:index')
-        return reverse_lazy('account:dashboard')
+        return reverse_lazy('dashboard:dashboard_home')
     
     def form_valid(self, form):
         # Check if user is active (email verified)
@@ -355,9 +355,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         user = request.user
         
         if user.user_type == 'student':
-            return redirect('account:student_dashboard')
+            return redirect('dashboard:dashboard_home')
         elif user.user_type == 'teacher':
-            return redirect('account:teacher_dashboard')
+            return redirect('dashboard:teacher_dashboard')
         elif user.user_type == 'admin':
             return redirect('admin:index')
         else:
@@ -593,7 +593,7 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Student
     form_class = StudentProfileForm
     template_name = 'account/student_profile.html'
-    success_url = reverse_lazy('account:student_dashboard')
+    success_url = reverse_lazy('dashboard:dashboard_home')
     
     def test_func(self):
         return self.request.user.user_type == 'student'
@@ -611,7 +611,7 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Teacher
     form_class = TeacherProfileForm
     template_name = 'account/teacher_profile.html'
-    success_url = reverse_lazy('account:teacher_dashboard')
+    success_url = reverse_lazy('dashboard:teacher_dashboard')
     
     def test_func(self):
         return self.request.user.user_type == 'teacher'

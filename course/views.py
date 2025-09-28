@@ -104,3 +104,5 @@ def latest_courses_view(request):
     """نمایش آخرین کلاس‌ها"""
     latest_courses = Course.objects.filter(is_active=True).order_by('-created_at')[:6]  # type: ignore
     return render(request, 'course/latest_courses.html', {'courses': latest_courses})
+
+

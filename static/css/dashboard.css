@@ -1,0 +1,1222 @@
+/* Dashboard Specific Styles */
+.welcome-header {
+    background: var(--color-background); /* Soft, consistent background */
+    border-radius: 12px;
+    padding: 25px;
+    color: var(--color-neutral-dark); /* Using neutral-dark for consistency with body text */
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+}
+
+.text-gradient {
+    background: none; /* Remove gradient text */
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    color: var(--color-primary); /* Use primary color for text */
+    margin-bottom: 8px;
+    font-weight: 700; /* Ensure welcome message is bold */
+}
+
+.profile-completion-badge {
+    text-align: center;
+}
+
+.circular-progress {
+    position: relative;
+    display: inline-block;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.circular-progress svg circle:first-child {
+    stroke: #e9ecef; /* Light grey for the track */
+}
+
+.circular-progress svg circle.progress-ring-circle {
+    stroke: var(--color-highlight); /* Use highlight color for progress */
+    transition: stroke-dashoffset 0.35s;
+    transform-origin: 50% 50%;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-primary); /* Consistent color */
+}
+
+.stats-card {
+    border: 1px solid #e0e0e0; /* Light border */
+    border-radius: 10px;
+    padding: 18px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Lighter shadow */
+    transition: all 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px); /* Subtle lift */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Slightly more shadow on hover */
+}
+
+/* Updated background colors for stats cards to be more subtle and consistent with brand */
+.card-gradient-primary { background: rgba(31, 58, 147, 0.08); color: var(--color-primary); } /* Light primary hint */
+.card-gradient-success { background: rgba(72, 201, 176, 0.08); color: var(--color-highlight); } /* Light highlight hint */
+.card-gradient-warning { background: rgba(244, 208, 63, 0.15); color: #e6b100; } /* Light accent hint with darker text */
+.card-gradient-info { background: rgba(125, 60, 152, 0.08); color: var(--color-secondary); } /* Light secondary hint */
+
+.stats-card .card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stats-card .card-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.stats-icon {
+    font-size: 2rem;
+    opacity: 0.7;
+    color: var(--color-primary); /* Consistent color */
+}
+
+.progress-mini {
+    height: 3px;
+    background-color: #e9ecef; /* Light grey track */
+    border-radius: 1.5px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-mini .progress-bar {
+    height: 100%;
+    background-color: var(--color-primary); /* Use primary color */
+    border-radius: 1.5px;
+    transition: width 0.4s ease;
+}
+
+.modern-card {
+    border: 1px solid #eceff1; /* Very light border */
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04); /* Even more subtle shadow */
+    background: white;
+}
+
+.modern-card .card-header {
+    background-color: #fcfdfe; /* Very light header background */
+    border-bottom: 1px solid #eceff1; /* Lighter border */
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+}
+
+.modern-card .card-header h5.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.modern-card .card-header i {
+    color: var(--color-highlight); /* Highlight for icons */
+    margin-left: 8px;
+}
+
+.enrollment-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eceff1; /* Lighter divider */
+    transition: background-color 0.2s ease;
+    border-radius: 0;
+}
+
+.enrollment-item:last-child {
+    border-bottom: none;
+}
+
+.enrollment-item:hover {
+    background-color: #f8f9fa; /* Lighter hover background */
+}
+
+.course-title {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.course-meta {
+    color: #777; /* Slightly darker grey for better readability */
+    font-size: 0.85rem;
+}
+
+.course-meta span {
+    margin-right: 12px;
+}
+
+.enrollment-badges .badge {
+    font-weight: 500;
+    margin-right: 4px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    display: inline-flex; /* Use flex for consistent spacing if icons are added */
+    align-items: center;
+    gap: 4px;
+}
+
+/* Adjusted badge colors for a minimalist look */
+.badge-success { background-color: #dcf2e8; color: #2e7d32; border: 1px solid #bcead8; } /* Light green, dark green text */
+.badge-warning { background-color: #fcf0d4; color: #e6b100; border: 1px solid #fae7bc; } /* Light yellow, dark yellow text */
+.badge-info { background-color: #e0f2f7; color: #0277bd; border: 1px solid #c2e6f2; } /* Light blue, dark blue text */
+.badge-danger { background-color: #f9e2e5; color: #c62828; border: 1px solid #f4cdd2; } /* Light red, dark red text */
+
+.progress-bar-mini {
+    height: 5px;
+    background-color: #e9ecef; /* Light grey track */
+    border-radius: 2.5px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--color-highlight); /* Use highlight color */
+    border-radius: 2.5px;
+    transition: width 0.5s ease;
+}
+
+.enrollment-divider {
+    margin: 15px 0;
+    border-color: #f0f0f0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.empty-icon {
+    font-size: 3.5rem;
+    color: #cfd8dc; /* Lighter, more subtle grey */
+    margin-bottom: 15px;
+}
+
+.empty-state h6 {
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.quick-actions .quick-action-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    text-decoration: none;
+    color: var(--color-neutral-dark); /* Using neutral-dark for consistency */
+    border-bottom: 1px solid #eceff1; /* Lighter separator */
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.quick-action-item:last-child {
+    border-bottom: none;
+}
+
+.quick-action-item:hover {
+    background-color: #fcfdfe; /* Even lighter hover background */
+    transform: translateX(3px);
+    text-decoration: none;
+    color: var(--color-primary); /* Primary color on hover */
+}
+
+.quick-action-item i.fa-chevron-left {
+    color: #c0c0c0; /* Even more subtle arrow color */
+    transition: color 0.2s ease;
+}
+
+.quick-action-item:hover i.fa-chevron-left {
+    color: var(--color-primary); /* Color change on hover */
+}
+
+.quick-action-icon {
+    width: 38px;
+    height: 38px;
+    background: #f8f9fa; /* Very light solid background */
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary); /* Primary color for icon */
+    font-size: 1rem;
+    margin-right: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03); /* Extremely subtle shadow */
+}
+
+.quick-action-content h6 {
+    margin: 0;
+    font-weight: 500;
+    color: var(--color-primary);
+    font-size: 1rem;
+}
+
+.quick-action-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.suggested-course-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #eceff1; /* Lighter separator */
+}
+
+.suggested-course-item:last-child {
+    border-bottom: none;
+}
+
+.suggested-course-item:hover {
+    background-color: #f8f9fa; /* Lighter hover background */
+}
+
+.course-thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-right: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03); /* Extremely subtle shadow */
+    border: 1px solid #eef1f4; /* Very light border */
+}
+
+.course-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholder-image {
+    background: linear-gradient(135deg, #f0f4f7, #e6edf2); /* Even softer gradient for placeholders */
+    color: #aebec6; /* Muted color for placeholder icon */
+    font-size: 1.5rem;
+    display: flex; /* Ensure icon is centered */
+    align-items: center;
+    justify-content: center;
+}
+
+.course-details h6.course-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    margin-bottom: 3px;
+}
+
+.course-details p.course-teacher {
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.price-badge {
+    padding: 3px 8px;
+    font-size: 0.65rem;
+    border-radius: 12px;
+    font-weight: 500;
+    text-transform: none;
+    background-color: #eef1f4; /* Light neutral background */
+    color: #555;
+    border: 1px solid #e0e4e7; /* Subtle border */
+}
+
+.price-badge.free {
+    background-color: #dcf2e8; /* Light green for free */
+    color: #2e7d32;
+    border: 1px solid #bcead8;
+}
+
+.quick-enroll-btn {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-neutral-dark); /* Using neutral-dark for consistency */
+    font-weight: 600; /* Slightly bolder for call to action */
+}
+
+.quick-enroll-btn:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.course-divider {
+    margin: 10px 0;
+    border-color: #f0f0f0;
+}
+
+.progress-overview-card .card-header {
+    background: #fcfdfe; /* Very light header background */
+    color: var(--color-primary);
+    font-weight: 600;
+    border-bottom: 1px solid #eceff1; /* Lighter border */
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+}
+
+.progress-overview-card .card-body {
+    padding: 20px;
+}
+
+.progress-item {
+    padding: 8px 0;
+}
+
+.progress-item span {
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    background-color: var(--color-highlight); /* Use highlight color */
+    border-radius: 4px;
+}
+
+.welcome-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.welcome-header p {
+    font-size: 1rem;
+    color: #555;
+}
+
+.enrollment-actions .btn {
+    margin-right: 6px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+
+/* General button overrides for minimalist consistency */
+.btn.btn-outline-primary {
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    background-color: transparent;
+}
+
+.btn.btn-outline-primary:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn.btn-primary {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-neutral-dark); /* Consistent dark text */
+}
+
+.btn.btn-primary:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+/* Enhanced Teacher Dashboard Styles */
+
+/* Teacher Avatar and Welcome Section */
+.teacher-avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.teacher-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.placeholder-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+        font-size: 1.8rem;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+.status-indicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.status-indicator.active {
+    background-color: #28a745;
+}
+
+.status-indicator.inactive {
+    background-color: #dc3545;
+}
+
+.teacher-badges .badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    margin-left: 5px;
+}
+
+.welcome-stats .stat-item {
+    text-align: right;
+}
+
+.welcome-stats .stat-item small {
+    font-size: 0.75rem;
+}
+
+/* Modern Stats Cards */
+.modern-stats-card {
+    border: none;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.modern-stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-highlight));
+}
+
+.modern-stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.modern-stats-card .card-body {
+    padding: 25px;
+    }
+    
+.modern-stats-card .card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.modern-stats-card .card-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+    }
+    
+    .stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    }
+    
+.bg-primary-light { background-color: rgba(31, 58, 147, 0.1); }
+.bg-info-light { background-color: rgba(23, 162, 184, 0.1); }
+.bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+.bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+
+.rating-stars {
+    margin-top: 5px;
+    }
+    
+.rating-stars i {
+    font-size: 0.8rem;
+    margin-right: 2px;
+}
+
+/* Modern Quick Actions */
+.modern-quick-action {
+        display: block;
+    padding: 25px;
+    border-radius: 15px;
+    background: white;
+    border: 1px solid #eceff1;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    height: 100%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    }
+    
+.modern-quick-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+        width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.modern-quick-action:hover::before {
+    left: 100%;
+}
+
+.modern-quick-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.5rem;
+}
+
+.modern-quick-action h6 {
+    font-weight: 600;
+        margin-bottom: 8px;
+    color: var(--color-primary);
+    }
+    
+.modern-quick-action p {
+    font-size: 0.85rem;
+    color: #777;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Course Table Enhancements */
+.course-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.placeholder-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f0f4f7, #e6edf2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aebec6;
+    font-size: 1.2rem;
+}
+
+.course-title-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.course-title-link:hover {
+    color: var(--color-highlight);
+    text-decoration: underline;
+}
+
+.capacity-indicator {
+    width: 40px;
+}
+
+.capacity-bar {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.capacity-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.student-count {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    position: relative;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background: white;
+}
+
+.activity-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    margin: 0 0 5px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Profile Section Enhancements */
+.profile-avatar-section {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.profile-completion-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.8s ease-in-out;
+}
+
+.completion-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.completion-percent {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+}
+
+.completion-text small {
+    font-size: 0.7rem;
+    color: #777;
+}
+
+.profile-bio {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.5;
+    margin: 15px 0;
+}
+
+.profile-stats .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+}
+
+/* Earnings Section */
+.earnings-summary {
+    margin-bottom: 20px;
+}
+
+.earning-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.earning-item:last-child {
+    border-bottom: none;
+}
+
+.earning-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.earning-amount {
+    font-weight: 700;
+        font-size: 1rem;
+    }
+    
+.earning-count {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.earnings-chart {
+    height: 120px;
+    position: relative;
+}
+
+/* Notifications */
+.notifications-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    }
+    
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    margin: 0 0 3px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+}
+
+.empty-notifications {
+    color: #999;
+}
+
+/* Header Actions */
+.header-actions .btn {
+    margin-left: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-header {
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .teacher-avatar-container {
+        margin-bottom: 15px;
+    }
+    
+    .welcome-stats {
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .modern-stats-card .card-body {
+        padding: 20px;
+    }
+    
+    .modern-stats-card .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    .modern-quick-action {
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+    
+    .course-thumb, .placeholder-thumb {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .activity-item {
+        padding: 12px;
+    }
+    
+    .activity-icon {
+        width: 35px;
+        height: 35px;
+        margin-left: 10px;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .completion-percent {
+        font-size: 1rem;
+    }
+
+    .header-actions .btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .welcome-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .teacher-avatar, .placeholder-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .teacher-avatar .fas {
+        font-size: 1.5rem;
+    }
+    
+    .modern-stats-card .card-title {
+        font-size: 1.3rem;
+    }
+
+    .quick-actions-grid .col-lg-3 {
+        margin-bottom: 15px;
+    }
+    
+    .modern-quick-action {
+        padding: 15px;
+    }
+    
+    .action-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .modern-quick-action h6 {
+        font-size: 0.9rem;
+    }
+    
+    .modern-quick-action p {
+        font-size: 0.8rem;
+    }
+
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+
+    .course-thumb, .placeholder-thumb {
+        width: 35px;
+        height: 35px;
+    }
+
+    .btn-group .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .profile-stats .stat-number {
+        font-size: 1.2rem;
+    }
+    
+    .earning-amount, .earning-count {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for progress rings */
+@keyframes progressAnimation {
+    from {
+        stroke-dashoffset: 188.4;
+    }
+    to {
+        stroke-dashoffset: calc(188.4 - (188.4 * var(--progress)) / 100);
+    }
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.timeline-content h6 {
+    margin: 0;
+    color: #333;
+}
+
+.timeline-content small {
+    font-size: 0.85rem;
+}
+
+/* Updated color for timeline icons to match brand colors */
+.timeline-icon.bg-primary { background-color: var(--color-primary) !important; }
+.timeline-icon.bg-success { background-color: var(--color-highlight) !important; } /* Using highlight for success */
+.timeline-icon.bg-warning { background-color: var(--color-accent) !important; } /* Using accent for warning */
+.timeline-icon.bg-info { background-color: var(--color-secondary) !important; } /* Using secondary for info */
+
+
+/* Teacher Dashboard Specific Styles (Additional) */
+.teacher-welcome-header {
+    background: var(--color-background); /* Consistent background with student dashboard */
+    color: var(--color-neutral-dark); /* Darker text */
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Lighter shadow */
+}
+
+.teacher-welcome-header h3 {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--color-primary); /* Use primary color */
+}
+
+.teacher-welcome-header p {
+    color: #555; /* Consistent text color */
+}
+
+.teacher-profile-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 4px solid #fff; /* White border */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Lighter shadow */
+}
+
+.teacher-profile-img.placeholder-image {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); /* Consistent gradient */
+    font-size: 2rem;
+    color: white;
+}
+
+.quick-actions-grid .quick-action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    border-radius: 15px;
+    color: var(--color-primary); /* Consistent text color */
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Lighter shadow */
+    height: 100%;
+    background: white; /* Explicitly set white background */
+    border: 1px solid #eceff1; /* Light border */
+}
+
+.quick-actions-grid .quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Lighter hover shadow */
+    color: var(--color-primary); /* Ensure color stays primary on hover */
+}
+
+.quick-actions-grid .quick-action-card i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--color-highlight); /* Use highlight for icons */
+}
+
+.quick-actions-grid .quick-action-card h6 {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--color-primary); /* Primary color for heading */
+}
+
+.quick-actions-grid .quick-action-card p {
+    font-size: 0.85rem;
+    color: #777; /* Consistent text color */
+    margin-bottom: 0;
+}
+
+/* Overriding bootstrap table styles for a cleaner look */
+.table th,
+.table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.table thead th {
+    background-color: #fcfdfe; /* Very light header background */
+    color: var(--color-neutral-dark); /* Consistent dark text */
+    font-weight: 600;
+    border-bottom: 2px solid #eceff1; /* Lighter border */
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa; /* Lighter hover background */
+}
+
+@media (max-width: 768px) {
+    .teacher-welcome-header {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .teacher-welcome-header h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-actions-grid .quick-action-card {
+        padding: 20px;
+    }
+
+    .quick-actions-grid .quick-action-card i {
+        font-size: 2rem;
+    }
+
+    .quick-actions-grid .quick-action-card h6 {
+        font-size: 1rem;
+    }
+
+    .quick-actions-grid .quick-action-card p {
+        font-size: 0.75rem;
+    }
+} 

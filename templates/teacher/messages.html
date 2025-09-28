@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Student Messages{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>پیام‌های دانش‌آموزان</h1>
+    <p>این صفحه برای نمایش پیام‌های دانش‌آموزان به مدرس خواهد بود.</p>
+    <a href="{% url 'dashboard:teacher_dashboard' %}" class="btn btn-secondary">بازگشت به داشبورد</a>
+</div>
+{% endblock %} 

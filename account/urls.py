@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from dashboard import views as dashboard_views
 
 app_name = 'account'
 
@@ -26,13 +27,8 @@ urlpatterns = [
     # AJAX URLs
     path('validate-email/', views.validate_email, name='validate_email'),
     
-    # Dashboard URLs
+    # Dashboard URL
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
-    path('dashboard/student/', views.StudentDashboardView.as_view(), name='student_dashboard'),
-    path('dashboard/teacher/', views.TeacherDashboardView.as_view(), name='teacher_dashboard'),
-    # Plural-friendly aliases
-    path('dashboard/students/', views.StudentDashboardView.as_view(), name='students_dashboard'),
-    path('dashboard/teachers/', views.TeacherDashboardView.as_view(), name='teachers_dashboard'),
     
     # Profile URLs
     path('profile/student/', views.StudentProfileView.as_view(), name='student_profile'),

@@ -3,6 +3,10 @@
 
 {% block title %}داشبورد دانش‌آموز{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Welcome Section -->
@@ -167,7 +171,7 @@
                         <i class="fas fa-book-open me-2"></i>
                         دوره‌های من
                     </h5>
-                    <a href="{% url 'enrollment:student_enrollments' %}" class="btn btn-outline-primary btn-sm">
+                    <a href="{% url 'enrollment:my-enrollments' %}" class="btn btn-outline-primary btn-sm">
                         مشاهده همه
                         <i class="fas fa-arrow-left ms-1"></i>
                     </a>
@@ -260,7 +264,7 @@
                             </div>
                             <h6>هنوز در هیچ دوره‌ای ثبت‌نام نکرده‌اید</h6>
                             <p class="text-muted">برای شروع یادگیری، در دوره‌های موجود ثبت‌نام کنید</p>
-                            <a href="{% url 'enrollment:available_courses' %}" class="btn btn-primary">
+                            <a href="{% url 'enrollment:available-courses' %}" class="btn btn-primary">
                                 <i class="fas fa-plus me-2"></i>مشاهده دوره‌ها
                             </a>
                         </div>
@@ -281,7 +285,7 @@
                 </div>
                 <div class="card-body">
                     <div class="quick-actions">
-                        <a href="{% url 'enrollment:available_courses' %}" class="quick-action-item">
+                        <a href="{% url 'enrollment:available-courses' %}" class="quick-action-item">
                             <div class="quick-action-icon">
                                 <i class="fas fa-search"></i>
                             </div>
@@ -292,7 +296,7 @@
                             <i class="fas fa-chevron-left"></i>
                         </a>
                         
-                        <a href="{% url 'enrollment:student_enrollments' %}" class="quick-action-item">
+                        <a href="{% url 'enrollment:my-enrollments' %}" class="quick-action-item">
                             <div class="quick-action-icon">
                                 <i class="fas fa-list"></i>
                             </div>
@@ -358,7 +362,7 @@
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'enrollment:available_courses' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'enrollment:available-courses' %}" class="btn btn-outline-primary btn-sm">
                             مشاهده همه دوره‌ها
                             <i class="fas fa-arrow-left ms-1"></i>
                         </a>
@@ -391,421 +395,6 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-/* Dashboard Specific Styles */
-.welcome-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    padding: 30px;
-    color: white;
-    margin-bottom: 30px;
-}
-
-.text-gradient {
-    background: linear-gradient(45deg, #ffffff, #f8f9fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 10px;
-}
-
-.profile-completion-badge {
-    text-align: center;
-}
-
-.circular-progress {
-    position: relative;
-    display: inline-block;
-}
-
-.progress-ring {
-    transform: rotate(-90deg);
-}
-
-.progress-ring-circle {
-    transition: stroke-dashoffset 0.35s;
-    transform-origin: 50% 50%;
-}
-
-.progress-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.stats-card {
-    border: none;
-    border-radius: 15px;
-    padding: 20px;
-    background: white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-}
-
-.stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-
-.card-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.card-gradient-success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); color: white; }
-.card-gradient-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
-.card-gradient-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-
-.stats-icon {
-    font-size: 2.5rem;
-    opacity: 0.8;
-}
-
-.progress-mini {
-    height: 4px;
-    background-color: rgba(255,255,255,0.3);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-
-.progress-mini .progress-bar {
-    height: 100%;
-    background-color: rgba(255,255,255,0.8);
-    border-radius: 2px;
-    transition: width 0.6s ease;
-}
-
-.modern-card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.enrollment-item {
-    padding: 20px 0;
-}
-
-.course-title {
-    color: #2c3e50;
-    font-weight: 600;
-}
-
-.course-meta {
-    color: #6c757d;
-    font-size: 0.9rem;
-}
-
-.course-meta span {
-    margin-right: 15px;
-}
-
-.enrollment-badges .badge {
-    margin-right: 5px;
-    padding: 6px 12px;
-    font-size: 0.75rem;
-}
-
-.badge-success { background-color: #28a745; }
-.badge-warning { background-color: #ffc107; color: #212529; }
-.badge-info { background-color: #17a2b8; }
-.badge-danger { background-color: #dc3545; }
-
-.progress-bar-mini {
-    height: 6px;
-    background-color: #e9ecef;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 5px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #28a745, #20c997);
-    border-radius: 3px;
-    transition: width 0.6s ease;
-}
-
-.enrollment-divider {
-    margin: 20px 0;
-    border-color: #e9ecef;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.empty-icon {
-    font-size: 4rem;
-    color: #dee2e6;
-    margin-bottom: 20px;
-}
-
-.quick-actions .quick-action-item {
-    display: flex;
-    align-items: center;
-    padding: 15px 0;
-    text-decoration: none;
-    color: inherit;
-    border-bottom: 1px solid #f8f9fa;
-    transition: all 0.3s ease;
-}
-
-.quick-action-item:hover {
-    background-color: #f8f9fa;
-    transform: translateX(5px);
-}
-
-.quick-action-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin-right: 15px;
-}
-
-.quick-action-content {
-    flex: 1;
-}
-
-.quick-action-content h6 {
-    margin: 0;
-    font-weight: 600;
-}
-
-.quick-action-content p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.suggested-course-item {
-    display: flex;
-    padding: 15px 0;
-}
-
-.course-thumbnail {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-right: 15px;
-    flex-shrink: 0;
-}
-
-.course-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.placeholder-image {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-}
-
-.course-details {
-    flex: 1;
-}
-
-.price-badge {
-    background-color: #007bff;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.price-badge.free {
-    background-color: #28a745;
-}
-
-.course-divider {
-    margin: 15px 0;
-    border-color: #f8f9fa;
-}
-
-.progress-overview-card .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0;
-}
-
-.progress-item {
-    padding: 15px 0;
-}
-
-.progress {
-    height: 8px;
-    border-radius: 4px;
-    background-color: #e9ecef;
-}
-
-.progress-bar {
-    border-radius: 4px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .welcome-header {
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .text-gradient {
-        font-size: 1.8rem;
-    }
-    
-    .stats-card {
-        margin-bottom: 20px;
-    }
-    
-    .enrollment-item .row {
-        flex-direction: column;
-    }
-    
-    .enrollment-status-section {
-        margin-top: 15px;
-    }
-    
-    .course-meta span {
-        display: block;
-        margin-right: 0;
-        margin-bottom: 5px;
-    }
-}
-
-/* Animation for progress rings */
-@keyframes progressAnimation {
-    from {
-        stroke-dashoffset: 188.4;
-    }
-    to {
-        stroke-dashoffset: calc(188.4 - (188.4 * var(--progress)) / 100);
-    }
-}
-</style>
-{% endblock %}
-
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Progress ring animation
-    const progressRings = document.querySelectorAll('.circular-progress');
-    progressRings.forEach(ring => {
-        const percentage = ring.dataset.percentage;
-        const circle = ring.querySelector('.progress-ring-circle');
-        const circumference = 2 * Math.PI * 30;
-        const offset = circumference - (percentage / 100) * circumference;
-        
-        circle.style.strokeDasharray = circumference;
-        circle.style.strokeDashoffset = offset;
-    });
-    
-    // Quick enrollment
-    document.querySelectorAll('.quick-enroll-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const courseId = this.dataset.courseId;
-            
-            fetch('{% url "enrollment:quick_enroll" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: `course_id=${courseId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(data.message, 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                showNotification('خطایی رخ داد. لطفاً دوباره تلاش کنید.', 'error');
-            });
-        });
-    });
-    
-    // Enrollment cancellation
-    let enrollmentToCancel = null;
-    
-    document.querySelectorAll('.cancel-enrollment').forEach(btn => {
-        btn.addEventListener('click', function() {
-            enrollmentToCancel = this.dataset.enrollmentId;
-            const modal = new bootstrap.Modal(document.getElementById('cancelEnrollmentModal'));
-            modal.show();
-        });
-    });
-    
-    document.getElementById('confirmCancellation').addEventListener('click', function() {
-        if (!enrollmentToCancel) return;
-        
-        const reason = document.getElementById('cancellationReason').value;
-        
-        fetch(`{% url 'enrollment:cancel_enrollment' 0 %}`.replace('0', enrollmentToCancel), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({reason: reason})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                showNotification(data.message, 'error');
-            }
-            
-            const modal = bootstrap.Modal.getInstance(document.getElementById('cancelEnrollmentModal'));
-            modal.hide();
-        })
-        .catch(error => {
-            showNotification('خطایی رخ داد. لطفاً دوباره تلاش کنید.', 'error');
-        });
-    });
-});
-
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-}
-</script>
+<script src="{% static 'js/student_dashboard.js' %}"></script>
 {% endblock %} 

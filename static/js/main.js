@@ -1,3 +1,74 @@
+
+// Font Awesome fallback
+function checkFontAwesomeLoaded() {
+    const testIcon = document.createElement('i');
+    testIcon.className = 'fas fa-check';
+    testIcon.style.position = 'absolute';
+    testIcon.style.left = '-9999px';
+    document.body.appendChild(testIcon);
+    
+    const computedStyle = window.getComputedStyle(testIcon, ':before');
+    const fontFamily = computedStyle.getPropertyValue('font-family');
+    
+    document.body.removeChild(testIcon);
+    
+    if (!fontFamily.includes('Font Awesome')) {
+        console.warn('Font Awesome failed to load, using fallback');
+        // Add fallback styles or alternative icons
+        const fallbackStyle = document.createElement('style');
+        fallbackStyle.textContent = `
+            .fas, .far, .fab { font-family: Arial, sans-serif !important; }
+            .fas:before, .far:before, .fab:before { content: "•"; }
+        `;
+        document.head.appendChild(fallbackStyle);
+    }
+}
+
+// Check Font Awesome after DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkFontAwesomeLoaded);
+} else {
+    checkFontAwesomeLoaded();
+}
+
+
+// Error handling and promise management
+window.addEventListener('error', function(e) {
+    console.warn('JavaScript error caught:', e.error);
+});
+
+// Proper promise handling
+window.addEventListener('unhandledrejection', function(e) {
+    console.warn('Unhandled promise rejection:', e.reason);
+    e.preventDefault();
+});
+
+// Message listener with proper scope management
+if (typeof Worker !== 'undefined') {
+    let messageHandlers = new Map();
+    
+    function addMessageHandler(id, handler) {
+        messageHandlers.set(id, handler);
+    }
+    
+    function removeMessageHandler(id) {
+        messageHandlers.delete(id);
+    }
+    
+    // Global message handler that keeps references alive
+    window.addEventListener('message', function(event) {
+        const handlerId = event.data?.handlerId;
+        if (handlerId && messageHandlers.has(handlerId)) {
+            const handler = messageHandlers.get(handlerId);
+            try {
+                handler(event);
+            } catch (error) {
+                console.warn('Message handler error:', error);
+            }
+        }
+    });
+}
+
 function toggleMenu() {
     const menu = document.getElementById('navbarMenu');
     const hamburger = document.querySelector('.hamburger');

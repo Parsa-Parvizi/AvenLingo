@@ -103,8 +103,7 @@ class CompanyInfo(models.Model):
                                    default="آکادمی زبان انگلیسی", 
                                    help_text="نام رسمی آکادمی")
     slogan = models.CharField(max_length=200, verbose_name="شعار", 
-                             default="بهترین آموزش زبان انگلیسی", 
-                             help_text="جمله کوتاه و جذاب درباره آکادمی")
+                             help_text="جمله کوتاه و جذاب درباره آکادمی", default='زبان')
     logo = models.ImageField(upload_to='company/', verbose_name="لوگو", 
                             help_text="اندازه پیشنهادی: ۲۰۰×۱۰۰ پیکسل", blank=True, null=True)
     favicon = models.ImageField(upload_to='company/', verbose_name="فاویکون", 
@@ -289,19 +288,19 @@ class SiteSettings(models.Model):
         super().save(*args, **kwargs)
 
 
-class Log(models.Model):
-    LEVEL_CHOICES = [
-        ('info', 'Info'),
-        ('warning', 'Warning'),
-        ('error', 'Error'),
-        ('critical', 'Critical'),
-    ]
-    message = models.TextField()
-    level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey('account.User', null=True, blank=True, on_delete=models.SET_NULL)
-    def __str__(self):
-        return f"{self.level}: {self.message[:50]}"
+# class Log(models.Model):
+#     LEVEL_CHOICES = [
+#         ('info', 'Info'),
+#         ('warning', 'Warning'),
+#         ('error', 'Error'),
+#         ('critical', 'Critical'),
+#     ]
+#     message = models.TextField()
+#     level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     user = models.ForeignKey('account.User', null=True, blank=True, on_delete=models.SET_NULL)
+#     def __str__(self):
+#         return f"{self.level}: {self.message[:50]}"
 
 
 class AdviceRequest(models.Model):
@@ -335,12 +334,29 @@ class DeterminationRequest(models.Model):
         return f"{self.name} - {self.email}"
 
 
+def validate_pdf_file(value):
+    """اعتبارسنجی فایل PDF"""
+    if not value.name.lower().endswith('.pdf'):
+        raise ValidationError('فقط فایل‌های PDF مجاز هستند.')
+    
+    # بررسی حجم فایل (حداکثر 5 مگابایت)
+    if value.size > 5 * 1024 * 1024:
+        raise ValidationError('حجم فایل نباید بیشتر از 5 مگابایت باشد.')
+
 class CollabrateRequest(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    message = models.TextField()
-    submitted_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100, verbose_name="نام و نام خانوادگی")
+    email = models.EmailField(verbose_name="آدرس ایمیل")
+    phone = models.CharField(max_length=20, verbose_name="شماره تماس")
+    message = models.TextField(verbose_name="پیام و توضیحات")
+    resume = models.FileField(
+        upload_to='resumes/',
+        verbose_name="رزومه (PDF)",
+        help_text="فایل رزومه خود را به فرمت PDF آپلود کنید (حداکثر 5 مگابایت)",
+        validators=[validate_pdf_file],
+        blank=True,
+        null=True
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ارسال")
     STATUS_CHOICES = [
         ("pending", "در انتظار بررسی"),
         ("approved", "تایید شده"),
@@ -352,6 +368,12 @@ class CollabrateRequest(models.Model):
         default="pending",
         verbose_name="وضعیت درخواست"
     )
+    class Meta:
+        verbose_name = "درخواست همکاری"
+        verbose_name_plural = "درخواست‌های همکاری"
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
 
 
 class RequestCourse(models.Model):
@@ -369,3 +391,4 @@ class RequestCourse(models.Model):
 
     def __str__(self):
         return f"{self.course_title} - {self.name}"
+

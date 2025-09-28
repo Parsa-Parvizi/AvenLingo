@@ -1,9 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Group
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
-from .models import User, Student, Teacher, TeacherApplication
+from .models import User, Student, Teacher
+
+# Remove Groups from admin panel
+admin.site.unregister(Group)
 
 
 @admin.register(User)
@@ -84,87 +88,4 @@ class TeacherAdmin(admin.ModelAdmin):
     user_full_name.short_description = 'نام کامل'
 
 
-@admin.register(TeacherApplication)
-class TeacherApplicationAdmin(admin.ModelAdmin):
-    """Admin for TeacherApplication model"""
-    list_display = ('full_name', 'email', 'status', 'submitted_at', 'reviewed_at', 'reviewed_by')
-    list_filter = ('status', 'submitted_at', 'reviewed_at')
-    search_fields = ('first_name', 'last_name', 'email', 'specialties')
-    date_hierarchy = 'submitted_at'
-    
-    fieldsets = (
-        ('اطلاعات شخصی', {
-            'fields': ('first_name', 'last_name', 'email', 'phone_number')
-        }),
-        ('اطلاعات حرفه‌ای', {
-            'fields': ('education', 'experience', 'certifications', 'specialties')
-        }),
-        ('انگیزه و رزومه', {
-            'fields': ('motivation', 'cv_file')
-        }),
-        ('وضعیت درخواست', {
-            'fields': ('status', 'admin_notes', 'reviewed_by', 'reviewed_at')
-        }),
-        ('اطلاعات سیستم', {
-            'fields': ('submitted_at',)
-        }),
-    )
-    
-    readonly_fields = ('submitted_at', 'reviewed_at')
-    
-    actions = ['mark_as_accepted', 'mark_as_rejected']
-    
-    def full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}"
-    full_name.short_description = 'نام کامل'
-    
-    def mark_as_accepted(self, request, queryset):
-        """Action to mark applications as accepted"""
-        updated = 0
-        for application in queryset.filter(status='pending'):
-            application.mark_as_accepted(request.user)
-            updated += 1
-        
-        self.message_user(
-            request,
-            f'{updated} درخواست پذیرفته شد.'
-        )
-    mark_as_accepted.short_description = 'پذیرفتن درخواست‌های انتخاب شده'
-    
-    def mark_as_rejected(self, request, queryset):
-        """Action to mark applications as rejected"""
-        updated = 0
-        for application in queryset.filter(status='pending'):
-            application.mark_as_rejected(request.user, "رد شده توسط ادمین")
-            updated += 1
-        
-        self.message_user(
-            request,
-            f'{updated} درخواست رد شد.'
-        )
-    mark_as_rejected.short_description = 'رد کردن درخواست‌های انتخاب شده'
-    
-    def get_readonly_fields(self, request, obj=None):
-        """Make certain fields readonly based on status"""
-        readonly_fields = list(self.readonly_fields)
-        
-        if obj and obj.status != 'pending':
-            readonly_fields.extend(['status', 'admin_notes'])
-        
-        return readonly_fields
-    
-    def save_model(self, request, obj, form, change):
-        """Override save to set reviewer and review date"""
-        if change and 'status' in form.changed_data and obj.status != 'pending':
-            if not obj.reviewed_by:
-                obj.reviewed_by = request.user
-            if not obj.reviewed_at:
-                obj.reviewed_at = timezone.now()
-        
-        super().save_model(request, obj, form, change)
 
-
-# Custom admin site configuration
-admin.site.site_header = 'مدیریت آکادمی زبان انگلیسی'
-admin.site.site_title = 'مدیریت آکادمی'
-admin.site.index_title = 'پنل مدیریت'

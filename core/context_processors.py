@@ -21,7 +21,6 @@ def site_data(request):
             # Fallback if no CompanyInfo exists
             context['company_info'] = {
                 'company_name': 'آکادمی زبان انگلیسی',
-                'slogan': 'بهترین آموزش زبان انگلیسی',
                 'main_phone': '021-12345678',
                 'main_email': 'info@academy.com',
                 'address': 'تهران، ایران',

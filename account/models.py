@@ -476,6 +476,33 @@ class Student(models.Model):
     
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.user.email}"
+    
+    def get_profile_completion_percentage(self):
+        """Calculate the completion percentage of the student's profile"""
+        total_fields = 8  # Total number of profile fields to check
+        completed_fields = 0
+        
+        # Check User fields
+        if self.user.first_name:
+            completed_fields += 1
+        if self.user.last_name:
+            completed_fields += 1
+        if self.user.email:  # This is always required
+            completed_fields += 1
+            
+        # Check Student fields
+        if self.national_id:
+            completed_fields += 1
+        if self.phone_number:
+            completed_fields += 1
+        if self.date_of_birth:
+            completed_fields += 1
+        if self.english_level:
+            completed_fields += 1
+        if self.goals:
+            completed_fields += 1
+            
+        return int((completed_fields / total_fields) * 100)
 
 
 class TeacherApplication(models.Model):
@@ -563,5 +590,55 @@ class Teacher(models.Model):
     
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.user.email}"
+    
+    def get_profile_completion_percentage(self):
+        """Calculate profile completion percentage"""
+        total_fields = 8
+        completed_fields = 0
+        
+        # Check user fields
+        if self.user.first_name and self.user.last_name:
+            completed_fields += 1
+        if self.user.email:
+            completed_fields += 1
+            
+        # Check teacher fields
+        if self.bio:
+            completed_fields += 1
+        if self.specialties:
+            completed_fields += 1
+        if self.hourly_rate:
+            completed_fields += 1
+        if hasattr(self, 'image') and self.image:
+            completed_fields += 1
+        if self.is_verified:
+            completed_fields += 1
+        if self.application and self.application.education:
+            completed_fields += 1
+            
+        return int((completed_fields / total_fields) * 100)
+    
+    def get_profile_completion_offset(self):
+        """Get SVG circle stroke-dashoffset for profile completion ring"""
+        percentage = self.get_profile_completion_percentage()
+        circumference = 2 * 3.14159 * 52  # radius = 52
+        return circumference - (percentage / 100) * circumference
+    
+    @property
+    def rating(self):
+        """Calculate teacher rating based on course reviews (placeholder)"""
+        # This is a placeholder - implement actual rating calculation
+        # based on course reviews when review system is implemented
+        return None
+    
+    @property
+    def registration_status(self):
+        """Get registration status"""
+        if self.is_verified and self.is_active:
+            return 'approved'
+        elif self.is_active:
+            return 'pending'
+        else:
+            return 'inactive'
 
 

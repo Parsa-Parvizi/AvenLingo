@@ -1,92 +1,785 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}پروفایل مدرس{% endblock %}
+{% block title %}{{ teacher.full_name }}{% endblock %}
+
 {% block content %}
-<section class="container py-5">
-  <div class="row g-4">
-    <div class="col-lg-4">
-      <div class="card shadow-sm modern-card">
-        <div class="teacher-avatar">
+<section class="teacher-detail-page">
+  <!-- Hero Section -->
+  <div class="teacher-detail-hero">
+    <div class="hero-background">
+      {% if teacher.image %}
+        <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="hero-bg-image">
+      {% endif %}
+      <div class="hero-overlay"></div>
+    </div>
+    
+    <div class="hero-content-wrapper">
+      <div class="teacher-hero-profile">
+        <div class="teacher-hero-avatar">
           {% if teacher.image %}
-            <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="img-fluid">
+            <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="hero-avatar-img">
           {% else %}
-            <div class="placeholder-image d-flex align-items-center justify-content-center">
+            <div class="hero-avatar-placeholder">
               <i class="fas fa-user-tie"></i>
             </div>
           {% endif %}
         </div>
-        <div class="card-body">
-          <h3 class="mb-1 text-gradient">{{ teacher.full_name }}</h3>
+        
+        <div class="teacher-hero-info">
+          <h1 class="teacher-hero-name">{{ teacher.full_name }}</h1>
           {% if teacher.expertise %}
-            <p class="text-primary mb-3"><i class="fas fa-award me-1"></i>{{ teacher.expertise }}</p>
+            <p class="teacher-hero-expertise">
+              <i class="fas fa-award"></i>
+              {{ teacher.expertise }}
+            </p>
           {% endif %}
-          {% if teacher.phone_number %}
-            <p class="text-muted mb-1"><i class="fas fa-phone me-1"></i>{{ teacher.phone_number }}</p>
-          {% endif %}
-          <div class="d-flex mt-3">
-            {% if teacher.linkedin %}<a href="{{ teacher.linkedin }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-2"><i class="fab fa-linkedin"></i></a>{% endif %}
-            {% if teacher.instagram %}<a href="{{ teacher.instagram }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-2"><i class="fab fa-instagram"></i></a>{% endif %}
-            {% if teacher.website %}<a href="{{ teacher.website }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-2"><i class="fas fa-globe"></i></a>{% endif %}
+          
+          <div class="teacher-hero-meta">
+            {% if teacher.phone_number %}
+              <span class="meta-item">
+                <i class="fas fa-phone"></i>
+                {{ teacher.phone_number }}
+              </span>
+            {% endif %}
+            <span class="meta-item">
+              <i class="fas fa-book"></i>
+              {{ teacher.courses.all|length }} دوره
+            </span>
           </div>
-        </div>
-      </div>
-      {% if teacher.bio %}
-      <div class="card shadow-sm modern-card mt-4">
-        <div class="card-header"><h5 class="mb-0">بیوگرافی</h5></div>
-        <div class="card-body">
-          <p class="mb-0">{{ teacher.bio }}</p>
-        </div>
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="col-lg-8">
-      <div class="card shadow-sm modern-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="fas fa-book me-2"></i>دوره‌های {{ teacher.full_name }}</h5>
-        </div>
-        <div class="card-body">
-          {% if teacher.courses.all %}
-          <div class="row g-3">
-            {% for course in teacher.courses.all %}
-              {% if course.is_active %}
-              <div class="col-md-6">
-                <div class="card h-100 border-0 bg-light">
-                  <div class="card-body">
-                    <h6 class="mb-1">{{ course.title }}</h6>
-                    <p class="text-muted small mb-2">{{ course.short_description|default:course.description|truncatewords:18 }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                      <span class="badge bg-primary">{{ course.get_level_display|default:"" }}</span>
-                      <a href="{% url 'course:detail' course.slug %}" class="btn btn-sm btn-outline-primary">مشاهده</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {% endif %}
-            {% empty %}
-              <div class="text-center text-muted py-4">هنوز دوره‌ای برای این مدرس ثبت نشده است.</div>
-            {% endfor %}
+          
+          {% if teacher.linkedin or teacher.instagram or teacher.website %}
+          <div class="teacher-hero-social">
+            {% if teacher.linkedin %}
+              <a href="{{ teacher.linkedin }}" target="_blank" rel="noopener" class="hero-social-link linkedin">
+                <i class="fab fa-linkedin"></i>
+              </a>
+            {% endif %}
+            {% if teacher.instagram %}
+              <a href="{{ teacher.instagram }}" target="_blank" rel="noopener" class="hero-social-link instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+            {% endif %}
+            {% if teacher.website %}
+              <a href="{{ teacher.website }}" target="_blank" rel="noopener" class="hero-social-link website">
+                <i class="fas fa-globe"></i>
+              </a>
+            {% endif %}
           </div>
-          {% else %}
-            <div class="text-center text-muted py-4">هنوز دوره‌ای برای این مدرس ثبت نشده است.</div>
           {% endif %}
         </div>
-      </div>
-      <div class="mt-3">
-        <a href="{% url 'teacher:all-teachers' %}" class="btn btn-secondary btn-sm">بازگشت به لیست اساتید</a>
       </div>
     </div>
   </div>
-</section>
-{% endblock %}
 
-{% block extra_css %}
+  <!-- Main Content -->
+  <div class="teacher-detail-content">
+    <div class="content-container">
+      
+      <!-- Bio Section -->
+      {% if teacher.bio %}
+      <div class="detail-section bio-section">
+        <div class="section-header-detail">
+          <i class="fas fa-user-circle"></i>
+          <h2>درباره {{ teacher.full_name }}</h2>
+        </div>
+        <div class="section-content">
+          <p class="teacher-bio-text">{{ teacher.bio }}</p>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Courses Section -->
+      <div class="detail-section courses-section">
+        <div class="section-header-detail">
+          <i class="fas fa-book-open"></i>
+          <h2>دوره‌های {{ teacher.full_name }}</h2>
+        </div>
+        
+        {% if teacher.courses.all %}
+        <div class="teacher-courses-grid">
+          {% for course in teacher.courses.all %}
+            {% if course.is_active %}
+            <div class="teacher-course-card">
+              <div class="course-card-header">
+                {% if course.image %}
+                  <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-card-image">
+                {% else %}
+                  <div class="course-card-image-placeholder"></div>
+                {% endif %}
+                {% if course.is_featured %}
+                  <span class="course-badge featured-badge">
+                    <i class="fas fa-star"></i>
+                    ویژه
+                  </span>
+                {% endif %}
+              </div>
+              
+              <div class="course-card-body">
+                <h3 class="course-card-title">{{ course.title }}</h3>
+                <p class="course-card-description">{{ course.short_description|default:course.description|truncatewords:20 }}</p>
+                
+                <div class="course-card-info">
+                  <span class="course-info-item">
+                    <i class="fas fa-signal"></i>
+                    {{ course.get_level_display|default:"" }}
+                  </span>
+                  <span class="course-info-item">
+                    <i class="fas fa-users"></i>
+                    {{ course.get_age_group_display|default:"" }}
+                  </span>
+                </div>
+                
+                <div class="course-card-footer">
+                  <span class="course-price">
+                    {% if course.is_free %}
+                      <i class="fas fa-gift"></i>
+                      رایگان
+                    {% else %}
+                      {{ course.price|floatformat:0 }} تومان
+                    {% endif %}
+                  </span>
+                  {% if course.slug %}
+                    <a href="{% url 'course:detail' course.slug %}" class="course-detail-btn">
+                      مشاهده دوره
+                      <i class="fas fa-arrow-left"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-courses-state">
+          <div class="no-courses-icon">
+            <i class="fas fa-book"></i>
+          </div>
+          <h3>هنوز دوره‌ای ثبت نشده</h3>
+          <p>این مدرس هنوز دوره‌ای ارائه نکرده است.</p>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- Back Button -->
+      <div class="detail-section back-section">
+        <a href="{% url 'teacher:all-teachers' %}" class="back-to-list-btn">
+          <i class="fas fa-arrow-right"></i>
+          بازگشت به لیست اساتید
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
 <style>
-.text-gradient{background:linear-gradient(135deg,#1F3A93,#2C3E50);-webkit-background-clip:text;background-clip:text;color:transparent}
-.teacher-avatar{height:260px;background:#f8f9fa}
-.teacher-avatar img{width:100%;height:100%;object-fit:cover}
-.placeholder-image{height:260px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:2.2rem}
-.modern-card{border:none;border-radius:16px}
+/* Teacher Detail Page Styles */
+.teacher-detail-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Hero Section */
+.teacher-detail-hero {
+  position: relative;
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.hero-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.15;
+  filter: blur(10px);
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+}
+
+.hero-content-wrapper {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.teacher-hero-profile {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.teacher-hero-avatar {
+  flex-shrink: 0;
+}
+
+.hero-avatar-img,
+.hero-avatar-placeholder {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+}
+
+.hero-avatar-img {
+  object-fit: cover;
+}
+
+.hero-avatar-placeholder {
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 4rem;
+}
+
+.teacher-hero-info {
+  color: white;
+}
+
+.teacher-hero-name {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.teacher-hero-expertise {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.95;
+}
+
+.teacher-hero-expertise i {
+  font-size: 1.2rem;
+}
+
+.teacher-hero-meta {
+  display: flex;
+  gap: 25px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+}
+
+.meta-item i {
+  font-size: 1rem;
+}
+
+.teacher-hero-social {
+  display: flex;
+  gap: 15px;
+}
+
+.hero-social-link {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.3rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.hero-social-link:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.hero-social-link.linkedin:hover {
+  background: #0077b5;
+}
+
+.hero-social-link.instagram:hover {
+  background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af);
+}
+
+.hero-social-link.website:hover {
+  background: #6366f1;
+}
+
+/* Main Content */
+.teacher-detail-content {
+  position: relative;
+  margin-top: -80px;
+  z-index: 3;
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.detail-section {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+.section-header-detail {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #f1f5f9;
+}
+
+.section-header-detail i {
+  font-size: 1.8rem;
+  color: #667eea;
+}
+
+.section-header-detail h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+/* Bio Section */
+.teacher-bio-text {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: #4a5568;
+  margin: 0;
+}
+
+/* Courses Section */
+.teacher-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+}
+
+.teacher-course-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.teacher-course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border-color: #667eea;
+}
+
+.course-card-header {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.course-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.teacher-course-card:hover .course-card-image {
+  transform: scale(1.1);
+}
+
+.course-card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.course-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.featured-badge {
+  color: #f59e0b;
+}
+
+.featured-badge i {
+  font-size: 0.85rem;
+}
+
+.course-card-body {
+  padding: 25px;
+}
+
+.course-card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 12px;
+}
+
+.course-card-description {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  min-height: 50px;
+}
+
+.course-card-info {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.course-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #667eea;
+  background: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-weight: 500;
+}
+
+.course-info-item i {
+  font-size: 0.85rem;
+}
+
+.course-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.course-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.course-price i {
+  font-size: 1rem;
+}
+
+.course-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.course-detail-btn:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  color: white;
+  text-decoration: none;
+}
+
+.course-detail-btn i {
+  font-size: 0.85rem;
+  transition: transform 0.3s ease;
+}
+
+.course-detail-btn:hover i {
+  transform: translateX(-3px);
+}
+
+/* No Courses State */
+.no-courses-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-courses-icon {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+  color: white;
+  font-size: 2.5rem;
+}
+
+.no-courses-state h3 {
+  font-size: 1.5rem;
+  color: #1a202c;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.no-courses-state p {
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+/* Back Section */
+.back-section {
+  text-align: center;
+  background: transparent;
+  box-shadow: none;
+  padding: 20px;
+}
+
+.back-to-list-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 35px;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: 2px solid #667eea;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+}
+
+.back-to-list-btn:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  text-decoration: none;
+}
+
+.back-to-list-btn i {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.back-to-list-btn:hover i {
+  transform: translateX(5px);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .teacher-hero-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .teacher-hero-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .teacher-hero-name {
+    font-size: 2.5rem;
+  }
+  
+  .teacher-courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .teacher-detail-hero {
+    min-height: 400px;
+  }
+  
+  .hero-avatar-img,
+  .hero-avatar-placeholder {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .hero-avatar-placeholder {
+    font-size: 3rem;
+  }
+  
+  .teacher-hero-name {
+    font-size: 2rem;
+  }
+  
+  .teacher-hero-expertise {
+    font-size: 1.2rem;
+  }
+  
+  .detail-section {
+    padding: 25px;
+  }
+  
+  .section-header-detail h2 {
+    font-size: 1.5rem;
+  }
+  
+  .teacher-courses-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .teacher-detail-content {
+    margin-top: -60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .teacher-detail-hero {
+    min-height: 350px;
+  }
+  
+  .hero-content-wrapper {
+    padding: 30px 15px;
+  }
+  
+  .hero-avatar-img,
+  .hero-avatar-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .hero-avatar-placeholder {
+    font-size: 2.5rem;
+  }
+  
+  .teacher-hero-name {
+    font-size: 1.8rem;
+  }
+  
+  .teacher-hero-expertise {
+    font-size: 1.1rem;
+  }
+  
+  .teacher-hero-meta {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .meta-item {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .teacher-hero-social {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .hero-social-link {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+  
+  .detail-section {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .section-header-detail {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .section-header-detail h2 {
+    font-size: 1.3rem;
+  }
+  
+  .teacher-bio-text {
+    font-size: 1rem;
+  }
+  
+  .course-card-header {
+    height: 180px;
+  }
+  
+  .course-card-body {
+    padding: 20px;
+  }
+  
+  .course-card-title {
+    font-size: 1.2rem;
+  }
+  
+  .course-card-footer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .course-detail-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .back-to-list-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
 </style>
 {% endblock %} 

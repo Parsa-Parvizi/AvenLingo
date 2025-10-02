@@ -1,13 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Q, Prefetch, Count
 from django.core.cache import cache
 from django.conf import settings
 from course.models import Course
 from account.models import Teacher
-from .models import FAQ, CourseGuide
 from course.models import Category
-from django.shortcuts import render, redirect
-from .forms import AdviceRequestForm, DeterminationRequestForm, CollabrateRequestForm, RequestCourseForm
+from .forms import AdviceRequestForm, DeterminationRequestForm, RequestCourseForm, CollabrateRequestForm
+from account.forms import TeacherApplicationForm
+
 
 
 def home_view(request):
@@ -25,12 +25,6 @@ def home_view(request):
         is_active=True, is_verified=True
     )[:10]
     
-    # Basic FAQ query
-    faqs = FAQ.objects.filter(is_active=True).order_by('order')[:8]
-    
-    # Basic course guide query
-    course_guide = CourseGuide.objects.filter(is_active=True).first()
-    
     # Basic categories query
     categories = Category.objects.filter(is_active=True).order_by('name')[:6]
     
@@ -40,8 +34,6 @@ def home_view(request):
         'latest_courses': latest_courses,
         'featured_courses': featured_courses,
         'teachers': active_teachers,
-        'faqs': faqs,
-        'course_guide': course_guide,
         'categories': categories
     }
     
@@ -117,13 +109,14 @@ def advice(request):
             return render(request, 'core/application_success.html', {'message': 'درخواست مشاوره با موفقیت ثبت شد.'})
     else:
         form = AdviceRequestForm()
+        
     return render(request, 'core/advice.html', {'form': form})
 
 
 def collabrate(request):
-    # درخواست
+    # درخواست همکاری
     if request.method == 'POST':
-        form = CollabrateRequestForm(request.POST)
+        form = CollabrateRequestForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return render(request, 'core/application_success.html', {'message': 'درخواست همکاری با موفقیت ثبت شد.'})
@@ -165,15 +158,6 @@ def aboutus_view(request):
 
 
 def contactus_view(request):
-    # Hard-coded contact info since we removed the model
-    contact_info = {
-        'mobile': '09123456789',
-        'email': 'info@academy.com'
-    }
     
-    context = {
-        'contact_info': contact_info
-    }
-    
-    return render(request, 'contact/contactus.html', context)
+    return render(request, 'contact/contactus.html')
 

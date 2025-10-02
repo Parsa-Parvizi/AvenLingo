@@ -93,11 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.external_urls',  # External URLs and CDN
-                'core.context_processors.url_security_settings',  # URL security settings
-                'core.context_processors.site_data',  # Temporarily disabled for speed
-                # 'core.context_processors.footer_data',  # Temporarily disabled for speed
-            ],
+                ],
         },
     },
 ]

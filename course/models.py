@@ -19,7 +19,61 @@ LANGUAGE_CHOICES = [
     ('italian', 'ایتالیایی'),
     ('chinese', 'چینی'),
     ('japanese', 'ژاپنی'),
+    ('persian', 'فارسی'),
+    ('other', 'سایر'),
 ]
+
+COURSE_TYPE_CHOICES = [
+    ('general', 'عمومی'),
+    ('private', 'خصوصی'),
+    ('corporate', 'شرکتی'),
+    ('other', 'سایر'),
+]
+
+LEVEL_CHOICES = [
+    ('beginner', 'مبتدی'),
+    ('intermediate', 'متوسط'),
+    ('advanced', 'پیشرفته'),
+]
+
+ONLINE_CHOICES = [
+    ('online', 'آنلاین'),
+    ('offline', 'آفلاین'),
+    ('in_person', 'حضوری'),
+    ('hybrid', 'ترکیبی'),
+]
+
+AGE_GROUP_CHOICES = [
+        ('kids', 'کودکان'),
+        ('teens', 'نوجوانان'),
+        ('adults', 'بزرگسالان'),
+]
+
+CLASS_TYPE_CHOICES = [
+    ('general', 'عمومی'),
+    ('grammar', 'گرامر'),
+    ('writing', 'نوشتاری (Writing)'),
+    ('speaking', 'مکالمه (Speaking)'),
+    ('listening', 'شنیداری (Listening)'),
+    ('reading', 'خواندن (Reading)'),
+    ('vocabulary', 'واژگان'),
+    ('conversation', 'گفت‌وگو'),
+    ('exam', 'آمادگی آزمون'),
+    ('ielts', 'آیلتس (IELTS)'),
+    ('toefl', 'تافل (TOEFL)'),
+    ('tolimo', 'تولیمو (TOLIMO)'),
+    ('ept', 'ای پی تی (EPT)'),
+    ('msrt', 'ام اس آر تی (MSRT)'),
+    ('gre', 'جی آر ای (GRE)'),
+    ('other', 'سایر'),
+]
+
+STATUS_CHOICES = [
+    ('draft', 'پیش‌نویس'),
+    ('published', 'منتشر شده'),
+    ('archived', 'آرشیو شده'),
+]
+
 
 class Category(models.Model):
     name = models.CharField("نام دسته‌بندی", max_length=100)
@@ -45,43 +99,7 @@ class Category(models.Model):
 
 
 class Course(models.Model):
-
-    LEVEL_CHOICES = [
-    ('beginner', 'مبتدی'),
-    ('intermediate', 'متوسط'),
-    ('advanced', 'پیشرفته'),
-    ]
-
-    AGE_GROUP_CHOICES = [
-        ('kids', 'کودکان'),
-        ('teens', 'نوجوانان'),
-        ('adults', 'بزرگسالان'),
-    ]
-
-    CLASS_TYPE_CHOICES = [
-        ('general', 'عمومی'),
-        ('grammar', 'گرامر'),
-        ('writing', 'نوشتاری (Writing)'),
-        ('speaking', 'مکالمه (Speaking)'),
-        ('listening', 'شنیداری (Listening)'),
-        ('reading', 'خواندن (Reading)'),
-        ('vocabulary', 'واژگان'),
-        ('conversation', 'گفت‌وگو'),
-        ('exam', 'آمادگی آزمون'),
-        ('ielts', 'آیلتس (IELTS)'),
-        ('toefl', 'تافل (TOEFL)'),
-        ('tolimo', 'تولیمو (TOLIMO)'),
-        ('ept', 'ای پی تی (EPT)'),
-        ('msrt', 'ام اس آر تی (MSRT)'),
-        ('gre', 'جی آر ای (GRE)'),
-        ('other', 'سایر'),
-    ]
-    STATUS_CHOICES = [
-        ('draft', 'پیش‌نویس'),
-        ('published', 'منتشر شده'),
-        ('archived', 'آرشیو شده'),
-    ]
-
+    
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

@@ -13,7 +13,6 @@ function checkFontAwesomeLoaded() {
     document.body.removeChild(testIcon);
     
     if (!fontFamily.includes('Font Awesome')) {
-        console.warn('Font Awesome failed to load, using fallback');
         // Add fallback styles or alternative icons
         const fallbackStyle = document.createElement('style');
         fallbackStyle.textContent = `
@@ -135,7 +134,6 @@ function initSlider() {
   const dots = document.querySelectorAll(".dot");
   
   if (slides.length === 0) {
-    console.log("No slides found");
     return;
   }
   

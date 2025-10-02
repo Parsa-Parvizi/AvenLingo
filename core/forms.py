@@ -1,5 +1,5 @@
 from django import forms
-from .models import AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse
+from .models import AdviceRequest, DeterminationRequest, RequestCourse, CollabrateRequest
 
 
 class AdviceRequestForm(forms.ModelForm):
@@ -47,38 +47,31 @@ class CollabrateRequestForm(forms.ModelForm):
             'email': 'آدرس ایمیل',
             'phone': 'شماره تماس',
             'message': 'متن درخواست همکاری',
-            'resume': 'رزومه (PDF)',
+            'resume': 'رزومه',
         }
         widgets = {
-            'resume': forms.FileInput(attrs={
-                'accept': '.pdf',
+            'name': forms.TextInput(attrs={
                 'class': 'form-control',
+                'placeholder': 'نام و نام خانوادگی'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'آدرس ایمیل'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'شماره تماس'
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'توضیحات و انگیزه همکاری'
+            }),
+            'resume': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf'
             })
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({
-            'placeholder': 'نام و نام خانوادگی',
-            'class': 'form-control'
-        })
-        self.fields['email'].widget.attrs.update({
-            'placeholder': 'آدرس ایمیل',
-            'class': 'form-control'
-        })
-        self.fields['phone'].widget.attrs.update({
-            'placeholder': 'شماره تماس',
-            'class': 'form-control'
-        })
-        self.fields['message'].widget.attrs.update({
-            'placeholder': 'توضیحات و انگیزه همکاری',
-            'class': 'form-control',
-            'rows': 4
-        })
-        self.fields['resume'].widget.attrs.update({
-            'class': 'form-control',
-            'accept': '.pdf'
-        })
     
     def clean_resume(self):
         resume = self.cleaned_data.get('resume')
@@ -93,7 +86,38 @@ class CollabrateRequestForm(forms.ModelForm):
         
         return resume
 
+
 class RequestCourseForm(forms.ModelForm):
     class Meta:
         model = RequestCourse
         fields = ['name', 'email', 'phone', 'course_title', 'description']
+        labels = {
+            'name': 'نام و نام خانوادگی',
+            'email': 'ایمیل',
+            'phone': 'شماره تماس',
+            'course_title': 'عنوان دوره پیشنهادی',
+            'description': 'توضیحات تکمیلی',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام و نام خانوادگی'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'آدرس ایمیل'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'شماره تماس'
+            }),
+            'course_title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'عنوان دوره‌ای که می‌خواهید'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'توضیحات بیشتر درباره دوره مورد نظر'
+            })
+        }

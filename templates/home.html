@@ -15,7 +15,7 @@
     <div class="slide">
       <h1>کلاس‌های آنلاین و حضوری</h1>
       <p>با انعطاف‌پذیری بالا، هرجا هستید آموزش ببینید.</p>
-      <a href="{% url 'course:all-courses' %}" class="btn btn-secondary">ثبت‌نام رایگان</a>
+      <a href="{% url 'course:all-courses' %}" class="btn btn-secondary">ثبت‌نام دوره</a>
     </div>
     <div class="slide">
       <h1>اساتید مجرب بین‌المللی</h1>
@@ -154,7 +154,7 @@
 
 <section class="teachers">
   <h2>اساتید ما</h2>
-  <div class="teacher-list">
+  <div class="teacher-list row">
     {% for teacher in teachers %}
     <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
       <div class="card teacher-card border-0 shadow-sm rounded-lg overflow-hidden h-100">

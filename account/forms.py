@@ -137,309 +137,396 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
     first_name = forms.CharField(
         max_length=30,
         label='نام',
-        help_text='نام حقیقی خود را وارد کنید',
         widget=forms.TextInput(attrs={
-            'class': 'form-control', 
+            'class': 'form-control',
             'placeholder': 'نام خود را وارد کنید',
-            'autocomplete': 'given-name',
+            'autocomplete': 'off',
+            'required': True,
             'data-validation': 'name',
-            'pattern': r'^[\u0600-\u06FFa-zA-Z\s]+$',
-            'title': 'فقط حروف فارسی و انگلیسی مجاز است'
+            'data-realtime': 'true'
         })
     )
     
     last_name = forms.CharField(
         max_length=30,
         label='نام خانوادگی',
-        help_text='نام خانوادگی حقیقی خود را وارد کنید',
         widget=forms.TextInput(attrs={
-            'class': 'form-control', 
+            'class': 'form-control',
             'placeholder': 'نام خانوادگی خود را وارد کنید',
-            'autocomplete': 'family-name',
+            'autocomplete': 'off',
+            'required': True,
             'data-validation': 'name',
-            'pattern': r'^[\u0600-\u06FFa-zA-Z\s]+$',
-            'title': 'فقط حروف فارسی و انگلیسی مجاز است'
+            'data-realtime': 'true'
         })
     )
     
     email = forms.EmailField(
         label='آدرس ایمیل',
-        help_text='ایمیل معتبر خود را وارد کنید. کد تأیید به این آدرس ارسال خواهد شد.',
         widget=forms.EmailInput(attrs={
-            'class': 'form-control', 
+            'class': 'form-control',
             'placeholder': 'example@email.com',
-            'autocomplete': 'email',
+            'autocomplete': 'off',
+            'required': True,
             'data-validation': 'email',
-            'data-validation-url': '/auth/validate-email/',
-            'data-realtime': 'true'
+            'data-realtime': 'true',
+            'data-check-availability': 'true'
         })
     )
     
+    password1 = forms.CharField(
+        label='رمز عبور',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'رمز عبور خود را وارد کنید',
+            'autocomplete': 'new-password',
+            'required': True,
+            'data-validation': 'password',
+            'data-strength-meter': 'true',
+            'minlength': '8'
+        }),
+        help_text='رمز عبور باید حداقل ۸ کاراکتر باشد و شامل حروف و اعداد باشد.'
+    )
+    
+    password2 = forms.CharField(
+        label='تایید رمز عبور',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'رمز عبور خود را مجدد وارد کنید',
+            'autocomplete': 'new-password',
+            'required': True,
+            'data-validation': 'password-confirm',
+            'data-match-field': 'id_password1'
+        })
+    )
+    
+    # Student profile fields
     phone_number = forms.CharField(
         max_length=20,
-        label='شماره موبایل',
-        required=False,
-        help_text='شماره موبایل خود را به فرمت 09123456789 وارد کنید',
+        label='شماره تلفن',
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': '09123456789',
-            'autocomplete': 'tel',
+            'autocomplete': 'off',
             'data-validation': 'phone',
-            'pattern': r'09\d{9}',
-            'title': 'شماره موبایل باید به فرمت 09123456789 باشد',
-            'data-mask': '09999999999'
+            'inputmode': 'tel',
+            'required': True
         })
     )
     
     date_of_birth = forms.DateField(
+        label='تاریخ تولد (اختیاری)',
         required=False,
-        label='تاریخ تولد',
-        help_text='تاریخ تولد برای تعیین گروه سنی مناسب',
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date',
-            'autocomplete': 'bday',
-            'max': datetime.now().date().isoformat(),  # Can't be future date
-            'min': (datetime.now().date() - timedelta(days=36500)).isoformat()  # Max 100 years old
+            'data-validation': 'date'
         })
     )
     
-    # Enhanced honeypot field
-    website = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={
-            'style': 'position: absolute; left: -9999px; opacity: 0;',
-            'tabindex': '-1',
-            'autocomplete': 'off',
-            'aria-hidden': 'true'
-        })
-    )
-    
-    # Progressive disclosure fields
     english_level = forms.ChoiceField(
+        label='سطح زبان انگلیسی',
         choices=[
-            ('', 'انتخاب کنید...'),
+            ('', 'سطح خود را انتخاب کنید'),
             ('beginner', 'مبتدی'),
-            ('elementary', 'ابتدایی'),
-            ('pre_intermediate', 'پیش متوسط'),
+            ('elementary', 'پایه'),
             ('intermediate', 'متوسط'),
-            ('upper_intermediate', 'فوق متوسط'),
-            ('advanced', 'پیشرفته'),
+            ('upper_intermediate', 'متوسط به بالا'),
+            ('advanced', 'پیشرفته')
         ],
         required=False,
-        label='سطح زبان انگلیسی',
-        help_text='سطح فعلی زبان انگلیسی خود را انتخاب کنید',
         widget=forms.Select(attrs={
-            'class': 'form-select',
-            'data-step': '2'
+            'class': 'form-control'
         })
     )
     
     learning_goals = forms.MultipleChoiceField(
+        label='اهداف یادگیری (اختیاری)',
         choices=[
-            ('conversation', 'تقویت مکالمه'),
+            ('speaking', 'بهبود مکالمه'),
+            ('listening', 'بهبود شنیداری'),
+            ('reading', 'بهبود خواندن'),
+            ('writing', 'بهبود نوشتن'),
             ('grammar', 'یادگیری گرامر'),
+            ('vocabulary', 'افزایش واژگان'),
+            ('exam_prep', 'آماده‌سازی برای آزمون'),
             ('business', 'انگلیسی تجاری'),
-            ('academic', 'آمادگی آزمون'),
-            ('travel', 'انگلیسی سفر'),
-            ('job', 'ارتقای شغلی'),
+            ('academic', 'انگلیسی آکادمیک'),
         ],
         required=False,
-        label='اهداف یادگیری',
-        help_text='اهداف خود از یادگیری زبان انگلیسی را انتخاب کنید',
         widget=forms.CheckboxSelectMultiple(attrs={
-            'class': 'form-check-input',
-            'data-step': '2'
+            'class': 'form-check-input'
         })
     )
     
-    # Terms and conditions with enhanced validation
+    # Terms and privacy
     terms_accepted = forms.BooleanField(
+        label='قوانین و مقررات را مطالعه کرده و می‌پذیرم',
         required=True,
-        label='',
-        help_text='',
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input',
-            'data-required': 'true',
-            'data-validation': 'terms'
+            'required': True
         })
     )
     
-    # Privacy policy acceptance
-    privacy_accepted = forms.BooleanField(
-        required=True,
-        label='',
-        help_text='',
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input',
-            'data-required': 'true',
-            'data-validation': 'privacy'
-        })
-    )
-
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
-
+    
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         
-        # Enhanced password fields with better UX
-        self.fields['password1'].help_text = (
-            "رمز عبور باید حداقل ۸ کاراکتر باشد"
-        )
-        self.fields['password1'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': 'رمز عبور خود را وارد کنید',
-            'autocomplete': 'new-password',
-            'data-validation': 'password',
-            'data-strength-meter': 'true',
-            'data-realtime': 'true'
-        })
-        
-        self.fields['password2'].help_text = "رمز عبور خود را مجدداً وارد کنید"
-        self.fields['password2'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': 'تکرار رمز عبور',
-            'autocomplete': 'new-password',
-            'data-validation': 'password-confirm',
-            'data-match': 'password1'
-        })
-
-    def clean_website(self):
-        """Honeypot validation"""
-        website = self.cleaned_data.get('website')
-        if website:
-            logger.warning(f"Bot detected - honeypot filled: {website}")
-            raise ValidationError('Bot detected')
-        return website
-
-    def clean_first_name(self):
-        return self.clean_text_field('first_name', max_length=30, min_length=2)
-
-    def clean_last_name(self):
-        return self.clean_text_field('last_name', max_length=30, min_length=2)
-
+        # Add CSS classes and improve help text
+        for field_name, field in self.fields.items():
+            if field_name not in ['learning_goals', 'terms_accepted']:
+                if 'class' not in field.widget.attrs:
+                    field.widget.attrs['class'] = 'form-control'
+    
     def clean_email(self):
-        email = self.cleaned_data.get('email', '').lower().strip()
+        email = self.cleaned_data.get('email', '').strip().lower()
         
-        if not email:
-            raise ValidationError('آدرس ایمیل الزامی است.')
-        
-        # Enhanced email validation
-        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            raise ValidationError('فرمت آدرس ایمیل صحیح نیست.')
-        
-        # Block temporary email domains
-        blocked_domains = [
-            '10minutemail.com', 'guerrillamail.com', 'mailinator.com',
-            'tempmail.org', 'throwaway.email', 'temp-mail.org'
-        ]
-        domain = email.split('@')[1].lower()
-        if domain in blocked_domains:
-            raise ValidationError('استفاده از آدرس ایمیل موقت مجاز نیست.')
-        
-        # Check for existing email
         if User.objects.filter(email=email).exists():
-            raise ValidationError('کاربری با این آدرس ایمیل قبلاً ثبت‌نام کرده است.')
+            raise ValidationError('این ایمیل قبلاً ثبت شده است. آیا قبلاً حساب کاربری دارید؟')
         
-        # Rate limiting for email validation
-        if self.check_rate_limit(email, 'email_check', limit=3, window_minutes=5):
-            raise ValidationError('تعداد درخواست‌های شما زیاد است. لطفاً کمی صبر کنید.')
+        # Check if this email has a pending teacher application
+        if TeacherApplication.objects.for_email(email).exists():
+            raise ValidationError('این ایمیل برای درخواست همکاری معلم استفاده شده است.')
         
         return email
-
+    
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number', '').strip()
         
-        if phone:
-            # Remove any non-digit characters
-            phone_digits = re.sub(r'\D', '', phone)
-            
-            if not re.match(r'^09\d{9}$', phone_digits):
-                raise ValidationError('شماره موبایل باید به فرمت 09123456789 باشد.')
-            
-            # Check for existing phone number
-            if Student.objects.filter(phone_number=phone_digits).exists():
-                raise ValidationError('کاربری با این شماره موبایل قبلاً ثبت‌نام کرده است.')
-            
-            return phone_digits
+        if not phone:
+            raise ValidationError('شماره تلفن الزامی است.')
+        
+        # Basic Iranian phone number validation
+        import re
+        pattern = r'^09\d{9}$'
+        if not re.match(pattern, phone):
+            raise ValidationError('شماره تلفن باید با ۰۹ شروع شده و ۱۱ رقم باشد.')
         
         return phone
-
-    def clean_date_of_birth(self):
-        dob = self.cleaned_data.get('date_of_birth')
-        
-        if dob:
-            today = datetime.now().date()
-            age = (today - dob).days // 365
-            
-            if age < 6:
-                raise ValidationError('حداقل سن مجاز ۶ سال است.')
-            
-            if age > 100:
-                raise ValidationError('حداکثر سن مجاز ۱۰۰ سال است.')
-        
-        return dob
-
-    def clean_password1(self):
-        password = self.cleaned_data.get('password1')
-        
-        if password:
-            if len(password) < 8:
-                raise ValidationError('رمز عبور باید حداقل ۸ کاراکتر باشد.')
-        
-        return password
-
+    
     def clean(self):
         cleaned_data = super().clean()
         
-        # Cross-field validation
-        first_name = cleaned_data.get('first_name', '')
-        last_name = cleaned_data.get('last_name', '')
-        email = cleaned_data.get('email', '')
-        
-        # Check if name appears in email (may indicate fake account)
-        if first_name and last_name and email:
-            full_name_parts = [first_name.lower(), last_name.lower()]
-            email_username = email.split('@')[0].lower()
-            
-            # If email username contains both first and last name, it might be suspicious
-            if all(part in email_username for part in full_name_parts):
-                logger.info(f"Name matches email pattern for {email}")
-        
-        # Rate limiting for form submission
-        user_identifier = self.request.META.get('REMOTE_ADDR', 'unknown') if self.request else 'unknown'
-        if self.check_rate_limit(user_identifier, 'registration', limit=3, window_minutes=30):
-            raise ValidationError('تعداد تلاش‌های ثبت‌نام شما زیاد است. لطفاً ۳۰ دقیقه صبر کنید.')
+        # Additional security and validation checks
+        if self.request:
+            # Check for suspicious activity
+            if not self.check_security():
+                raise ValidationError('خطای امنیتی تشخیص داده شد. لطفاً دوباره تلاش کنید.')
         
         return cleaned_data
-
+    
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.user_type = 'student'
-        user.is_active = True  # Will be set to False if email verification is required
+        """Save user and create student profile using service layer"""
+        if not commit:
+            return super().save(commit=False)
         
-        if commit:
-            user.save()
+        try:
+            from .services import UserRegistrationService
             
-            # Create student profile
-            student = Student.objects.create(
-                user=user,
-                phone_number=self.cleaned_data.get('phone_number', ''),
-                date_of_birth=self.cleaned_data.get('date_of_birth'),
-                english_level=self.cleaned_data.get('english_level', ''),
-                goals=', '.join(self.cleaned_data.get('learning_goals', []))
+            # Prepare profile data
+            profile_data = {
+                'phone_number': self.cleaned_data.get('phone_number', ''),
+                'date_of_birth': self.cleaned_data.get('date_of_birth'),
+                'english_level': self.cleaned_data.get('english_level', ''),
+                'goals': ', '.join(self.cleaned_data.get('learning_goals', []))
+            }
+            
+            # Use service to register student
+            user = UserRegistrationService.register_student(
+                email=self.cleaned_data['email'],
+                password=self.cleaned_data['password1'],
+                first_name=self.cleaned_data['first_name'],
+                last_name=self.cleaned_data['last_name'],
+                **profile_data
             )
             
-            logger.info(f"New student registered: {user.email}")
+            return user
+            
+        except Exception as e:
+            logger.error(f"Error in student registration form save: {str(e)}")
+            raise ValidationError('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.')
+
+
+class TeacherApplicationForm(EnhancedValidationMixin, forms.ModelForm):
+    """Enhanced form for teacher collaboration requests"""
+    
+    class Meta:
+        model = TeacherApplication
+        fields = [
+            'first_name', 'last_name', 'email', 'phone_number',
+            'education', 'experience', 'certifications', 'specialties',
+            'motivation', 'cv_file'
+        ]
         
-        return user
+        labels = {
+            'first_name': 'نام',
+            'last_name': 'نام خانوادگی', 
+            'email': 'آدرس ایمیل',
+            'phone_number': 'شماره تلفن',
+            'education': 'تحصیلات',
+            'experience': 'تجربه تدریس',
+            'certifications': 'گواهینامه‌ها و مدارک',
+            'specialties': 'تخصص‌ها و مهارت‌ها',
+            'motivation': 'انگیزه همکاری',
+            'cv_file': 'فایل رزومه (PDF)'
+        }
+        
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام خود را وارد کنید',
+                'autocomplete': 'given-name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام خانوادگی خود را وارد کنید',
+                'autocomplete': 'family-name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'example@email.com',
+                'autocomplete': 'email'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789',
+                'inputmode': 'tel'
+            }),
+            'education': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'مدرک تحصیلی، رشته تحصیلی، دانشگاه و سال فارغ‌التحصیلی خود را شرح دهید'
+            }),
+            'experience': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'تجربه تدریس زبان انگلیسی، محل کار و مدت زمان فعالیت خود را بیان کنید'
+            }),
+            'certifications': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'گواهینامه‌های زبان انگلیسی، دوره‌های آموزشی و مدارک مرتبط (اختیاری)'
+            }),
+            'specialties': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'تخصص‌ها مثل: مکالمه، گرامر، آیلتس، تافل، انگلیسی تجاری و...'
+            }),
+            'motivation': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'چرا می‌خواهید در آکادمی ما تدریس کنید؟ اهداف و انگیزه‌های خود را بیان کنید'
+            }),
+            'cv_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf',
+                'data-max-size': '5120'  # 5MB in KB
+            })
+        }
+        
+        help_texts = {
+            'cv_file': 'فایل PDF حداکثر ۵ مگابایت',
+            'certifications': 'در صورت نداشتن گواهینامه، این قسمت را خالی بگذارید',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        
+        # Mark required fields
+        required_fields = ['first_name', 'last_name', 'email', 'phone_number', 
+                          'education', 'experience', 'specialties', 'motivation']
+        for field_name in required_fields:
+            if field_name in self.fields:
+                self.fields[field_name].required = True
+                
+        # Add asterisk to required field labels
+        for field_name, field in self.fields.items():
+            if field.required:
+                field.label = f"{field.label} *"
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        
+        # Check if application already exists
+        if TeacherApplication.objects.for_email(email).exists():
+            raise ValidationError('درخواست همکاری با این ایمیل قبلاً ثبت شده است.')
+        
+        # Check if user already exists
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('کاربری با این ایمیل قبلاً در سیستم ثبت شده است.')
+        
+        return email
+    
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number', '').strip()
+        if phone:
+            import re
+            pattern = r'^09\d{9}$'
+            if not re.match(pattern, phone):
+                raise ValidationError('شماره تلفن باید با ۰۹ شروع شده و ۱۱ رقم باشد.')
+        return phone
+    
+    def clean_cv_file(self):
+        cv_file = self.cleaned_data.get('cv_file')
+        if cv_file:
+            # Check file extension
+            if not cv_file.name.lower().endswith('.pdf'):
+                raise ValidationError('فقط فایل‌های PDF مجاز هستند.')
+            
+            # Check file size (5MB)
+            if cv_file.size > 5 * 1024 * 1024:
+                raise ValidationError('حجم فایل نباید بیشتر از ۵ مگابایت باشد.')
+            
+            # Basic PDF validation
+            if cv_file.read(4) != b'%PDF':
+                raise ValidationError('فایل آپلود شده معتبر نیست.')
+            cv_file.seek(0)  # Reset file pointer
+        
+        return cv_file
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Security checks
+        if self.request and not self.check_security():
+            raise ValidationError('خطای امنیتی تشخیص داده شد.')
+        
+        # Business logic validation
+        education = cleaned_data.get('education', '')
+        experience = cleaned_data.get('experience', '')
+        
+        if len(education) < 50:
+            raise ValidationError('لطفاً تحصیلات خود را با جزئیات بیشتری شرح دهید.')
+        
+        if len(experience) < 50:
+            raise ValidationError('لطفاً تجربه تدریس خود را با جزئیات بیشتری بیان کنید.')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        """Save application using service layer"""
+        if not commit:
+            return super().save(commit=False)
+        
+        try:
+            from .services import TeacherApplicationService
+            
+            application = TeacherApplicationService.submit_application(**self.cleaned_data)
+            return application
+            
+        except Exception as e:
+            logger.error(f"Error in teacher application form save: {str(e)}")
+            raise ValidationError('خطا در ثبت درخواست. لطفاً دوباره تلاش کنید.')
 
 
 class TeacherRegistrationForm(UserCreationForm):
-    """Registration form for teachers (only allowed after application acceptance)"""
+    """Enhanced registration form for approved teachers"""
     
     first_name = forms.CharField(
         max_length=30,
@@ -458,17 +545,57 @@ class TeacherRegistrationForm(UserCreationForm):
     
     password1 = forms.CharField(
         label='رمز عبور',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'رمز عبور خود را وارد کنید'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'رمز عبور خود را وارد کنید',
+            'autocomplete': 'new-password',
+            'data-validation': 'password',
+            'minlength': '8'
+        }),
+        help_text='رمز عبور باید حداقل ۸ کاراکتر باشد.'
     )
     password2 = forms.CharField(
         label='تایید رمز عبور',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'رمز عبور خود را مجدد وارد کنید'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'رمز عبور خود را مجدد وارد کنید',
+            'autocomplete': 'new-password',
+            'data-validation': 'password-confirm'
+        })
     )
     
     bio = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'درباره خود بنویسید...'}),
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'درباره خود، روش تدریس و تجربیات خود بنویسید...'
+        }),
         label='بیوگرافی',
-        required=False
+        required=False,
+        help_text='این متن در پروفایل عمومی شما نمایش داده خواهد شد.'
+    )
+    
+    hourly_rate = forms.DecimalField(
+        label='نرخ ساعتی (تومان)',
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '500000',
+            'min': '0',
+            'step': '10000'
+        }),
+        help_text='نرخ تدریس خود را به تومان وارد کنید (اختیاری)'
+    )
+    
+    telegram_username = forms.CharField(
+        label='نام کاربری تلگرام',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '@username',
+            'pattern': '^@?[a-zA-Z0-9_]{5,32}$'
+        }),
+        help_text='برای ارتباط با دانش‌آموزان (اختیاری)'
     )
     
     class Meta:
@@ -488,22 +615,50 @@ class TeacherRegistrationForm(UserCreationForm):
         email = self.cleaned_data['email']
         if not self.application or self.application.email != email:
             raise ValidationError('شما تنها می‌توانید با ایمیل تایید شده ثبت‌نام کنید.')
+        
+        if not self.application.can_create_teacher_account():
+            raise ValidationError('درخواست شما منقضی شده یا قابل استفاده نیست.')
+        
         return email
     
+    def clean_telegram_username(self):
+        username = self.cleaned_data.get('telegram_username', '').strip()
+        if username:
+            if not username.startswith('@'):
+                username = f'@{username}'
+            
+            import re
+            if not re.match(r'^@[a-zA-Z0-9_]{5,32}$', username):
+                raise ValidationError('نام کاربری تلگرام معتبر نیست.')
+        
+        return username
+    
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.user_type = 'teacher'
-        user.email = self.cleaned_data['email']
-        if commit:
-            user.save()
-            # Create teacher profile
-            Teacher.objects.create(
-                user=user,
+        """Save teacher using service layer"""
+        if not commit:
+            return super().save(commit=False)
+        
+        try:
+            from .services import UserRegistrationService
+            
+            # Prepare profile data
+            profile_data = {
+                'bio': self.cleaned_data.get('bio', ''),
+                'hourly_rate': self.cleaned_data.get('hourly_rate'),
+                'telegram_username': self.cleaned_data.get('telegram_username', '')
+            }
+            
+            user = UserRegistrationService.register_teacher_from_application(
                 application=self.application,
-                bio=self.cleaned_data.get('bio', ''),
-                specialties=self.application.specialties
+                password=self.cleaned_data['password1'],
+                **profile_data
             )
-        return user
+            
+            return user
+            
+        except Exception as e:
+            logger.error(f"Error in teacher registration form save: {str(e)}")
+            raise ValidationError('خطا در ثبت‌نام معلم. لطفاً دوباره تلاش کنید.')
 
 
 class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
@@ -669,56 +824,6 @@ class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
             session_key = f"failed_attempts_{username}"
             if session_key in self.request.session:
                 del self.request.session[session_key]
-
-
-class TeacherApplicationForm(forms.ModelForm):
-    """Form for teacher application submission"""
-    
-    class Meta:
-        model = TeacherApplication
-        fields = [
-            'first_name', 'last_name', 'email', 'phone_number',
-            'education', 'experience', 'certifications', 'specialties',
-            'motivation', 'cv_file'
-        ]
-        widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام خانوادگی'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'example@email.com'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09123456789'}),
-            'education': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'مدارک تحصیلی و رشته تحصیلی خود را شرح دهید...'}),
-            'experience': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'سوابق تدریس و تجربیات کاری خود را توضیح دهید...'}),
-            'certifications': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'گواهینامه‌ها و مدارک مرتبط (اختیاری)'}),
-            'specialties': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'تخصص‌های شما در تدریس زبان انگلیسی'}),
-            'motivation': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'چرا می‌خواهید با ما همکاری کنید؟'}),
-            'cv_file': forms.FileInput(attrs={'class': 'form-control-file'}),
-        }
-        labels = {
-            'first_name': 'نام',
-            'last_name': 'نام خانوادگی',
-            'email': 'آدرس ایمیل',
-            'phone_number': 'شماره تلفن',
-            'education': 'تحصیلات',
-            'experience': 'تجربه تدریس',
-            'certifications': 'گواهینامه‌ها',
-            'specialties': 'تخصص‌ها',
-            'motivation': 'انگیزه همکاری',
-            'cv_file': 'فایل رزومه (اختیاری)',
-        }
-    
-    def clean_phone_number(self):
-        phone = self.cleaned_data['phone_number']
-        # Basic Iranian phone number validation
-        if phone and not re.match(r'^09\d{9}$', phone):
-            raise ValidationError('شماره تلفن باید با 09 شروع شده و 11 رقم باشد.')
-        return phone
-    
-    def clean_email(self):
-        email = self.cleaned_data['email']
-        # Check if email already has a pending or accepted application
-        if TeacherApplication.objects.filter(email=email, status__in=['pending', 'accepted']).exists():
-            raise ValidationError('با این ایمیل قبلاً درخواست ارسال شده است.')
-        return email
 
 
 class StudentProfileForm(forms.ModelForm):

@@ -2,19 +2,45 @@
 {% load static %}
 
 {% block title %}
-    | Contact Us
+    تماس با ما | {{ company_info.company_name|default:"آکادمی زبان انگلیسی" }}
 {% endblock %}
 
 {% block meta_description %}
-    Contact Us
+    تماس با آکادمی زبان انگلیسی - اطلاعات تماس، آدرس و راه‌های ارتباطی
 {% endblock %}
 
 {% block content %}
+<!-- Contact Us Page -->
 <div class="contact-page">
+    
+    <!-- Contact Hero Section -->
+    <section class="contact-hero">
+        <div class="container">
+            <div class="hero-content text-center">
+                <h1 class="page-title">تماس با ما</h1>
+                <p class="hero-subtitle">با ما در ارتباط باشید و از مشاوره رایگان بهره‌مند شوید</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Information Section -->
     <section class="contact-info-section">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6 col-md-6 mb-4">
+                
+                <!-- Contact Cards -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h4>تلفن ثابت</h4>
+                        <p>{{ contact_info.phone|default:"021-12345678" }}</p>
+                        <a href="tel:{{ contact_info.phone|default:'02112345678' }}" class="contact-link">تماس بگیرید</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
                     <div class="contact-card">
                         <div class="contact-icon">
                             <i class="fas fa-mobile-alt"></i>
@@ -24,7 +50,8 @@
                         <a href="tel:{{ contact_info.mobile|default:'09123456789' }}" class="contact-link">تماس بگیرید</a>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6 mb-4">
+
+                <div class="col-lg-3 col-md-6 mb-4">
                     <div class="contact-card">
                         <div class="contact-icon">
                             <i class="fas fa-envelope"></i>
@@ -34,10 +61,22 @@
                         <a href="mailto:{{ contact_info.email|default:'info@academy.com' }}" class="contact-link">ایمیل بفرستید</a>
                     </div>
                 </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="contact-card">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h4>آدرس</h4>
+                        <p>{{ contact_info.address|default:"تهران، ایران" }}</p>
+                        <a href="#map" class="contact-link">مشاهده در نقشه</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- Main Content Section -->
     <section class="contact-main">
         <div class="container">
             <div class="row">
@@ -63,27 +102,21 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="contact-name">نام و نام خانوادگی *</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="contact-name" 
-                                               name="name" 
-                                               placeholder="نام و نام خانوادگی" 
-                                               required 
-                                               dir="rtl">
+                                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}
+                                            <div class="form-error">{{ form.name.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="contact-email">آدرس ایمیل *</label>
-                                        <input type="email" 
-                                               class="form-control" 
-                                               id="contact-email" 
-                                               name="email" 
-                                               placeholder="آدرس ایمیل" 
-                                               required 
-                                               dir="rtl">
+                                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="form-error">{{ form.email.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -91,40 +124,31 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="contact-phone">شماره تماس</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="contact-phone" 
-                                               name="phone" 
-                                               placeholder="شماره تماس (اختیاری)" 
-                                               pattern="[0-9+\-\(\)\s]+" 
-                                               dir="rtl">
+                                        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+                                        {{ form.phone }}
+                                        {% if form.phone.errors %}
+                                            <div class="form-error">{{ form.phone.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="contact-subject">موضوع *</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="contact-subject" 
-                                               name="subject" 
-                                               placeholder="موضوع پیام" 
-                                               required 
-                                               dir="rtl">
+                                        <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+                                        {{ form.subject }}
+                                        {% if form.subject.errors %}
+                                            <div class="form-error">{{ form.subject.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="contact-message">پیام *</label>
-                                <textarea class="form-control" 
-                                          id="contact-message" 
-                                          name="message" 
-                                          rows="5" 
-                                          placeholder="متن پیام شما..." 
-                                          required 
-                                          dir="rtl"></textarea>
+                                <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+                                {{ form.message }}
+                                {% if form.message.errors %}
+                                    <div class="form-error">{{ form.message.errors.0 }}</div>
+                                {% endif %}
                             </div>
                             
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -138,13 +162,68 @@
                 <!-- Contact Information Sidebar -->
                 <div class="col-lg-4">
                     <div class="contact-sidebar">
+                        
+                        <!-- Working Hours -->
+                        <div class="info-card">
+                            <h4><i class="fas fa-clock"></i> ساعات کاری</h4>
+                            <div class="working-hours">
+                                {% if contact_info.working_hours %}
+                                    {{ contact_info.working_hours|linebreaks }}
+                                {% else %}
+                                    <p>شنبه تا پنج‌شنبه: ۸ صبح تا ۲۰</p>
+                                    <p>جمعه: تعطیل</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Social Media -->
+                        <div class="info-card">
+                            <h4><i class="fas fa-share-alt"></i> شبکه‌های اجتماعی</h4>
+                            <div class="social-links">
+                                {% if contact_info.instagram %}
+                                    <a href="{{ contact_info.instagram }}" target="_blank" class="social-btn instagram">
+                                        <i class="fab fa-instagram"></i>
+                                        اینستاگرام
+                                    </a>
+                                {% endif %}
+                                
+                                {% if contact_info.telegram %}
+                                    <a href="{{ contact_info.telegram }}" target="_blank" class="social-btn telegram">
+                                        <i class="fab fa-telegram"></i>
+                                        تلگرام
+                                    </a>
+                                {% endif %}
+                                
+                                {% if contact_info.whatsapp %}
+                                    <a href="{{ contact_info.whatsapp_url }}" target="_blank" class="social-btn whatsapp">
+                                        <i class="fab fa-whatsapp"></i>
+                                        واتساپ
+                                    </a>
+                                {% endif %}
+                                
+                                {% if contact_info.linkedin %}
+                                    <a href="{{ contact_info.linkedin }}" target="_blank" class="social-btn linkedin">
+                                        <i class="fab fa-linkedin"></i>
+                                        لینکدین
+                                    </a>
+                                {% endif %}
+                                
+                                {% if contact_info.youtube %}
+                                    <a href="{{ contact_info.youtube }}" target="_blank" class="social-btn youtube">
+                                        <i class="fab fa-youtube"></i>
+                                        یوتیوب
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <!-- Quick Actions -->
                         <div class="info-card">
                             <h4><i class="fas fa-rocket"></i> دسترسی سریع</h4>
                             <div class="quick-actions">
                                 <a href="{% url 'core:advice' %}" class="action-btn">
                                     <i class="fas fa-user-tie"></i>
-                                    مشاوره رایگان
+                                    مشاوره آنلاین
                                 </a>
                                 <a href="{% url 'core:determination' %}" class="action-btn">
                                     <i class="fas fa-chart-line"></i>
@@ -165,9 +244,36 @@
             </div>
         </div>
     </section>
+
+    <!-- Map Section -->
+    {% if contact_info.map_embed_code %}
+        <section class="map-section" id="map">
+            <div class="container-fluid">
+                <div class="map-container">
+                    {{ contact_info.map_embed_code|safe }}
+                </div>
+            </div>
+        </section>
+    {% else %}
+        <section class="map-placeholder" id="map">
+            <div class="container">
+                <div class="placeholder-content">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h3>نقشه</h3>
+                    <p>آدرس: {{ contact_info.address|default:"تهران، ایران" }}</p>
+                    <p>برای مشاهده موقعیت دقیق، کد نقشه گوگل مپس در پنل مدیریت وارد کنید</p>
+                </div>
+            </div>
+        </section>
+    {% endif %}
 </div>
 
+<!-- Styles -->
 <style>
+.contact-page {
+    padding-top: 20px;
+}
+
 .contact-hero {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -187,6 +293,10 @@
     opacity: 0.9;
 }
 
+.contact-info-section {
+    margin-bottom: 50px;
+}
+
 .contact-card {
     background: white;
     padding: 40px 30px;
@@ -195,7 +305,6 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
     height: 100%;
-    margin: 10px;
 }
 
 .contact-card:hover {
@@ -246,6 +355,10 @@
     text-decoration: none;
 }
 
+.contact-main {
+    padding: 50px 0;
+}
+
 .contact-form-section h2 {
     color: #333;
     margin-bottom: 15px;
@@ -292,17 +405,10 @@
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.form-error, .error-message {
+.form-error {
     color: #dc3545;
     font-size: 0.9rem;
     margin-top: 5px;
-}
-
-.contact-message {
-    border-radius: 10px;
-    border: none;
-    font-weight: 500;
-    text-align: center;
 }
 
 .alert {
@@ -345,13 +451,16 @@
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
 
+.contact-sidebar {
+    padding-right: 30px;
+}
+
 .info-card {
     background: white;
     padding: 30px;
     border-radius: 15px;
     margin-bottom: 30px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    margin-top: 10px;
 }
 
 .info-card h4 {
@@ -366,6 +475,43 @@
     color: #667eea;
 }
 
+.working-hours {
+    color: #666;
+    line-height: 1.6;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.social-btn:hover {
+    transform: translateX(-5px);
+    color: white;
+    text-decoration: none;
+}
+
+.social-btn i {
+    margin-left: 10px;
+    font-size: 1.2rem;
+}
+
+.social-btn.instagram { background: linear-gradient(135deg, #f58529 0%, #dd2a7b 100%); }
+.social-btn.telegram { background: linear-gradient(135deg, #54a9eb 0%, #006bb3 100%); }
+.social-btn.whatsapp { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+.social-btn.linkedin { background: linear-gradient(135deg, #0077b5 0%, #00405d 100%); }
+.social-btn.youtube { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
 
 .quick-actions {
     display: flex;
@@ -394,6 +540,30 @@
 .action-btn i {
     margin-left: 10px;
     width: 20px;
+}
+
+.map-section {
+    margin-top: 50px;
+}
+
+.map-container {
+    height: 400px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.map-placeholder {
+    background: #f8f9fa;
+    padding: 80px 0;
+    margin-top: 50px;
+    text-align: center;
 }
 
 .placeholder-content i {
@@ -433,7 +603,7 @@
 
 <!-- JavaScript -->
 <script>
-// Form validation and submission
+// Form validation and AJAX submission
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('contactForm');
     
@@ -443,78 +613,35 @@ document.addEventListener('DOMContentLoaded', function() {
             const requiredFields = form.querySelectorAll('[required]');
             let isValid = true;
             
-            // Clear previous error styles
-            document.querySelectorAll('.form-control').forEach(field => {
-                field.style.borderColor = '#e9ecef';
-            });
-            document.querySelectorAll('.error-message').forEach(el => el.remove());
-            
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     isValid = false;
                     field.style.borderColor = '#dc3545';
-                    
-                    // Add error message
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message text-danger small mt-1';
-                    errorDiv.textContent = 'این فیلد الزامی است';
-                    field.parentNode.appendChild(errorDiv);
+                } else {
+                    field.style.borderColor = '#e9ecef';
                 }
             });
             
-            // Email validation
-            const emailField = document.getElementById('contact-email');
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailField.value && !emailPattern.test(emailField.value)) {
-                isValid = false;
-                emailField.style.borderColor = '#dc3545';
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message text-danger small mt-1';
-                errorDiv.textContent = 'لطفاً آدرس ایمیل معتبری وارد کنید';
-                emailField.parentNode.appendChild(errorDiv);
-            }
-            
             if (!isValid) {
                 e.preventDefault();
-                showMessage('لطفاً خطاهای فرم را برطرف کنید', 'error');
+                alert('لطفاً تمام فیلدهای الزامی را پر کنید');
                 return;
             }
             
             // Disable submit button to prevent double submission
             const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال...';
-            
-            // Reset button after 3 seconds (in case of server error)
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }, 3000);
         });
     }
-    
-    function showMessage(message, type) {
-        // Remove existing messages
-        document.querySelectorAll('.contact-message').forEach(el => el.remove());
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `contact-message alert alert-${type === 'success' ? 'success' : 'danger'} mt-3`;
-        messageDiv.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-            ${message}
-        `;
-        
-        const formSection = document.querySelector('.contact-form-section');
-        formSection.insertBefore(messageDiv, form);
-        
-        // Auto-hide success messages after 5 seconds
-        if (type === 'success') {
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 5000);
-        }
-    }
+});
+
+// Smooth scroll to map
+document.querySelector('a[href="#map"]')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('map')?.scrollIntoView({
+        behavior: 'smooth'
+    });
 });
 </script>
 {% endblock %}

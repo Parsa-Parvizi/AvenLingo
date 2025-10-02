@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ثبت‌نام دانش‌آموز{% endblock %}
+{% block title %} | Sign Up{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -14,8 +14,10 @@
 }
 
 .registration-container {
-    max-width: 520px;
+    max-width: 700px;
     margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
 }
 
 .registration-card {
@@ -23,6 +25,9 @@
     border-radius: 12px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.06);
     overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
 }
 
 @keyframes slideUp {
@@ -88,7 +93,7 @@
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     position: relative;
 }
 
@@ -110,6 +115,11 @@
     background: #fff;
 }
 
+input[type="password"].form-control,
+input[type="text"].form-control[id*="password"] {
+    padding-left: 45px;
+}
+
 .form-control:focus {
     border-color: var(--color-primary, #1F3A93);
     box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.08);
@@ -117,12 +127,32 @@
     background: #fff;
 }
 
-.form-control:valid {
-    border-color: #28a745;
+.form-control.is-valid {
+    border-color: #28a745 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    background-size: 16px 16px;
+    padding-left: 38px;
 }
 
 .form-control.is-invalid {
-    border-color: #dc3545;
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    background-size: 16px 16px;
+    padding-left: 38px;
+}
+
+.form-control.is-valid:focus {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+}
+
+.form-control.is-invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
 }
 
 .input-icon {
@@ -133,6 +163,33 @@
     color: #6c757d;
     pointer-events: none;
     font-size: 1.1rem;
+}
+
+.password-toggle {
+    position: absolute;
+    left: 15px;
+    top: 40px;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color 0.3s ease, transform 0.15s ease;
+    z-index: 10;
+    background: none;
+    border: none;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+}
+
+.password-toggle:hover {
+    color: var(--color-primary, #1F3A93);
+}
+
+.password-toggle:active {
+    transform: scale(0.9);
 }
 
 .password-strength {
@@ -160,6 +217,23 @@
 .strength-weak { background: #dc3545; width: 33%; }
 .strength-medium { background: #ffc107; width: 66%; }
 .strength-strong { background: #28a745; width: 100%; }
+
+.requirement.met i {
+    color: #28a745;
+}
+
+.requirement.unmet i {
+    color: #dc3545;
+}
+
+.requirement {
+    opacity: 0.8;
+}
+
+.requirement.met {
+    opacity: 1;
+    font-weight: 500;
+}
 
 .password-requirements {
     margin-top: 8px;
@@ -286,19 +360,32 @@
     border-top: 1px solid #e9ecef;
 }
 
+.login-link p {
+    margin: 0 0 15px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
 .login-link a {
-    color: var(--color-primary, #1F3A93);
-    text-decoration: none;
-    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    padding: 12px 24px;
+    background: var(--color-primary, #1F3A93);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
     transition: all 0.3s ease;
+    gap: 8px;
+    border: none;
 }
 
 .login-link a:hover {
-    color: var(--color-secondary, #2C3E50);
-    transform: translateX(-3px);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(31, 58, 147, 0.3);
+    color: white;
+    text-decoration: none;
 }
 
 .benefits-section {
@@ -343,19 +430,20 @@
 
 @media (max-width: 768px) {
     .registration-page {
-        padding: 20px 15px;
+        padding: 20px 0;
     }
     
     .registration-container {
         max-width: 100%;
+        padding: 0 15px;
     }
     
     .registration-header {
-        padding: 25px 20px;
+        padding: 20px;
     }
     
     .registration-body {
-        padding: 30px 20px;
+        padding: 24px 20px;
     }
     
     .form-row {
@@ -364,7 +452,26 @@
     }
     
     .form-control {
-        padding: 12px 40px 12px 15px;
+        padding: 12px 15px;
+    }
+    
+    input[type="password"].form-control,
+    input[type="text"].form-control[id*="password"] {
+        padding-left: 45px;
+    }
+    
+    .password-toggle {
+        left: 12px;
+        top: 40px;
+        font-size: 1rem;
+        height: 38px;
+        width: 38px;
+        padding: 6px;
+    }
+    
+    .login-link a {
+        width: 100%;
+        padding: 14px 20px;
     }
 }
 </style>
@@ -375,7 +482,7 @@
     <div class="registration-container">
         <div class="registration-card">
             <div class="registration-header">
-                <h1><i class="fas fa-user-plus"></i> ثبت‌نام دانش‌آموز</h1>
+                <h1>ثبت‌نام دانش‌آموز</h1>
                 <p>برای شروع سفر یادگیری زبان انگلیسی، ثبت‌نام کنید</p>
             </div>
             
@@ -388,23 +495,16 @@
                     {% endfor %}
                 {% endif %}
 
-                <form method="post" class="registration-form" id="registrationForm">
+                <form method="post" class="registration-form" id="registrationForm" autocomplete="off">
                     {% csrf_token %}
                     
                     <!-- Personal Information Step -->
                     <div class="form-step">
-                        <div class="step-header">
-                            <h3>
-                                <i class="fas fa-user"></i>
-                                اطلاعات شخصی
-                            </h3>
-                        </div>
-                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
                                 {{ form.first_name }}
-                                <span class="input-icon"><i class="fas fa-user"></i></span>
+                                <span class="input-icon"></span>
                                 {% if form.first_name.errors %}
                                     <ul class="error-list">
                                         {% for error in form.first_name.errors %}
@@ -417,7 +517,7 @@
                             <div class="form-group">
                                 <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
                                 {{ form.last_name }}
-                                <span class="input-icon"><i class="fas fa-user"></i></span>
+                                <span class="input-icon"></span>
                                 {% if form.last_name.errors %}
                                     <ul class="error-list">
                                         {% for error in form.last_name.errors %}
@@ -431,17 +531,10 @@
 
                     <!-- Contact Information Step -->
                     <div class="form-step">
-                        <div class="step-header">
-                            <h3>
-                                <i class="fas fa-envelope"></i>
-                                اطلاعات تماس
-                            </h3>
-                        </div>
-                        
                         <div class="form-group">
                             <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                             {{ form.email }}
-                            <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                            <span class="input-icon"></span>
                             {% if form.email.errors %}
                                 <ul class="error-list">
                                     {% for error in form.email.errors %}
@@ -454,7 +547,7 @@
                         <div class="form-group">
                             <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
                             {{ form.phone_number }}
-                            <span class="input-icon"><i class="fas fa-phone"></i></span>
+                            <span class="input-icon"></span>
                             {% if form.phone_number.errors %}
                                 <ul class="error-list">
                                     {% for error in form.phone_number.errors %}
@@ -462,23 +555,17 @@
                                     {% endfor %}
                                 </ul>
                             {% endif %}
-                            <small class="text-muted">شماره تلفن برای ارتباط در مواقع ضروری</small>
                         </div>
                     </div>
 
                     <!-- Security Step -->
                     <div class="form-step">
-                        <div class="step-header">
-                            <h3>
-                                <i class="fas fa-shield-alt"></i>
-                                تنظیمات امنیتی
-                            </h3>
-                        </div>
-                        
                         <div class="form-group">
                             <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
                             {{ form.password1 }}
-                            <span class="input-icon"><i class="fas fa-lock"></i></span>
+                            <button type="button" class="password-toggle" id="togglePassword1" aria-label="نمایش رمز عبور">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             
                             <div class="password-strength" id="passwordStrength" style="display: none;">
                                 <div class="strength-indicator">
@@ -499,6 +586,10 @@
                                         <i class="fas fa-times"></i>
                                         شامل حروف
                                     </div>
+                                    <div class="requirement" id="specialReq">
+                                        <i class="fas fa-times"></i>
+                                        کاراکتر خاص (اختیاری - قوی‌تر می‌شود)
+                                    </div>
                                 </div>
                             </div>
                             
@@ -514,7 +605,9 @@
                         <div class="form-group">
                             <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
                             {{ form.password2 }}
-                            <span class="input-icon"><i class="fas fa-lock"></i></span>
+                            <button type="button" class="password-toggle" id="togglePassword2" aria-label="نمایش رمز عبور">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             {% if form.password2.errors %}
                                 <ul class="error-list">
                                     {% for error in form.password2.errors %}
@@ -530,29 +623,14 @@
                         ایجاد حساب کاربری
                     </button>
                 </form>
-
-                <div class="benefits-section">
-                    <h4>
-                        <i class="fas fa-star"></i>
-                        مزایای عضویت
-                    </h4>
-                    <ul class="benefits-list">
-                        <li>دسترسی به دوره‌های متنوع زبان انگلیسی</li>
-                        <li>امکان ارتباط مستقیم با مدرسان مجرب</li>
-                        <li>ردیابی پیشرفت تحصیلی شخصی</li>
-                        <li>دریافت گواهینامه معتبر پس از اتمام دوره</li>
-                        <li>پشتیبانی ۲۴ ساعته</li>
-                    </ul>
-                </div>
             </div>
 
             <div class="login-link">
-                <p>قبلاً ثبت‌نام کرده‌اید؟ 
-                    <a href="{% url 'account:login' %}">
-                        <i class="fas fa-sign-in-alt"></i>
-                        وارد شوید
-                    </a>
-                </p>
+                <p>قبلاً ثبت‌نام کرده‌اید؟</p>
+                <a href="{% url 'account:login' %}">
+                    <i class="fas fa-sign-in-alt"></i>
+                    وارد شوید
+                </a>
             </div>
         </div>
     </div>
@@ -560,6 +638,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Prevent auto-focus on page load
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+    
     const passwordField = document.getElementById('{{ form.password1.id_for_label }}');
     const confirmPasswordField = document.getElementById('{{ form.password2.id_for_label }}');
     const strengthIndicator = document.getElementById('passwordStrength');
@@ -585,6 +668,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Phone number validation on blur
+    const phoneField = document.getElementById('{{ form.phone_number.id_for_label }}');
+    if (phoneField) {
+        phoneField.addEventListener('blur', () => validatePhone(phoneField));
+    }
+    
     // Enhanced password strength checker
     passwordField.addEventListener('input', function() {
         const password = this.value;
@@ -593,26 +682,30 @@ document.addEventListener('DOMContentLoaded', function() {
             checkPasswordStrength(password);
         } else {
             strengthIndicator.style.display = 'none';
+            passwordField.classList.remove('is-valid', 'is-invalid');
         }
         validatePasswords();
     });
     
     function checkPasswordStrength(password) {
-        let strength = 0;
+        // Check basic requirements
+        const hasLength = password.length >= 8;
+        const hasNumber = /\d/.test(password);
+        const hasLetter = /[a-zA-Zا-ی]/.test(password);
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        
+        // Update visual indicators
         const requirements = [
-            { id: 'lengthReq', test: () => password.length >= 8 },
-            { id: 'numberReq', test: () => /\d/.test(password) },
-            { id: 'letterReq', test: () => /[a-zA-Zا-ی]/.test(password) },
-            { id: 'upperReq', test: () => /[A-ZA-ی]/.test(password) },
-            { id: 'specialReq', test: () => /[!@#$%^&*(),.?":{}|<>]/.test(password) }
+            { id: 'lengthReq', met: hasLength },
+            { id: 'numberReq', met: hasNumber },
+            { id: 'letterReq', met: hasLetter },
+            { id: 'specialReq', met: hasSpecial }
         ];
         
         requirements.forEach(req => {
             const element = document.getElementById(req.id);
             if (element) {
-                const met = req.test();
-                if (met) {
-                    strength += 1;
+                if (req.met) {
                     element.classList.add('met');
                     element.classList.remove('unmet');
                     element.querySelector('i').className = 'fas fa-check';
@@ -624,42 +717,93 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Update strength indicator with more levels
+        // Determine password strength level
         let strengthClass = '';
         let strengthLabel = '';
         let strengthColor = '';
+        let isValid = false;
         
-        if (strength <= 1) {
-            strengthClass = 'strength-very-weak';
-            strengthLabel = 'خیلی ضعیف';
-            strengthColor = '#dc3545';
-        } else if (strength === 2) {
+        if (!hasLength || !hasNumber || !hasLetter) {
+            // ضعیف - اجازه ثبت نام نده
             strengthClass = 'strength-weak';
-            strengthLabel = 'ضعیف';
-            strengthColor = '#fd7e14';
-        } else if (strength === 3) {
+            strengthLabel = 'ضعیف - حداقل ۸ کاراکتر، عدد و حروف لازم است';
+            strengthColor = '#dc3545';
+            isValid = false;
+        } else if (hasLength && hasNumber && hasLetter && !hasSpecial) {
+            // متوسط - اجازه ثبت نام بده
             strengthClass = 'strength-medium';
-            strengthLabel = 'متوسط';
+            strengthLabel = 'متوسط - قابل قبول';
             strengthColor = '#ffc107';
-        } else if (strength === 4) {
+            isValid = true;
+        } else if (hasLength && hasNumber && hasLetter && hasSpecial) {
+            // قوی - اجازه ثبت نام بده
             strengthClass = 'strength-strong';
-            strengthLabel = 'قوی';
-            strengthColor = '#198754';
-        } else if (strength === 5) {
-            strengthClass = 'strength-very-strong';
-            strengthLabel = 'خیلی قوی';
-            strengthColor = '#20c997';
+            strengthLabel = 'قوی - عالی!';
+            strengthColor = '#28a745';
+            isValid = true;
         }
         
+        // Update UI
         strengthBar.className = `strength-bar ${strengthClass}`;
         strengthText.textContent = strengthLabel;
         strengthText.style.color = strengthColor;
         
-        return strength;
+        // Update field validation
+        if (isValid) {
+            passwordField.classList.remove('is-invalid');
+            passwordField.classList.add('is-valid');
+        } else {
+            passwordField.classList.remove('is-valid');
+            passwordField.classList.add('is-invalid');
+        }
+        
+        return isValid ? 1 : 0;
     }
     
     // Enhanced password confirmation check
     confirmPasswordField.addEventListener('input', validatePasswords);
+    
+    // Password visibility toggle
+    const togglePassword1 = document.getElementById('togglePassword1');
+    const togglePassword2 = document.getElementById('togglePassword2');
+    
+    if (togglePassword1) {
+        togglePassword1.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                this.setAttribute('aria-label', 'مخفی کردن رمز عبور');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                this.setAttribute('aria-label', 'نمایش رمز عبور');
+            }
+        });
+    }
+    
+    if (togglePassword2) {
+        togglePassword2.addEventListener('click', function() {
+            const type = confirmPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordField.setAttribute('type', type);
+            
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                this.setAttribute('aria-label', 'مخفی کردن رمز عبور');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                this.setAttribute('aria-label', 'نمایش رمز عبور');
+            }
+        });
+    }
     
     function validatePasswords() {
         const password = passwordField.value;
@@ -667,12 +811,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (confirmPassword.length > 0) {
             if (password === confirmPassword) {
-                confirmPasswordField.style.borderColor = '#28a745';
-                showFieldValidation(confirmPasswordField, 'رمز عبور مطابقت دارد', 'success');
+                confirmPasswordField.classList.remove('is-invalid');
+                confirmPasswordField.classList.add('is-valid');
             } else {
-                confirmPasswordField.style.borderColor = '#dc3545';
-                showFieldValidation(confirmPasswordField, 'رمز عبور مطابقت ندارد', 'error');
+                confirmPasswordField.classList.remove('is-valid');
+                confirmPasswordField.classList.add('is-invalid');
             }
+        } else {
+            confirmPasswordField.classList.remove('is-valid', 'is-invalid');
         }
     }
     
@@ -682,16 +828,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const pattern = /^[\u0600-\u06FFa-zA-Z\s]+$/;
         
         if (!value) {
-            showFieldValidation(field, 'این فیلد الزامی است', 'error');
+            field.classList.remove('is-valid', 'is-invalid');
             return false;
         } else if (value.length < 2) {
-            showFieldValidation(field, 'حداقل ۲ کاراکتر وارد کنید', 'error');
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
             return false;
         } else if (!pattern.test(value)) {
-            showFieldValidation(field, 'فقط حروف فارسی و انگلیسی مجاز است', 'error');
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
             return false;
         } else {
-            showFieldValidation(field, 'صحیح است', 'success');
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
             return true;
         }
     }
@@ -701,12 +850,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         
         if (!value) {
-            showFieldValidation(field, 'ایمیل الزامی است', 'error');
+            // Don't show error if field is empty and not touched
+            field.classList.remove('is-valid', 'is-invalid');
             return false;
         } else if (!pattern.test(value)) {
-            showFieldValidation(field, 'فرمت ایمیل صحیح نیست', 'error');
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
             return false;
         } else {
+            // Temporarily show as valid while checking availability
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
             // Check for real-time validation
             checkEmailAvailability(value, field);
             return true;
@@ -717,41 +871,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const value = field.value.trim();
         const pattern = /^09\d{9}$/;
         
-        if (value && !pattern.test(value)) {
-            showFieldValidation(field, 'شماره موبایل باید به فرمت 09123456789 باشد', 'error');
+        if (!value) {
+            field.classList.remove('is-valid', 'is-invalid');
             return false;
-        } else if (value) {
-            showFieldValidation(field, 'صحیح است', 'success');
-            return true;
-        }
-        return true;
-    }
-    
-    function showFieldValidation(field, message, type) {
-        const validationDiv = field.parentNode.querySelector('.field-validation') || 
-                            field.parentNode.querySelector('.validation-message');
-        
-        if (validationDiv) {
-            validationDiv.textContent = message;
-            validationDiv.className = `field-validation ${type}`;
-            validationDiv.style.display = 'block';
-        }
-        
-        // Update field styling
-        if (type === 'success') {
-            field.style.borderColor = '#28a745';
-            field.classList.remove('is-invalid');
-            field.classList.add('is-valid');
-        } else if (type === 'error') {
-            field.style.borderColor = '#dc3545';
+        } else if (!pattern.test(value)) {
             field.classList.remove('is-valid');
             field.classList.add('is-invalid');
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            return true;
         }
     }
     
+
     // Email availability check with debouncing
     function checkEmailAvailability(email, field) {
-        if (email.length < 5) return;
+        if (email.length < 5) {
+            // If email is too short, just validate format
+            return;
+        }
         
         fetch('{% url "account:validate_email" %}', {
             method: 'POST',
@@ -761,16 +901,26 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({email: email})
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.available) {
-                showFieldValidation(field, 'ایمیل در دسترس است', 'success');
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
             } else {
-                showFieldValidation(field, 'این ایمیل قبلاً ثبت شده است', 'error');
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
             }
         })
         .catch(error => {
             console.log('Email validation error:', error);
+            // On error, keep it as valid if format is correct
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
         });
     }
     
@@ -787,8 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Phone number formatting
-    const phoneField = document.getElementById('{{ form.phone_number.id_for_label }}');
+    // Phone number formatting (using already defined phoneField)
     if (phoneField) {
         phoneField.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -815,10 +964,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function validateAllRequiredFields() {
-        const requiredFields = ['first_name', 'last_name', 'email', 'password1', 'password2'];
+        const requiredFields = ['first_name', 'last_name', 'email', 'phone_number', 'password1', 'password2'];
         return requiredFields.every(fieldName => {
             const field = document.getElementById(`id_${fieldName}`);
-            return field && field.value.trim() && !field.classList.contains('is-invalid');
+            if (!field) return false;
+            
+            // Check if field has value and is not invalid
+            const hasValue = field.value.trim().length > 0;
+            const isNotInvalid = !field.classList.contains('is-invalid');
+            
+            return hasValue && isNotInvalid;
         });
     }
     

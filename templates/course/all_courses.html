@@ -7,73 +7,132 @@
 <section class="courses-page">
   <div class="page-header">
     <h1>همه دوره‌ها</h1>
-    <p>دوره‌های متنوع زبان انگلیسی برای همه سطوح و سنین</p>
   </div>
 
-  <!-- Filters Section -->
-  <div class="filters-section">
-    <form method="GET" class="filters-form">
-      <div class="filter-group">
-        <label for="search">جستجو:</label>
-        <input type="text" name="search" id="search" value="{% if search %}{{ search }}{% endif %}" placeholder="نام دوره، استاد یا توضیحات را جستجو کنید...">
+  <!-- Advanced Search Section -->
+  <div class="search-section">
+    <form method="GET" class="search-form" id="courseSearchForm">
+      <!-- Main Search Bar -->
+      <div class="main-search">
+        <div class="search-input-group">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            name="search" 
+            id="search" 
+            value="{% if search %}{{ search }}{% endif %}" 
+            placeholder="جستجوی هوشمند: نام دوره، نام استاد، توضیحات، نوع کلاس..."
+            class="search-input"
+            autocomplete="off"
+          >
+          {% if search %}
+            <button type="button" class="clear-search" onclick="clearSearch()">
+              <i class="fas fa-times"></i>
+            </button>
+          {% endif %}
+        </div>
+        <button type="submit" class="search-btn">
+          <i class="fas fa-search"></i>
+          <span>جستجو</span>
+        </button>
       </div>
 
-      <div class="filter-group">
-        <label for="language">زبان:</label>
-        <select name="language" id="language">
-          <option value="">همه زبان‌ها</option>
-          {% for lang_code, lang_name in languages.items %}
-            <option value="{{ lang_code }}" {% if current_language == lang_code %}selected{% endif %}>
-              {{ lang_name }}
-            </option>
-          {% endfor %}
-        </select>
+      <!-- Advanced Filters (Collapsible) -->
+      <div class="filters-toggle">
+        <button type="button" class="toggle-filters-btn" onclick="toggleFilters()">
+          <i class="fas fa-filter"></i>
+          <span>فیلترهای پیشرفته</span>
+          <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+        {% if has_filters %}
+          <span class="active-filters-count">{{ filtered_count }} از {{ total_courses }} دوره</span>
+        {% endif %}
       </div>
 
-      <div class="filter-group">
-        <label for="class_type">نوع کلاس:</label>
-        <select name="class_type" id="class_type">
-          <option value="">همه انواع کلاس</option>
-          {% for type_code, type_name in class_types.items %}
-            <option value="{{ type_code }}" {% if current_class_type == type_code %}selected{% endif %}>
-              {{ type_name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
+      <div class="filters-section" id="filtersSection" {% if not has_filters %}style="display: none;"{% endif %}>
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label for="language">
+              <i class="fas fa-language"></i>
+              زبان:
+            </label>
+            <select name="language" id="language" class="filter-select">
+              <option value="">همه زبان‌ها</option>
+              {% for lang_code, lang_name in languages.items %}
+                <option value="{{ lang_code }}" {% if current_language == lang_code %}selected{% endif %}>
+                  {{ lang_name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
 
-      <div class="filter-group">
-        <label for="level">سطح:</label>
-        <select name="level" id="level">
-          <option value="">همه سطوح</option>
-          <option value="beginner" {% if current_level == 'beginner' %}selected{% endif %}>مبتدی</option>
-          <option value="intermediate" {% if current_level == 'intermediate' %}selected{% endif %}>متوسط</option>
-          <option value="advanced" {% if current_level == 'advanced' %}selected{% endif %}>پیشرفته</option>
-        </select>
-      </div>
+          <div class="filter-group">
+            <label for="class_type">
+              <i class="fas fa-chalkboard-teacher"></i>
+              نوع کلاس:
+            </label>
+            <select name="class_type" id="class_type" class="filter-select">
+              <option value="">همه انواع کلاس</option>
+              {% for type_code, type_name in class_types.items %}
+                <option value="{{ type_code }}" {% if current_class_type == type_code %}selected{% endif %}>
+                  {{ type_name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
 
-      <div class="filter-group">
-        <label for="age_group">گروه سنی:</label>
-        <select name="age_group" id="age_group">
-          <option value="">همه گروه‌های سنی</option>
-          <option value="kids" {% if current_age_group == 'kids' %}selected{% endif %}>کودکان</option>
-          <option value="teens" {% if current_age_group == 'teens' %}selected{% endif %}>نوجوانان</option>
-          <option value="adults" {% if current_age_group == 'adults' %}selected{% endif %}>بزرگسالان</option>
-        </select>
-      </div>
+          <div class="filter-group">
+            <label for="level">
+              <i class="fas fa-signal"></i>
+              سطح:
+            </label>
+            <select name="level" id="level" class="filter-select">
+              <option value="">همه سطوح</option>
+              <option value="beginner" {% if current_level == 'beginner' %}selected{% endif %}>مبتدی</option>
+              <option value="intermediate" {% if current_level == 'intermediate' %}selected{% endif %}>متوسط</option>
+              <option value="advanced" {% if current_level == 'advanced' %}selected{% endif %}>پیشرفته</option>
+            </select>
+          </div>
 
-      <div class="filter-group">
-        <label for="type">نوع دوره:</label>
-        <select name="type" id="type">
-          <option value="">همه انواع</option>
-          <option value="online" {% if current_type == 'online' %}selected{% endif %}>آنلاین</option>
-          <option value="offline" {% if current_type == 'offline' %}selected{% endif %}>حضوری</option>
-        </select>
-      </div>
+          <div class="filter-group">
+            <label for="age_group">
+              <i class="fas fa-users"></i>
+              گروه سنی:
+            </label>
+            <select name="age_group" id="age_group" class="filter-select">
+              <option value="">همه گروه‌های سنی</option>
+              <option value="kids" {% if current_age_group == 'kids' %}selected{% endif %}>کودکان</option>
+              <option value="teens" {% if current_age_group == 'teens' %}selected{% endif %}>نوجوانان</option>
+              <option value="adults" {% if current_age_group == 'adults' %}selected{% endif %}>بزرگسالان</option>
+            </select>
+          </div>
 
-      <div class="filter-actions">
-        <button type="submit" class="btn btn-primary">اعمال فیلتر</button>
-        <a href="{% url 'course:all-courses' %}" class="btn btn-secondary">پاک کردن فیلترها</a>
+          <div class="filter-group">
+            <label for="type">
+              <i class="fas fa-laptop"></i>
+              نحوه برگزاری:
+            </label>
+            <select name="type" id="type" class="filter-select">
+              <option value="">همه انواع</option>
+              {% for type_code, type_name in online_choices.items %}
+                <option value="{{ type_code }}" {% if current_type == type_code %}selected{% endif %}>
+                  {{ type_name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter"></i>
+            اعمال فیلتر
+          </button>
+          <a href="{% url 'course:all-courses' %}" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            پاک کردن همه
+          </a>
+        </div>
       </div>
     </form>
   </div>
@@ -81,8 +140,72 @@
   <!-- Results Section -->
   <div class="results-section">
     <div class="results-header">
-      <h2>نتایج جستجو</h2>
-      <span class="results-count">{{ courses.count }} دوره یافت شد</span>
+      <div class="results-info">
+        <h2>
+          {% if search %}
+            نتایج جستجو برای "{{ search }}"
+          {% elif has_filters %}
+            دوره‌های فیلتر شده
+          {% else %}
+            همه دوره‌ها
+          {% endif %}
+        </h2>
+        <div class="results-stats">
+          <span class="results-count">
+            <i class="fas fa-graduation-cap"></i>
+            {{ filtered_count }} دوره یافت شد
+            {% if has_filters %}از {{ total_courses }} دوره{% endif %}
+          </span>
+          {% if search %}
+            <span class="search-time">
+              <i class="fas fa-clock"></i>
+              نتایج هوشمند
+            </span>
+          {% endif %}
+        </div>
+      </div>
+      {% if has_filters %}
+        <div class="active-filters">
+          <span class="filters-label">فیلترهای فعال:</span>
+          {% if search %}
+            <span class="filter-tag">
+              <i class="fas fa-search"></i>
+              {{ search }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'search' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+          {% if current_level %}
+            <span class="filter-tag">
+              سطح: {{ current_level }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'level' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+          {% if current_language %}
+            <span class="filter-tag">
+              زبان: {{ languages.current_language }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'language' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+          {% if current_class_type %}
+            <span class="filter-tag">
+              نوع: {{ class_types.current_class_type }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'class_type' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+          {% if current_age_group %}
+            <span class="filter-tag">
+              سن: {{ current_age_group }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'age_group' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+          {% if current_type %}
+            <span class="filter-tag">
+              نحوه: {{ online_choices.current_type }}
+              <a href="?{% for key, value in request.GET.items %}{% if key != 'type' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="remove-filter">×</a>
+            </span>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
 
     {% if courses %}
@@ -112,7 +235,7 @@
               <div class="course-meta">
                 <div class="meta-item">
                   <i class="fas fa-user"></i>
-                  <span>استاد: {{ course.teacher.full_name }}</span>
+                  <span>استاد: {{ course.teacher.user.get_full_name }}</span>
                 </div>
                 <div class="meta-item">
                   <i class="fas fa-signal"></i>
@@ -172,4 +295,334 @@
   <p>اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود.</p>
   <a href="{% url 'core:request-course' %}" class="btn btn-outline">درخواست دوره جدید</a>
 </section>
+
+<!-- Advanced Search Styles -->
+<style>
+.search-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.search-form {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-search {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.search-input-group {
+  flex: 1;
+  position: relative;
+  background: white;
+  border-radius: 50px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  color: #667eea;
+  margin-left: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.5rem;
+  background: transparent;
+}
+
+.clear-search {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.clear-search:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.search-btn {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(238, 90, 36, 0.3);
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(238, 90, 36, 0.4);
+}
+
+.filters-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-filters-btn {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.3);
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.toggle-filters-btn:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.active-filters-count {
+  background: rgba(255,255,255,0.9);
+  color: #333;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.filters-section {
+  margin-top: 1.5rem;
+  background: rgba(255,255,255,0.95);
+  padding: 1.5rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.results-header {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.results-info h2 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.results-stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.results-count, .search-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.active-filters {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.filters-label {
+  font-weight: bold;
+  color: #333;
+  margin-left: 0.5rem;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  margin: 0.25rem;
+}
+
+.remove-filter {
+  color: white;
+  text-decoration: none;
+  margin-right: 0.25rem;
+  font-weight: bold;
+  padding: 0 0.25rem;
+  border-radius: 50%;
+  transition: background 0.3s ease;
+}
+
+.remove-filter:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.course-card {
+  transition: all 0.3s ease;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+
+@media (max-width: 768px) {
+  .main-search {
+    flex-direction: column;
+  }
+  
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-actions {
+    flex-direction: column;
+  }
+  
+  .results-stats {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+
+<!-- Advanced Search JavaScript -->
+<script>
+function toggleFilters() {
+  const filtersSection = document.getElementById('filtersSection');
+  const toggleIcon = document.querySelector('.toggle-icon');
+  
+  if (filtersSection.style.display === 'none') {
+    filtersSection.style.display = 'block';
+    toggleIcon.classList.add('rotated');
+  } else {
+    filtersSection.style.display = 'none';
+    toggleIcon.classList.remove('rotated');
+  }
+}
+
+function clearSearch() {
+  const searchInput = document.getElementById('search');
+  searchInput.value = '';
+  
+  // Remove search parameter and submit form
+  const form = document.getElementById('courseSearchForm');
+  const formData = new FormData(form);
+  formData.delete('search');
+  
+  const params = new URLSearchParams();
+  for (let [key, value] of formData.entries()) {
+    if (value) params.append(key, value);
+  }
+  
+  window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+}
+
+// Auto-submit form when filters change
+document.addEventListener('DOMContentLoaded', function() {
+  const filterSelects = document.querySelectorAll('.filter-select');
+  
+  filterSelects.forEach(select => {
+    select.addEventListener('change', function() {
+      // Optional: Auto-submit on filter change
+      // document.getElementById('courseSearchForm').submit();
+    });
+  });
+  
+  // Search input enhancements
+  const searchInput = document.getElementById('search');
+  
+  searchInput.addEventListener('input', function() {
+    // Optional: Add search suggestions or real-time search
+  });
+  
+  // Enter key to search
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('courseSearchForm').submit();
+    }
+  });
+});
+</script>
 {% endblock %}

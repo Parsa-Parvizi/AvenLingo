@@ -37,7 +37,6 @@ class EnrollmentForm(forms.ModelForm):
         max_length=100,
         required=False,
         label="نام شخص ضروری",
-        help_text="نام شخصی که در مواقع ضروری با او تماس گرفته شود",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'نام کامل'

@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import CreateView, TemplateView, UpdateView, DetailView
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, Http404
 from django.utils.decorators import method_decorator
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -20,6 +20,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 import secrets
 import json
+import logging
 
 from .models import User, Student, Teacher, TeacherApplication
 from .forms import (
@@ -27,10 +28,16 @@ from .forms import (
     TeacherApplicationForm, StudentProfileForm, TeacherProfileForm,
     CustomPasswordResetForm, CustomSetPasswordForm
 )
+from .services import (
+    UserRegistrationService, TeacherApplicationService, 
+    EmailService, UserProfileService
+)
+
+logger = logging.getLogger(__name__)
 
 
 class StudentRegistrationView(CreateView):
-    """Enhanced registration view for students with security features"""
+    """Enhanced student registration view with service layer integration"""
     model = User
     form_class = StudentRegistrationForm
     template_name = 'account/student_register.html'
@@ -42,123 +49,67 @@ class StudentRegistrationView(CreateView):
         return kwargs
     
     def form_valid(self, form):
-        # Additional security check
-        if not self.check_security():
-            messages.error(self.request, 'خطای امنیتی تشخیص داده شد.')
+        try:
+            # Form save method handles service layer integration
+            user = form.save()
+            
+            # Enhanced success message
+            user_name = form.cleaned_data.get('first_name', 'کاربر')
+            messages.success(
+                self.request,
+                f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد. '
+                f'لطفاً ایمیل خود را برای فعال‌سازی حساب تایید کنید.'
+            )
+            
+            # Log successful registration
+            logger.info(f'Student registered successfully: {form.cleaned_data["email"]}')
+            
+            return redirect(self.success_url)
+            
+        except ValidationError as e:
+            messages.error(self.request, str(e))
             return self.form_invalid(form)
-            
-        response = super().form_valid(form)
-        
-        # Set user as inactive until email verification
-        user = form.instance
-        user.is_active = False  # Will be activated after email verification
-        user.save(update_fields=['is_active'])
-        
-        # Send verification email
-        self.send_welcome_email(user)
-        
-        # Enhanced success message with user's name
-        user_name = form.cleaned_data.get('first_name', 'کاربر')
-        messages.success(
-            self.request,
-            f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد. لطفاً ایمیل خود را تایید کنید.'
-        )
-        
-        # Log successful registration
-        import logging
-        logger = logging.getLogger('account.registration')
-        logger.info(f'Student registered successfully: {form.cleaned_data["email"]}')
-        
-        return response
+        except Exception as e:
+            logger.error(f'Unexpected error in student registration: {str(e)}')
+            messages.error(self.request, 'خطای غیرمنتظره. لطفاً دوباره تلاش کنید.')
+            return self.form_invalid(form)
     
-    def send_welcome_email(self, user):
-        """Send welcome email with verification link"""
-        token = secrets.token_urlsafe(32)
-        user.email_verification_token = token
-        user.save(update_fields=['email_verification_token'])
-        
-        current_site = get_current_site(self.request)
-        verification_url = f"http://{current_site.domain}/auth/verify-email/{user.id}/{token}/"
-        
-        subject = 'خوش آمدید به آکادمی زبان مبینا - تایید ایمیل'
-        message = render_to_string('account/welcome_email.html', {
-            'user': user,
-            'verification_url': verification_url,
-            'site_name': current_site.name,
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'ثبت‌نام دانش‌آموز',
+            'breadcrumb': [
+                {'title': 'خانه', 'url': '/'},
+                {'title': 'ثبت‌نام دانش‌آموز', 'url': None}
+            ]
         })
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email='noreply@academy.com',
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
-    
-    def form_invalid(self, form):
-        # Log invalid form submission
-        import logging
-        logger = logging.getLogger('account.registration')
-        logger.warning(f'Invalid registration attempt from IP: {self.get_client_ip()}')
-        
-        return super().form_invalid(form)
-    
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('account:dashboard')
-        return super().dispatch(request, *args, **kwargs)
-    
-    def check_security(self):
-        """Additional security checks"""
-        # Check for rapid successive requests
-        ip = self.get_client_ip()
-        cache_key = f'rapid_registration_{ip}'
-        
-        from django.core.cache import cache
-        if cache.get(cache_key):
-            return False
-            
-        cache.set(cache_key, True, 60)  # 1 minute cooldown
-        return True
-    
-    def get_client_ip(self):
-        """Get client IP address"""
-        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = self.request.META.get('REMOTE_ADDR')
-        return ip
+        return context
 
 
 class TeacherRegistrationView(CreateView):
-    """Registration view for teachers (only for accepted applications)"""
+    """Enhanced teacher registration view for approved applications"""
     model = User
     form_class = TeacherRegistrationForm
     template_name = 'account/teacher_register.html'
     success_url = reverse_lazy('account:login')
     
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('account:dashboard')
+        self.email = kwargs.get('email')
         
-        # Get email from URL parameter
-        email = self.kwargs.get('email')
-        if not email:
-            messages.error(request, 'ایمیل معتبر نیست.')
+        # Check if teacher registration is eligible
+        self.application = TeacherApplicationService.check_registration_eligibility(self.email)
+        
+        if not self.application:
+            messages.error(
+                request, 
+                'درخواست تایید شده‌ای برای این ایمیل یافت نشد یا منقضی شده است.'
+            )
             return redirect('account:teacher_apply')
         
-        # Check if there's an accepted application for this email
-        try:
-            application = TeacherApplication.objects.get(email=email, status='accepted')
-            # Check if teacher account doesn't already exist
-            if Teacher.objects.filter(application=application).exists():
-                messages.error(request, 'حساب کاربری برای این درخواست قبلاً ایجاد شده است.')
-                return redirect('account:login')
-            self.application = application
-        except TeacherApplication.DoesNotExist:
-            messages.error(request, 'درخواست تایید شده‌ای برای این ایمیل یافت نشد.')
-            return redirect('account:teacher_apply')
+        # Check if teacher account already exists
+        if Teacher.objects.filter(application=self.application).exists():
+            messages.error(request, 'حساب کاربری برای این درخواست قبلاً ایجاد شده است.')
+            return redirect('account:login')
         
         return super().dispatch(request, *args, **kwargs)
     
@@ -168,12 +119,38 @@ class TeacherRegistrationView(CreateView):
         return kwargs
     
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(
-            self.request,
-            'حساب کاربری مدرس شما با موفقیت ایجاد شد. لطفاً وارد شوید.'
-        )
-        return response
+        try:
+            # Form save method handles service layer integration
+            user = form.save()
+            
+            messages.success(
+                self.request,
+                f'حساب کاربری شما با موفقیت ایجاد شد. '
+                f'خوش آمدید {user.get_full_name()}!'
+            )
+            
+            logger.info(f'Teacher registered successfully: {user.email}')
+            return redirect('account:login')
+            
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(f'Unexpected error in teacher registration: {str(e)}')
+            messages.error(self.request, 'خطای غیرمنتظره. لطفاً دوباره تلاش کنید.')
+            return self.form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'ثبت‌نام معلم',
+            'application': self.application,
+            'breadcrumb': [
+                {'title': 'خانه', 'url': '/'},
+                {'title': 'ثبت‌نام معلم', 'url': None}
+            ]
+        })
+        return context
 
 
 class CustomLoginView(LoginView):
@@ -207,8 +184,6 @@ class CustomLoginView(LoginView):
             return redirect('account:email_verification')
         
         # Enhanced security logging
-        import logging
-        logger = logging.getLogger('account.login')
         logger.info(f'Successful login: {user.email} ({user.user_type}) from IP: {self.get_client_ip()}')
         
         # Set session timeout based on remember_me
@@ -247,18 +222,8 @@ class CustomLoginView(LoginView):
     
     def form_invalid(self, form):
         # Enhanced error handling
-        import logging
-        logger = logging.getLogger('account.login')
-        
-        # Check if it's a rate limit error
-        if 'rate_limited' in str(form.errors):
-            messages.error(self.request, 
-                'به دلیل تلاش‌های مکرر ناموفق، دسترسی شما موقتاً محدود شده است. لطفاً ۱۵ دقیقه بعد تلاش کنید.')
-        else:
-            messages.error(self.request, 
-                'ایمیل یا رمز عبور اشتباه است. لطفاً دوباره تلاش کنید.')
-        
         logger.warning(f'Failed login attempt from IP: {self.get_client_ip()}')
+        
         return super().form_invalid(form)
     
     def get_client_ip(self):
@@ -283,8 +248,6 @@ class CustomLogoutView(LogoutView):
             self.user_type = request.user.user_type
             
             # Security: Log logout action for audit trail
-            import logging
-            logger = logging.getLogger('account.logout')
             logger.info(f'User logout: {request.user.email} ({request.user.user_type}) from IP: {self.get_client_ip(request)}')
             
         return super().dispatch(request, *args, **kwargs)
@@ -568,60 +531,54 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
 
 class TeacherApplicationView(CreateView):
-    """View for teacher application submission"""
+    """Enhanced teacher application view with improved validation"""
     model = TeacherApplication
     form_class = TeacherApplicationForm
     template_name = 'account/teacher_apply.html'
     success_url = reverse_lazy('account:teacher_apply_success')
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+    
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(
-            self.request,
-            'درخواست همکاری شما با موفقیت ارسال شد. پس از بررسی، نتیجه از طریق ایمیل اطلاع داده خواهد شد.'
-        )
-        return response
+        try:
+            # Form save method handles service layer integration
+            application = form.save()
+            
+            messages.success(
+                self.request,
+                'درخواست همکاری شما با موفقیت ارسال شد. '
+                'پس از بررسی، نتیجه از طریق ایمیل اطلاع داده خواهد شد.'
+            )
+            
+            logger.info(f'Teacher application submitted: {application.email}')
+            return redirect(self.success_url)
+            
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(f'Unexpected error in teacher application: {str(e)}')
+            messages.error(self.request, 'خطای غیرمنتظره. لطفاً دوباره تلاش کنید.')
+            return self.form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'درخواست همکاری معلم',
+            'breadcrumb': [
+                {'title': 'خانه', 'url': '/'},
+                {'title': 'درخواست همکاری', 'url': None}
+            ]
+        })
+        return context
 
 
 class TeacherApplicationSuccessView(TemplateView):
     """Success page after teacher application submission"""
     template_name = 'account/teacher_apply_success.html'
-
-
-class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """Student profile edit view"""
-    model = Student
-    form_class = StudentProfileForm
-    template_name = 'account/student_profile.html'
-    success_url = reverse_lazy('dashboard:dashboard_home')
-    
-    def test_func(self):
-        return self.request.user.user_type == 'student'
-    
-    def get_object(self):
-        return get_object_or_404(Student, user=self.request.user)
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
-        return super().form_valid(form)
-
-
-class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """Teacher profile edit view"""
-    model = Teacher
-    form_class = TeacherProfileForm
-    template_name = 'account/teacher_profile.html'
-    success_url = reverse_lazy('dashboard:teacher_dashboard')
-    
-    def test_func(self):
-        return self.request.user.user_type == 'teacher'
-    
-    def get_object(self):
-        return get_object_or_404(Teacher, user=self.request.user)
-    
-    def form_valid(self, form):
-        messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
-        return super().form_valid(form)
 
 
 # Password Reset Views
@@ -646,8 +603,6 @@ class CustomPasswordResetView(PasswordResetView):
             return self.form_invalid(form)
         
         # Log password reset request
-        import logging
-        logger = logging.getLogger('account.password_reset')
         logger.info(f'Password reset requested for: {email} from IP: {self.get_client_ip()}')
         
         return super().form_valid(form)
@@ -706,164 +661,276 @@ class CustomPasswordResetCompleteView(PasswordResetCompleteView):
 
 
 # Email Verification Views
+def verify_email(request, user_id, token):
+    """Enhanced email verification view"""
+    try:
+        success = UserRegistrationService.verify_student_email(user_id, token)
+        
+        if success:
+            messages.success(
+                request,
+                'ایمیل شما با موفقیت تایید شد. حساب کاربری شما فعال شده است.'
+            )
+            return redirect('account:login')
+        else:
+            messages.error(
+                request,
+                'لینک تایید نامعتبر یا منقضی شده است. لطفاً دوباره درخواست کنید.'
+            )
+            return redirect('account:email_verification')
+            
+    except Exception as e:
+        logger.error(f'Error in email verification: {str(e)}')
+        messages.error(request, 'خطا در تایید ایمیل. لطفاً دوباره تلاش کنید.')
+        return redirect('account:email_verification')
+
+
 class EmailVerificationView(LoginRequiredMixin, TemplateView):
-    """View for email verification"""
+    """Enhanced email verification view"""
     template_name = 'account/email_verification.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        context['page_title'] = 'تایید ایمیل'
+        context.update({
+            'user': self.request.user,
+            'page_title': 'تایید ایمیل',
+            'can_resend': not self.request.user.is_email_verified
+        })
         return context
     
     def post(self, request, *args, **kwargs):
-        """Send verification email"""
+        """Resend verification email"""
         user = request.user
         
         if user.is_email_verified:
             messages.info(request, 'ایمیل شما قبلاً تایید شده است.')
             return redirect('account:dashboard')
         
-        # Generate verification token
-        token = self.generate_verification_token(user)
+        try:
+            # Check rate limiting (one email per 5 minutes)
+            from django.core.cache import cache
+            cache_key = f'email_verification_rate_limit_{user.id}'
+            
+            if cache.get(cache_key):
+                messages.warning(
+                    request,
+                    'شما اخیراً ایمیل تایید دریافت کرده‌اید. لطفاً چند دقیقه صبر کنید.'
+                )
+                return redirect('account:email_verification')
+            
+            # Generate new token and send email
+            token = user.generate_email_verification_token()
+            EmailService.send_student_verification_email(user, token)
+            
+            # Set rate limit
+            cache.set(cache_key, True, 300)  # 5 minutes
+            
+            messages.success(
+                request,
+                'ایمیل تایید ارسال شد. لطفاً صندوق ورودی خود را بررسی کنید.'
+            )
+            
+        except Exception as e:
+            logger.error(f'Error resending verification email: {str(e)}')
+            messages.error(request, 'خطا در ارسال ایمیل. لطفاً دوباره تلاش کنید.')
         
-        # Send verification email
-        self.send_verification_email(user, token)
-        
-        messages.success(request, 'ایمیل تایید ارسال شد. لطفاً صندوق ورودی خود را بررسی کنید.')
         return redirect('account:email_verification')
-    
-    def generate_verification_token(self, user):
-        """Generate email verification token"""
-        token = secrets.token_urlsafe(32)
-        user.email_verification_token = token
-        user.save(update_fields=['email_verification_token'])
-        return token
-    
-    def send_verification_email(self, user, token):
-        """Send verification email"""
-        current_site = get_current_site(self.request)
-        verification_url = f"http://{current_site.domain}/auth/verify-email/{user.id}/{token}/"
-        
-        subject = 'تایید ایمیل - آکادمی زبان مبینا'
-        message = render_to_string('account/email_verification_email.html', {
-            'user': user,
-            'verification_url': verification_url,
-            'site_name': current_site.name,
-        })
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email='noreply@academy.com',
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
 
 
-def verify_email(request, user_id, token):
-    """Verify email with token"""
-    try:
-        user = User.objects.get(id=user_id, email_verification_token=token)
-        
-        if user.is_email_verified:
-            messages.info(request, 'ایمیل شما قبلاً تایید شده است.')
-        else:
-            user.is_email_verified = True
-            user.is_active = True  # Activate user after email verification
-            user.email_verification_token = ''
-            user.save(update_fields=['is_email_verified', 'is_active', 'email_verification_token'])
-            
-            messages.success(request, 'ایمیل شما با موفقیت تایید شد! حالا می‌توانید وارد شوید.')
-            
-            # Log successful verification
-            import logging
-            logger = logging.getLogger('account.email_verification')
-            logger.info(f'Email verified successfully for: {user.email}')
-        
-        return redirect('account:login')
-        
-    except User.DoesNotExist:
-        messages.error(request, 'لینک تایید نامعتبر است.')
-        return redirect('account:login')
-
-
-# Admin views for managing teacher applications
-class TeacherApplicationListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    """Admin view to list teacher applications"""
+# Admin Views for Teacher Applications
+@method_decorator(login_required, name='dispatch')
+class TeacherApplicationListView(UserPassesTestMixin, TemplateView):
+    """Enhanced admin view for managing teacher applications"""
     template_name = 'account/admin/teacher_applications.html'
     
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.user_type == 'admin'
+        return self.request.user.is_staff or self.request.user.is_admin_user
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['pending_applications'] = TeacherApplication.objects.filter(status='pending').order_by('-submitted_at')
-        context['accepted_applications'] = TeacherApplication.objects.filter(status='accepted').order_by('-reviewed_at')
-        context['rejected_applications'] = TeacherApplication.objects.filter(status='rejected').order_by('-reviewed_at')
+        
+        # Get applications with filtering
+        status_filter = self.request.GET.get('status', 'all')
+        
+        applications = TeacherApplication.objects.all()
+        if status_filter != 'all':
+            applications = applications.filter(status=status_filter)
+        
+        context.update({
+            'page_title': 'مدیریت درخواست‌های همکاری',
+            'pending_applications': applications.filter(status='pending').order_by('-submitted_at'),
+            'accepted_applications': applications.filter(status='accepted').order_by('-reviewed_at'),
+            'rejected_applications': applications.filter(status='rejected').order_by('-reviewed_at'),
+            'status_filter': status_filter,
+            'status_choices': TeacherApplication.STATUS_CHOICES
+        })
         return context
 
 
-class TeacherApplicationDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    """Admin view to view teacher application details"""
+@method_decorator(login_required, name='dispatch')
+class TeacherApplicationDetailView(UserPassesTestMixin, DetailView):
+    """Enhanced admin view to view teacher application details"""
     model = TeacherApplication
     template_name = 'account/admin/teacher_application_detail.html'
     context_object_name = 'application'
     
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.user_type == 'admin'
+        return self.request.user.is_staff or self.request.user.is_admin_user
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'جزئیات درخواست همکاری',
+            'breadcrumb': [
+                {'title': 'مدیریت', 'url': '/admin/'},
+                {'title': 'درخواست‌های همکاری', 'url': reverse_lazy('account:admin_teacher_applications')},
+                {'title': 'جزئیات درخواست', 'url': None}
+            ]
+        })
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
 class TeacherApplicationApprovalView(UserPassesTestMixin, TemplateView):
-    """Admin view to approve/reject teacher applications"""
+    """Enhanced admin view to approve/reject teacher applications"""
     
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.user_type == 'admin'
+        return self.request.user.is_staff or self.request.user.is_admin_user
     
     def post(self, request, pk):
-        application = get_object_or_404(TeacherApplication, pk=pk)
-        action = request.POST.get('action')
-        admin_notes = request.POST.get('admin_notes', '')
-        
-        if action == 'accept':
-            application.mark_as_accepted(request.user)
-            messages.success(request, f'درخواست {application.first_name} {application.last_name} پذیرفته شد.')
+        try:
+            application = get_object_or_404(TeacherApplication, pk=pk)
+            action = request.POST.get('action')
+            admin_notes = request.POST.get('admin_notes', '').strip()
             
-            # Send email to teacher (you can implement email sending here)
-            # application.email_user(
-            #     'درخواست همکاری شما پذیرفته شد',
-            #     f'سلام {application.first_name}، درخواست همکاری شما پذیرفته شد. می‌توانید با لینک زیر حساب کاربری ایجاد کنید.'
-            # )
+            if action == 'accept':
+                TeacherApplicationService.approve_application(
+                    application=application,
+                    reviewed_by=request.user,
+                    admin_notes=admin_notes
+                )
+                messages.success(
+                    request,
+                    f'درخواست {application.first_name} {application.last_name} پذیرفته شد. '
+                    f'ایمیل تایید برای معلم ارسال شده است.'
+                )
+                
+            elif action == 'reject':
+                if not admin_notes:
+                    messages.error(request, 'لطفاً دلیل رد درخواست را وارد کنید.')
+                    return redirect('account:admin_teacher_applications')
+                
+                TeacherApplicationService.reject_application(
+                    application=application,
+                    reviewed_by=request.user,
+                    admin_notes=admin_notes
+                )
+                messages.success(
+                    request,
+                    f'درخواست {application.first_name} {application.last_name} رد شد.'
+                )
+            else:
+                messages.error(request, 'عملیات نامعتبر.')
             
-        elif action == 'reject':
-            application.mark_as_rejected(request.user, admin_notes)
-            messages.success(request, f'درخواست {application.first_name} {application.last_name} رد شد.')
+        except Exception as e:
+            logger.error(f'Error in application approval: {str(e)}')
+            messages.error(request, 'خطا در پردازش درخواست.')
         
         return redirect('account:admin_teacher_applications')
 
 
-# Public view for checking teacher registration eligibility
-def check_teacher_registration(request, email):
-    """Check if a teacher can register with given email"""
-    try:
-        application = TeacherApplication.objects.get(email=email, status='accepted')
-        # Check if teacher account doesn't already exist
-        if Teacher.objects.filter(application=application).exists():
-            messages.error(request, 'حساب کاربری برای این ایمیل قبلاً ایجاد شده است.')
-            return redirect('account:login')
-        return redirect('account:teacher_register', email=email)
-    except TeacherApplication.DoesNotExist:
-        messages.error(request, 'درخواست تایید شده‌ای برای این ایمیل یافت نشد.')
-        return redirect('account:teacher_apply')
+# Profile Views
+class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Enhanced student profile view"""
+    model = Student
+    form_class = StudentProfileForm
+    template_name = 'account/student_profile.html'
+    success_url = reverse_lazy('dashboard:dashboard_home')
+    
+    def test_func(self):
+        return self.request.user.is_student
+    
+    def get_object(self):
+        return get_object_or_404(Student, user=self.request.user)
+    
+    def form_valid(self, form):
+        try:
+            # Use service layer for profile updates
+            student = UserProfileService.update_student_profile(
+                student=self.get_object(),
+                **form.cleaned_data
+            )
+            
+            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
+            return redirect(self.success_url)
+            
+        except Exception as e:
+            logger.error(f'Error updating student profile: {str(e)}')
+            messages.error(self.request, 'خطا در بروزرسانی پروفایل.')
+            return self.form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.get_object()
+        context.update({
+            'page_title': 'ویرایش پروفایل',
+            'completion_percentage': student.get_profile_completion_percentage(),
+            'breadcrumb': [
+                {'title': 'داشبورد', 'url': reverse_lazy('dashboard:dashboard_home')},
+                {'title': 'ویرایش پروفایل', 'url': None}
+            ]
+        })
+        return context
 
 
+class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Enhanced teacher profile view"""
+    model = Teacher
+    form_class = TeacherProfileForm
+    template_name = 'account/teacher_profile.html'
+    success_url = reverse_lazy('dashboard:teacher_dashboard')
+    
+    def test_func(self):
+        return self.request.user.is_teacher
+    
+    def get_object(self):
+        return get_object_or_404(Teacher, user=self.request.user)
+    
+    def form_valid(self, form):
+        try:
+            # Use service layer for profile updates
+            teacher = UserProfileService.update_teacher_profile(
+                teacher=self.get_object(),
+                **form.cleaned_data
+            )
+            
+            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
+            return redirect(self.success_url)
+            
+        except Exception as e:
+            logger.error(f'Error updating teacher profile: {str(e)}')
+            messages.error(self.request, 'خطا در بروزرسانی پروفایل.')
+            return self.form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        teacher = self.get_object()
+        context.update({
+            'page_title': 'ویرایش پروفایل',
+            'completion_percentage': teacher.get_profile_completion_percentage(),
+            'breadcrumb': [
+                {'title': 'داشبورد', 'url': reverse_lazy('dashboard:teacher_dashboard')},
+                {'title': 'ویرایش پروفایل', 'url': None}
+            ]
+        })
+        return context
+
+
+# AJAX Views
 @csrf_exempt
 @require_http_methods(["POST"])
 def validate_email(request):
-    """
-    AJAX view to check if an email is available for registration
-    """
+    """Enhanced AJAX view to check email availability"""
     try:
         data = json.loads(request.body)
         email = data.get('email', '').strip().lower()
@@ -874,13 +941,29 @@ def validate_email(request):
                 'message': 'ایمیل وارد نشده است'
             })
         
-        # Check if email already exists
+        # Check email format
+        from django.core.validators import validate_email as django_validate_email
+        try:
+            django_validate_email(email)
+        except ValidationError:
+            return JsonResponse({
+                'available': False,
+                'message': 'فرمت ایمیل معتبر نیست'
+            })
+        
+        # Check availability
         email_exists = User.objects.filter(email=email).exists()
+        application_exists = TeacherApplication.objects.for_email(email).exists()
         
         if email_exists:
             return JsonResponse({
                 'available': False,
                 'message': 'این ایمیل قبلاً ثبت شده است'
+            })
+        elif application_exists:
+            return JsonResponse({
+                'available': False,
+                'message': 'این ایمیل برای درخواست همکاری استفاده شده است'
             })
         else:
             return JsonResponse({
@@ -894,8 +977,35 @@ def validate_email(request):
             'message': 'درخواست نامعتبر'
         }, status=400)
     except Exception as e:
+        logger.error(f'Error in email validation AJAX: {str(e)}')
         return JsonResponse({
             'available': False,
             'message': 'خطا در بررسی ایمیل'
         }, status=500)
+
+
+# Public view for checking teacher registration eligibility
+def check_teacher_registration(request, email):
+    """Enhanced view to check teacher registration eligibility"""
+    try:
+        application = TeacherApplicationService.check_registration_eligibility(email)
+        
+        if not application:
+            messages.error(
+                request,
+                'درخواست تایید شده‌ای برای این ایمیل یافت نشد یا منقضی شده است.'
+            )
+            return redirect('account:teacher_apply')
+        
+        # Check if teacher account already exists
+        if Teacher.objects.filter(application=application).exists():
+            messages.error(request, 'حساب کاربری برای این ایمیل قبلاً ایجاد شده است.')
+            return redirect('account:login')
+        
+        return redirect('account:teacher_register', email=email)
+        
+    except Exception as e:
+        logger.error(f'Error checking teacher registration eligibility: {str(e)}')
+        messages.error(request, 'خطا در بررسی واجد شرایط بودن.')
+        return redirect('account:teacher_apply')
 

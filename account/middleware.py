@@ -7,6 +7,8 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 logger = logging.getLogger('security')
 
@@ -267,65 +269,141 @@ class SecurityMiddleware(MiddlewareMixin):
             return redirect('core:home')
 
 
+class SecurityHeadersMiddleware(MiddlewareMixin):
+    """اضافه کردن هدرهای امنیتی به response"""
+    
+    def process_response(self, request, response):
+        # اضافه کردن هدرهای امنیتی
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['X-Frame-Options'] = 'DENY'
+        response['X-XSS-Protection'] = '1; mode=block'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        # Strict Transport Security (فقط برای HTTPS)
+        if request.is_secure():
+            response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        
+        # Content Security Policy
+        response['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com; "
+            "font-src 'self' fonts.gstatic.com; "
+            "img-src 'self' data: https:;"
+        )
+        
+        return response
+
+
 class SessionSecurityMiddleware(MiddlewareMixin):
-    """Middleware for session security enhancements"""
+    """بررسی امنیت session"""
     
     def process_request(self, request):
-        """Enhance session security"""
-        
         if request.user.is_authenticated:
-            # Check session hijacking
-            if self.detect_session_hijacking(request):
-                logger.critical(f'Session hijacking detected for user: {request.user.email}')
-                from django.contrib.auth import logout
-                logout(request)
-                messages.error(request, 'به دلیل مسائل امنیتی، جلسه شما بسته شد.')
-                return redirect('account:login')
-            
-            # Update session activity
-            self.update_session_activity(request)
-        
-        return None
-    
-    def detect_session_hijacking(self, request):
-        """Detect potential session hijacking"""
-        session = request.session
-        
-        # Check IP consistency (if enabled)
-        if getattr(settings, 'CHECK_SESSION_IP', False):
-            stored_ip = session.get('login_ip')
-            current_ip = self.get_client_ip(request)
-            
-            if stored_ip and stored_ip != current_ip:
-                return True
-        
-        # Check user agent consistency
-        stored_ua = session.get('login_user_agent')
-        current_ua = request.META.get('HTTP_USER_AGENT', '')
-        
-        if stored_ua and stored_ua != current_ua:
-            return True
-        
-        return False
-    
-    def update_session_activity(self, request):
-        """Update session activity information"""
-        session = request.session
-        
-        # Store login information if not present
-        if 'login_ip' not in session:
-            session['login_ip'] = self.get_client_ip(request)
-            session['login_user_agent'] = request.META.get('HTTP_USER_AGENT', '')
-            session['login_time'] = datetime.now().isoformat()
-        
-        # Update last activity
-        session['last_activity'] = datetime.now().isoformat()
+            # بررسی تغییر IP (اگر فعال باشد)
+            from django.conf import settings
+            if getattr(settings, 'CHECK_SESSION_IP', False):
+                session_ip = request.session.get('ip_address')
+                current_ip = self.get_client_ip(request)
+                
+                if session_ip and session_ip != current_ip:
+                    logger.warning(f"IP تغییر کرده: کاربر {request.user.email}, قبلی: {session_ip}, فعلی: {current_ip}")
+                    # خروج اجباری کاربر
+                    from django.contrib.auth import logout
+                    logout(request)
+                    messages.error(request, 'به دلایل امنیتی، باید دوباره وارد شوید.')
+                    return redirect('account:login')
+                
+                # ذخیره IP در session
+                request.session['ip_address'] = current_ip
     
     def get_client_ip(self, request):
-        """Get client IP address"""
+        """دریافت IP واقعی کاربر"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(',')[0]
         else:
             ip = request.META.get('REMOTE_ADDR')
-        return ip 
+        return ip
+
+
+class ErrorHandlingMiddleware(MiddlewareMixin):
+    """مدیریت خطاها به صورت امن"""
+    
+    def process_exception(self, request, exception):
+        """مدیریت خطاها"""
+        logger.error(f"خطا برای کاربر {getattr(request.user, 'email', 'Anonymous')}: {str(exception)}", 
+                    exc_info=True)
+        
+        # در صورت خطا، session را پاک نکن ولی اطلاعات حساس را لاگ نکن
+        # فقط لاگ کن برای بررسی بعدی
+        
+        # اگر کاربر authenticated است و خطای دسترسی دارد
+        if request.user.is_authenticated and '404' not in str(exception):
+            # ثبت خطا برای بررسی
+            pass
+        
+        # بذار Django خطا را handle کند
+        return None
+
+
+class LoginHistoryMiddleware(MiddlewareMixin):
+    """ثبت تاریخچه ورود و خروج"""
+    
+    def process_request(self, request):
+        if request.user.is_authenticated:
+            # بررسی آیا این اولین درخواست بعد از login است
+            if not request.session.get('login_recorded'):
+                self.record_login(request)
+                request.session['login_recorded'] = True
+    
+    def record_login(self, request):
+        """ثبت اطلاعات ورود"""
+        try:
+            from dashboard.models import LoginHistory
+            
+            ip_address = self.get_client_ip(request)
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            
+            LoginHistory.objects.create(
+                user=request.user,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                device_type=self.get_device_type(user_agent),
+                browser=self.get_browser(user_agent),
+                session_key=request.session.session_key,
+                is_successful=True
+            )
+        except Exception as e:
+            logger.error(f"خطا در ثبت تاریخچه ورود: {str(e)}")
+    
+    def get_client_ip(self, request):
+        """دریافت IP واقعی کاربر"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    def get_device_type(self, user_agent):
+        """تشخیص نوع دستگاه"""
+        user_agent_lower = user_agent.lower()
+        if 'mobile' in user_agent_lower or 'android' in user_agent_lower:
+            return 'mobile'
+        elif 'tablet' in user_agent_lower or 'ipad' in user_agent_lower:
+            return 'tablet'
+        return 'desktop'
+    
+    def get_browser(self, user_agent):
+        """تشخیص مرورگر"""
+        user_agent_lower = user_agent.lower()
+        if 'chrome' in user_agent_lower:
+            return 'Chrome'
+        elif 'firefox' in user_agent_lower:
+            return 'Firefox'
+        elif 'safari' in user_agent_lower:
+            return 'Safari'
+        elif 'edge' in user_agent_lower:
+            return 'Edge'
+        return 'Unknown' 

@@ -125,8 +125,7 @@ class TeacherRegistrationView(CreateView):
             
             messages.success(
                 self.request,
-                f'حساب کاربری شما با موفقیت ایجاد شد. '
-                f'خوش آمدید {user.get_full_name()}!'
+                'حساب کاربری شما با موفقیت ایجاد شد.'
             )
             
             logger.info(f'Teacher registered successfully: {user.email}')
@@ -165,14 +164,14 @@ class CustomLoginView(LoginView):
         return kwargs
     
     def get_success_url(self):
-        # Redirect based on user type
+        # Redirect based on user type - فقط superuser به admin
         user = self.request.user
-        if user.user_type == 'student':
+        if user.is_superuser:
+            return reverse_lazy('dashboard:admin_dashboard')
+        elif user.user_type == 'student':
             return reverse_lazy('dashboard:dashboard_home')
         elif user.user_type == 'teacher':
             return reverse_lazy('dashboard:teacher_dashboard')
-        elif user.user_type == 'admin':
-            return reverse_lazy('admin:index')
         return reverse_lazy('dashboard:dashboard_home')
     
     def form_valid(self, form):
@@ -193,26 +192,7 @@ class CustomLoginView(LoginView):
         else:
             self.request.session.set_expiry(3600)  # 1 hour
         
-        # Welcome message based on user type and time
-        from datetime import datetime
-        hour = datetime.now().hour
-        
-        if hour < 12:
-            greeting = 'صبح بخیر'
-        elif hour < 18:
-            greeting = 'ظهر بخیر'
-        else:
-            greeting = 'عصر بخیر'
-        
-        user_name = user.get_full_name() or user.first_name
-        if user.user_type == 'student':
-            message = f'{greeting} {user_name}! به داشبورد آموزشی خود خوش آمدید.'
-        elif user.user_type == 'teacher':
-            message = f'{greeting} استاد {user_name}! آماده تدریس هستید؟'
-        else:
-            message = f'{greeting} {user_name}!'
-            
-        messages.success(self.request, message)
+                # ورود موفق - بدون نمایش پیام
         
         # Update last login activity
         user.last_login = timezone.now()
@@ -242,12 +222,8 @@ class CustomLogoutView(LogoutView):
     template_name = 'account/logout_confirm.html'
     
     def dispatch(self, request, *args, **kwargs):
-        # Store user info before logout for personalized message
+        # Security: Log logout action for audit trail
         if request.user.is_authenticated:
-            self.user_name = request.user.get_full_name() or request.user.first_name
-            self.user_type = request.user.user_type
-            
-            # Security: Log logout action for audit trail
             logger.info(f'User logout: {request.user.email} ({request.user.user_type}) from IP: {self.get_client_ip(request)}')
             
         return super().dispatch(request, *args, **kwargs)
@@ -255,29 +231,19 @@ class CustomLogoutView(LogoutView):
     def post(self, request, *args, **kwargs):
         """Handle POST logout with enhanced security"""
         if request.user.is_authenticated:
-            user_name = request.user.get_full_name() or request.user.first_name
-            user_type = request.user.user_type
-            
             # Clear specific session data
             if hasattr(request.session, 'cycle_key'):
                 request.session.cycle_key()  # Generate new session key for security
             
-            # Custom logout message based on user type
-            if user_type == 'student':
-                message = f'خداحافظ {user_name}! امیدواریم به زودی برای ادامه یادگیری برگردید.'
-            elif user_type == 'teacher':
-                message = f'استاد {user_name}، با تشکر از حضورتان. موفق باشید!'
-            else:
-                message = f'{user_name} عزیز، با موفقیت خارج شدید.'
-                
-            messages.success(request, message)
-            
         response = super().post(request, *args, **kwargs)
         
-        # Enhanced security: Clear sensitive cookies
+        # Enhanced security: Clear sensitive cookies and messages
         if response:
             response.delete_cookie('sessionid')
             response.delete_cookie('csrftoken')
+            # پاک کردن تمام پیام‌ها از storage
+            storage = messages.get_messages(request)
+            storage.used = True
             
         return response
     
@@ -317,12 +283,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         user = request.user
         
-        if user.user_type == 'student':
+        if user.is_superuser:
+            return redirect('dashboard:admin_dashboard')
+        elif user.user_type == 'student':
             return redirect('dashboard:dashboard_home')
         elif user.user_type == 'teacher':
             return redirect('dashboard:teacher_dashboard')
-        elif user.user_type == 'admin':
-            return redirect('admin:index')
         else:
             messages.error(request, 'نوع کاربری نامعتبر است.')
             return redirect('account:login')

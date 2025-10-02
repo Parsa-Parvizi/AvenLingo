@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت کاربران{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">مدیریت کاربران</h2>
+
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">نوع کاربر</label>
+                            <select name="user_type" class="form-select">
+                                <option value="all" {% if user_type_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>دانش‌آموز</option>
+                                <option value="teacher" {% if user_type_filter == 'teacher' %}selected{% endif %}>معلم</option>
+                                <option value="admin" {% if user_type_filter == 'admin' %}selected{% endif %}>ادمین</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">وضعیت</label>
+                            <select name="is_active" class="form-select">
+                                <option value="all" {% if is_active_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="active" {% if is_active_filter == 'active' %}selected{% endif %}>فعال</option>
+                                <option value="inactive" {% if is_active_filter == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">جستجو</label>
+                            <input type="text" name="search" class="form-control" placeholder="نام، نام خانوادگی یا ایمیل" value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست کاربران -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست کاربران ({{ users.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>نام و نام خانوادگی</th>
+                                    <th>ایمیل</th>
+                                    <th>نوع کاربر</th>
+                                    <th>وضعیت</th>
+                                    <th>تایید ایمیل</th>
+                                    <th>تاریخ عضویت</th>
+                                    <th>آخرین ورود</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td><strong style="color: var(--color-primary);">{{ user.get_full_name|default:"—" }}</strong></td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.user_type == 'student' %}
+                                            <span class="badge badge-info">دانش‌آموز</span>
+                                        {% elif user.user_type == 'teacher' %}
+                                            <span class="badge badge-success">معلم</span>
+                                        {% elif user.user_type == 'admin' %}
+                                            <span class="badge badge-danger">ادمین</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge badge-success">فعال</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">غیرفعال</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_email_verified %}
+                                            <span class="text-success"><i class="fas fa-check-circle"></i></span>
+                                        {% else %}
+                                            <span class="text-danger"><i class="fas fa-times-circle"></i></span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"Y/m/d" }}</td>
+                                    <td>{{ user.last_login|date:"Y/m/d H:i"|default:"—" }}</td>
+                                    <td>
+                                        <a href="/admin/account/user/{{ user.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">کاربری یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -81,11 +81,31 @@ class TeacherCreateCourseView(View):
         form = CourseForm(request.POST, request.FILES)
         if form.is_valid():
             course = form.save(commit=False)
-            # Assign to teacher profile
             teacher = get_object_or_404(Teacher, user=request.user)
             course.teacher = teacher
-            course.status = 'draft'
             course.save()
-            messages.success(request, 'کلاس شما با موفقیت ذخیره شد. پس از تایید ادمین منتشر خواهد شد.')
-            return render(request, self.template_name, {'form': CourseForm()})
+            messages.success(request, 'دوره با موفقیت ایجاد شد.')
+            return render(request, self.template_name, {'form': CourseForm(), 'success': True})
         return render(request, self.template_name, {'form': form})
+
+
+@method_decorator(login_required, name='dispatch')
+class TeacherEditCourseView(View):
+    template_name = 'teacher/teacher_edit_course.html'
+
+    def get(self, request, course_id):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        form = CourseForm(instance=course)
+        return render(request, self.template_name, {'form': form, 'course': course})
+
+    def post(self, request, course_id):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        form = CourseForm(request.POST, request.FILES, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'دوره با موفقیت ویرایش شد.')
+            from django.shortcuts import redirect
+            return redirect('teacher:teacher_courses')
+        return render(request, self.template_name, {'form': form, 'course': course})

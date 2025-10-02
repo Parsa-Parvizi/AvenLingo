@@ -51,6 +51,7 @@ except ImportError:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'account.middleware.SecurityHeadersMiddleware',  # هدرهای امنیتی
     # 'whitenoise.middleware.WhiteNoiseMiddleware',  # Temporarily disabled
     # 'core.middleware.QueryCountMiddleware',  # Query count monitoring - Disabled
     'core.middleware.URLSecurityMiddleware',  # URL security and validation
@@ -61,9 +62,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'account.middleware.SessionSecurityMiddleware',  # Session security
+    'account.middleware.SessionSecurityMiddleware',  # بررسی امنیت session
+    'account.middleware.LoginHistoryMiddleware',  # ثبت تاریخچه ورود
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'account.middleware.ErrorHandlingMiddleware',  # مدیریت امن خطاها
 ]
 
 # Conditionally add debug toolbar middleware if available
@@ -226,18 +229,26 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@academy.com')
 
 # Additional Security Settings
 MAX_REQUEST_SIZE = 5 * 1024 * 1024  # 5MB max request size
-CHECK_SESSION_IP = False  # Set to True in production for stricter security
+CHECK_SESSION_IP = True  # بررسی IP برای امنیت بیشتر
 
-# Session Security Settings
-SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP ; Should be True in production
-SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
-SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
-SESSION_COOKIE_AGE = 3600  # 1 hour default session timeout
+# Session Security Settings (استانداردهای امنیتی)
+SESSION_COOKIE_SECURE = not DEBUG  # فقط HTTPS در production
+SESSION_COOKIE_HTTPONLY = True  # جلوگیری از دسترسی JavaScript
+SESSION_COOKIE_SAMESITE = 'Strict'  # محافظت قوی‌تر در برابر CSRF
+SESSION_COOKIE_AGE = 3600  # 1 ساعت
+SESSION_SAVE_EVERY_REQUEST = True  # بروزرسانی session در هر درخواست
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # session بعد از بستن مرورگر منقضی می‌شود
 
-# CSRF Security
-CSRF_COOKIE_SECURE = False  # Allow CSRF cookies over HTTP ; Should be True in production
-CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
-CSRF_COOKIE_SAMESITE = 'Lax'
+# CSRF Security (امنیت در برابر حملات CSRF)
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_USE_SESSIONS = True  # ذخیره CSRF token در session به جای cookie
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'  # جلوگیری از clickjacking
 
 # Content Security Policy - HTTP only
 CSP_DEFAULT_SRC = ("'self'", "http:", "https:")

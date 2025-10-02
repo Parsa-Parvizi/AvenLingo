@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت دسترسی‌ها{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">مدیریت دسترسی‌ها و نقش‌ها</h2>
+        <p class="mb-0">تعیین سطح دسترسی کاربران</p>
+    </div>
+
+    <!-- آمار -->
+    <div class="modern-card mb-4">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="stats-box border-danger">
+                    <h3>{{ superusers }}</h3>
+                    <p class="text-muted mb-0">Superuser</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-box border-warning">
+                    <h3>{{ staff_users }}</h3>
+                    <p class="text-muted mb-0">Staff</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-box border-info">
+                    <h3>{{ groups|length }}</h3>
+                    <p class="text-muted mb-0">گروه‌ها</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- گروه‌ها -->
+    <div class="modern-card mb-4">
+        <h5 class="mb-4">گروه‌های کاربری</h5>
+        
+        {% if groups %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>نام گروه</th>
+                        <th>تعداد کاربران</th>
+                        <th>دسترسی‌ها</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                    <tr>
+                        <td><strong>{{ group.name }}</strong></td>
+                        <td>{{ group.user_set.count }}</td>
+                        <td>{{ group.permissions.count }} دسترسی</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            گروهی تعریف نشده است.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- لیست کاربران -->
+    <div class="modern-card">
+        <h5 class="mb-4">کاربران و سطح دسترسی</h5>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>کاربر</th>
+                        <th>نوع</th>
+                        <th>Superuser</th>
+                        <th>Staff</th>
+                        <th>فعال</th>
+                        <th>تاریخ عضویت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.get_full_name }}</strong><br>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </td>
+                        <td>
+                            {% if user.user_type == 'student' %}
+                                <span class="badge badge-info">دانش‌آموز</span>
+                            {% elif user.user_type == 'teacher' %}
+                                <span class="badge badge-success">معلم</span>
+                            {% elif user.user_type == 'admin' %}
+                                <span class="badge badge-warning">مدیر</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_superuser %}
+                                <span class="badge badge-danger">✓</span>
+                            {% else %}
+                                <span class="badge badge-secondary">✗</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_staff %}
+                                <span class="badge badge-warning">✓</span>
+                            {% else %}
+                                <span class="badge badge-secondary">✗</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge badge-success">✓</span>
+                            {% else %}
+                                <span class="badge badge-danger">✗</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined|date:"Y/m/d" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="alert alert-warning mt-4">
+        <strong>نکته:</strong> برای تغییر دسترسی‌های پیشرفته، از پنل مدیریت Django استفاده کنید.
+    </div>
+</div>
+{% endblock %} 

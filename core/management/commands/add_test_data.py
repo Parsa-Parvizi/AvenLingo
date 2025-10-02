@@ -134,7 +134,7 @@ class Command(BaseCommand):
                     'last_name': last_name,
                     'user_type': 'teacher',
                     'is_active': True,
-                    'is_staff': True,
+                    'is_staff': False,  # معلمان نباید staff باشند
                 }
             )
             if created:

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - تنظیمات امنیتی{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .settings-section {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+    .settings-section:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">تنظیمات امنیتی سیستم</h2>
+        <p class="mb-0">تنظیم خط‌مشی‌های امنیتی و رمز عبور</p>
+    </div>
+
+    <div class="modern-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Password Policy -->
+            <div class="settings-section">
+                <h5 class="mb-3">خط‌مشی رمز عبور</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">حداقل طول رمز عبور</label>
+                        <input type="number" name="min_password_length" class="form-control" 
+                               value="{{ settings.min_password_length }}" min="4" max="32">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">انقضای رمز عبور (روز)</label>
+                        <input type="number" name="password_expiry_days" class="form-control" 
+                               value="{{ settings.password_expiry_days }}" min="0">
+                        <small class="text-muted">0 = هیچوقت منقضی نمی‌شود</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="require_uppercase" 
+                                   {% if settings.require_uppercase %}checked{% endif %}>
+                            <label class="form-check-label">نیاز به حروف بزرگ</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="require_lowercase" 
+                                   {% if settings.require_lowercase %}checked{% endif %}>
+                            <label class="form-check-label">نیاز به حروف کوچک</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="require_numbers" 
+                                   {% if settings.require_numbers %}checked{% endif %}>
+                            <label class="form-check-label">نیاز به اعداد</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="require_special_chars" 
+                                   {% if settings.require_special_chars %}checked{% endif %}>
+                            <label class="form-check-label">نیاز به کاراکترهای خاص</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Settings -->
+            <div class="settings-section">
+                <h5 class="mb-3">تنظیمات نشست</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">زمان انقضای نشست (دقیقه)</label>
+                        <input type="number" name="session_timeout_minutes" class="form-control" 
+                               value="{{ settings.session_timeout_minutes }}" min="5">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">حداکثر نشست همزمان</label>
+                        <input type="number" name="max_concurrent_sessions" class="form-control" 
+                               value="{{ settings.max_concurrent_sessions }}" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Settings -->
+            <div class="settings-section">
+                <h5 class="mb-3">تنظیمات ورود</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">حداکثر تلاش ورود ناموفق</label>
+                        <input type="number" name="max_login_attempts" class="form-control" 
+                               value="{{ settings.max_login_attempts }}" min="3" max="10">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">مدت قفل شدن (دقیقه)</label>
+                        <input type="number" name="lockout_duration_minutes" class="form-control" 
+                               value="{{ settings.lockout_duration_minutes }}" min="5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="settings-section">
+                <h5 class="mb-3">احراز هویت دو مرحله‌ای (2FA)</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_2fa" 
+                                   {% if settings.enable_2fa %}checked{% endif %}>
+                            <label class="form-check-label">فعال‌سازی 2FA</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="force_2fa_for_admins" 
+                                   {% if settings.force_2fa_for_admins %}checked{% endif %}>
+                            <label class="form-check-label">اجباری برای مدیران</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Settings -->
+            <div class="settings-section">
+                <h5 class="mb-3">سایر تنظیمات</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_email_verification" 
+                                   {% if settings.enable_email_verification %}checked{% endif %}>
+                            <label class="form-check-label">فعال‌سازی تایید ایمیل</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="log_failed_attempts" 
+                                   {% if settings.log_failed_attempts %}checked{% endif %}>
+                            <label class="form-check-label">ثبت تلاش‌های ناموفق</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">ذخیره تنظیمات</button>
+            </div>
+        </form>
+
+        {% if settings.updated_at %}
+        <div class="mt-3">
+            <small class="text-muted">
+                آخرین بروزرسانی: {{ settings.updated_at|date:"Y/m/d H:i" }}
+                {% if settings.updated_by %}
+                    توسط {{ settings.updated_by.get_full_name }}
+                {% endif %}
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

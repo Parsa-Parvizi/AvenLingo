@@ -316,12 +316,12 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'teacher:edit-course' course.slug %}" 
+                                            <a href="{% url 'teacher:edit-course' course.id %}" 
                                                class="btn btn-sm btn-outline-info" 
                                                title="ویرایش دوره">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                            <a href="{% url 'teacher:teacher_course_students' course.slug %}" 
+                                            <a href="{% url 'teacher:course-students' course.id %}" 
                                                class="btn btn-sm btn-outline-primary" 
                                                title="مشاهده دانش‌آموزان">
                                             <i class="fas fa-users"></i>

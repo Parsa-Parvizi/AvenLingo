@@ -2,8 +2,18 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
+from django.db.models import Count, Sum, Q, Avg
+from django.utils import timezone
+from datetime import timedelta, datetime
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+import json
 
-from account.models import Student, Teacher
+from account.models import Student, Teacher, User, TeacherApplication
+from course.models import Course, Category
+from enrollment.models import Enrollment
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -12,13 +22,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        if user.user_type == 'student':
+        # فقط superuser به admin dashboard می‌رود
+        if user.is_superuser:
+            return redirect('dashboard:admin_dashboard')
+        elif user.user_type == 'student':
             student = get_object_or_404(Student, user=user)
             return redirect('dashboard:student_dashboard', student_id=student.id)
         elif user.user_type == 'teacher':
             return redirect('dashboard:teacher_dashboard')
-        elif user.user_type == 'admin':
-            return redirect('admin:index')
         else:
             messages.error(request, 'نوع کاربری نامعتبر است.')
             return redirect('account:login')
@@ -237,3 +248,506 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
         activities.sort(key=lambda x: x['date'], reverse=True)
         return activities[:5]
+
+
+class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """Dashboard اختصاصی برای Super User با تمام امکانات مدیریتی"""
+    template_name = 'dashboard/admin_dashboard.html'
+    
+    def test_func(self):
+        """فقط superuser دسترسی دارد - امنیت بالا"""
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز به داشبورد مدیریت.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # آمار کلی سیستم
+        context.update({
+            'total_users': User.objects.count(),
+            'total_students': Student.objects.count(),
+            'total_teachers': Teacher.objects.count(),
+            'total_courses': Course.objects.count(),
+            'active_courses': Course.objects.filter(is_active=True).count(),
+            'total_enrollments': Enrollment.objects.count(),
+            'pending_enrollments': Enrollment.objects.filter(status='pending').count(),
+            'pending_applications': TeacherApplication.objects.filter(status='pending').count(),
+        })
+        
+        # آمار ثبت‌نام‌ها
+        enrollments = Enrollment.objects.all()
+        context['enrollment_stats'] = {
+            'confirmed': enrollments.filter(status='confirmed').count(),
+            'pending': enrollments.filter(status='pending').count(),
+            'cancelled': enrollments.filter(status='cancelled').count(),
+            'completed': enrollments.filter(status='completed').count(),
+        }
+        
+        # آمار پرداخت‌ها
+        context['payment_stats'] = {
+            'paid': enrollments.filter(payment_status='paid').count(),
+            'unpaid': enrollments.filter(payment_status='unpaid').count(),
+            'partial': enrollments.filter(payment_status='partial').count(),
+        }
+        
+        # آمار ماهانه
+        current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_enrollments = enrollments.filter(enrolled_at__gte=current_month)
+        
+        context['monthly_stats'] = {
+            'new_students': Student.objects.filter(enrollment_date__gte=current_month).count(),
+            'new_courses': Course.objects.filter(created_at__gte=current_month).count(),
+            'new_enrollments': monthly_enrollments.count(),
+            'revenue': sum(e.amount_paid for e in monthly_enrollments.filter(payment_status='paid')),
+        }
+        
+        # آخرین فعالیت‌ها
+        context['recent_enrollments'] = Enrollment.objects.select_related(
+            'student__user', 'course', 'course__teacher__user'
+        ).order_by('-enrolled_at')[:10]
+        
+        context['recent_students'] = Student.objects.select_related('user').order_by('-enrollment_date')[:10]
+        context['recent_applications'] = TeacherApplication.objects.filter(status='pending').order_by('-submitted_at')[:10]
+        
+        # نمودار ثبت‌نام‌های ماهانه (12 ماه گذشته)
+        monthly_data = []
+        for i in range(12):
+            month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30*i)
+            month_end = month_start + timedelta(days=30)
+            count = Enrollment.objects.filter(
+                enrolled_at__gte=month_start,
+                enrolled_at__lt=month_end
+            ).count()
+            monthly_data.insert(0, count)
+        
+        context['monthly_enrollment_data'] = ','.join(map(str, monthly_data))
+        
+        # نمودار دوره‌های محبوب
+        popular_courses = Course.objects.annotate(
+            enrollment_count=Count('enrollments')
+        ).order_by('-enrollment_count')[:5]
+        
+        context['popular_courses'] = popular_courses
+        
+        return context
+
+
+class AdminUsersListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست کاربران برای مدیریت"""
+    template_name = 'dashboard/admin_users.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # فیلترها
+        user_type = self.request.GET.get('user_type', 'all')
+        is_active = self.request.GET.get('is_active', 'all')
+        search_query = self.request.GET.get('search', '')
+        
+        users = User.objects.all()
+        
+        if user_type != 'all':
+            users = users.filter(user_type=user_type)
+        
+        if is_active == 'active':
+            users = users.filter(is_active=True)
+        elif is_active == 'inactive':
+            users = users.filter(is_active=False)
+        
+        if search_query:
+            users = users.filter(
+                Q(email__icontains=search_query) |
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query)
+            )
+        
+        context['users'] = users.order_by('-date_joined')
+        context['user_type_filter'] = user_type
+        context['is_active_filter'] = is_active
+        context['search_query'] = search_query
+        
+        return context
+
+
+class AdminCoursesListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست دوره‌ها برای مدیریت"""
+    template_name = 'dashboard/admin_courses.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # فیلترها
+        status = self.request.GET.get('status', 'all')
+        is_active = self.request.GET.get('is_active', 'all')
+        category = self.request.GET.get('category', 'all')
+        search_query = self.request.GET.get('search', '')
+        
+        courses = Course.objects.select_related('teacher__user', 'category').all()
+        
+        if status != 'all':
+            courses = courses.filter(status=status)
+        
+        if is_active == 'active':
+            courses = courses.filter(is_active=True)
+        elif is_active == 'inactive':
+            courses = courses.filter(is_active=False)
+        
+        if category != 'all':
+            courses = courses.filter(category_id=category)
+        
+        if search_query:
+            courses = courses.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+        
+        context['courses'] = courses.order_by('-created_at')
+        context['categories'] = Category.objects.all()
+        context['status_filter'] = status
+        context['is_active_filter'] = is_active
+        context['category_filter'] = category
+        context['search_query'] = search_query
+        
+        return context
+
+
+class AdminEnrollmentsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست ثبت‌نام‌ها برای مدیریت"""
+    template_name = 'dashboard/admin_enrollments.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # فیلترها
+        status = self.request.GET.get('status', 'all')
+        payment_status = self.request.GET.get('payment_status', 'all')
+        search_query = self.request.GET.get('search', '')
+        
+        enrollments = Enrollment.objects.select_related(
+            'student__user', 'course', 'course__teacher__user'
+        ).all()
+        
+        if status != 'all':
+            enrollments = enrollments.filter(status=status)
+        
+        if payment_status != 'all':
+            enrollments = enrollments.filter(payment_status=payment_status)
+        
+        if search_query:
+            enrollments = enrollments.filter(
+                Q(student__user__first_name__icontains=search_query) |
+                Q(student__user__last_name__icontains=search_query) |
+                Q(course__title__icontains=search_query)
+            )
+        
+        context['enrollments'] = enrollments.order_by('-enrolled_at')
+        context['status_filter'] = status
+        context['payment_status_filter'] = payment_status
+        context['search_query'] = search_query
+        
+        return context
+
+
+class AdminApplicationsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست درخواست‌های همکاری معلمان"""
+    template_name = 'dashboard/admin_applications.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        status = self.request.GET.get('status', 'all')
+        
+        applications = TeacherApplication.objects.all()
+        
+        if status != 'all':
+            applications = applications.filter(status=status)
+        
+        context['applications'] = applications.order_by('-submitted_at')
+        context['status_filter'] = status
+        
+        return context
+
+
+class AdminCourseRequestsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست درخواست‌های دوره"""
+    template_name = 'dashboard/admin_course_requests.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .models import CourseRequest
+        
+        status = self.request.GET.get('status', 'all')
+        
+        requests = CourseRequest.objects.select_related('user').all()
+        
+        if status != 'all':
+            requests = requests.filter(status=status)
+        
+        context['requests'] = requests.order_by('-created_at')
+        context['status_filter'] = status
+        context['pending_count'] = CourseRequest.objects.filter(status='pending').count()
+        
+        return context
+
+
+class AdminConsultationRequestsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست درخواست‌های مشاوره"""
+    template_name = 'dashboard/admin_consultation_requests.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .models import ConsultationRequest
+        
+        status = self.request.GET.get('status', 'all')
+        
+        requests = ConsultationRequest.objects.select_related('user', 'consultant').all()
+        
+        if status != 'all':
+            requests = requests.filter(status=status)
+        
+        context['requests'] = requests.order_by('-created_at')
+        context['status_filter'] = status
+        context['pending_count'] = ConsultationRequest.objects.filter(status='pending').count()
+        
+        return context
+
+
+class AdminLoginHistoryView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """تاریخچه ورود کاربران"""
+    template_name = 'dashboard/admin_login_history.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .models import LoginHistory
+        
+        user_filter = self.request.GET.get('user', '')
+        date_from = self.request.GET.get('date_from', '')
+        date_to = self.request.GET.get('date_to', '')
+        
+        history = LoginHistory.objects.select_related('user').all()
+        
+        if user_filter:
+            history = history.filter(
+                Q(user__email__icontains=user_filter) |
+                Q(user__first_name__icontains=user_filter) |
+                Q(user__last_name__icontains=user_filter)
+            )
+        
+        if date_from:
+            history = history.filter(login_time__gte=date_from)
+        
+        if date_to:
+            history = history.filter(login_time__lte=date_to)
+        
+        context['history'] = history.order_by('-login_time')[:100]
+        context['user_filter'] = user_filter
+        context['date_from'] = date_from
+        context['date_to'] = date_to
+        context['total_logins'] = LoginHistory.objects.count()
+        context['today_logins'] = LoginHistory.objects.filter(
+            login_time__date=timezone.now().date()
+        ).count()
+        
+        return context
+
+
+class AdminSessionsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """مدیریت نشست‌های فعال"""
+    template_name = 'dashboard/admin_sessions.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.contrib.sessions.models import Session
+        from .models import LoginHistory
+        
+        # نشست‌های فعال
+        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        
+        # اطلاعات تکمیلی از LoginHistory
+        session_data = []
+        for session in active_sessions:
+            try:
+                login_history = LoginHistory.objects.filter(
+                    session_key=session.session_key,
+                    logout_time__isnull=True
+                ).select_related('user').first()
+                
+                if login_history:
+                    session_data.append({
+                        'session': session,
+                        'user': login_history.user,
+                        'login_time': login_history.login_time,
+                        'ip_address': login_history.ip_address,
+                        'device_type': login_history.device_type,
+                        'browser': login_history.browser,
+                    })
+            except:
+                pass
+        
+        context['sessions'] = session_data
+        context['total_sessions'] = len(session_data)
+        
+        return context
+
+
+class AdminPermissionsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """مدیریت دسترسی‌ها و نقش‌ها"""
+    template_name = 'dashboard/admin_permissions.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.contrib.auth.models import Group, Permission
+        
+        context['users'] = User.objects.all().order_by('-date_joined')
+        context['groups'] = Group.objects.all()
+        context['superusers'] = User.objects.filter(is_superuser=True).count()
+        context['staff_users'] = User.objects.filter(is_staff=True).count()
+        
+        return context
+
+
+class AdminSecuritySettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """تنظیمات امنیتی سیستم"""
+    template_name = 'dashboard/admin_security_settings.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .models import SecuritySettings
+        
+        context['settings'] = SecuritySettings.get_settings()
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        from .models import SecuritySettings
+        
+        settings = SecuritySettings.get_settings()
+        
+        # Update settings
+        settings.min_password_length = int(request.POST.get('min_password_length', 8))
+        settings.require_uppercase = request.POST.get('require_uppercase') == 'on'
+        settings.require_lowercase = request.POST.get('require_lowercase') == 'on'
+        settings.require_numbers = request.POST.get('require_numbers') == 'on'
+        settings.require_special_chars = request.POST.get('require_special_chars') == 'on'
+        settings.password_expiry_days = int(request.POST.get('password_expiry_days', 0))
+        settings.session_timeout_minutes = int(request.POST.get('session_timeout_minutes', 60))
+        settings.max_concurrent_sessions = int(request.POST.get('max_concurrent_sessions', 3))
+        settings.max_login_attempts = int(request.POST.get('max_login_attempts', 5))
+        settings.lockout_duration_minutes = int(request.POST.get('lockout_duration_minutes', 30))
+        settings.enable_2fa = request.POST.get('enable_2fa') == 'on'
+        settings.force_2fa_for_admins = request.POST.get('force_2fa_for_admins') == 'on'
+        settings.enable_email_verification = request.POST.get('enable_email_verification') == 'on'
+        settings.log_failed_attempts = request.POST.get('log_failed_attempts') == 'on'
+        settings.updated_by = request.user
+        
+        settings.save()
+        
+        messages.success(request, 'تنظیمات امنیتی با موفقیت بروزرسانی شد.')
+        return redirect('dashboard:admin_security_settings')
+
+
+class AdminTeacherRegisterView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """ثبت‌نام دستی معلم توسط ادمین"""
+    template_name = 'dashboard/admin_teacher_register.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def post(self, request, *args, **kwargs):
+        from account.forms import TeacherRegistrationForm
+        
+        # ساخت یک TeacherApplication موقت
+        email = request.POST.get('email')
+        
+        # بررسی ایمیل تکراری
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'این ایمیل قبلاً ثبت شده است.')
+            return redirect('dashboard:admin_teacher_register')
+        
+        # ایجاد یوزر و معلم
+        try:
+            user = User.objects.create_user(
+                email=email,
+                password=request.POST.get('password'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name'),
+                user_type='teacher',
+                is_active=True,
+                is_email_verified=True
+            )
+            
+            teacher = Teacher.objects.create(
+                user=user,
+                bio=request.POST.get('bio', ''),
+                phone_number=request.POST.get('phone', ''),
+                specialization=request.POST.get('specialization', ''),
+                experience_years=request.POST.get('experience_years', 0)
+            )
+            
+            messages.success(request, f'معلم {user.get_full_name()} با موفقیت ثبت شد.')
+            return redirect('dashboard:admin_users')
+            
+        except Exception as e:
+            messages.error(request, f'خطا در ثبت معلم: {str(e)}')
+            return redirect('dashboard:admin_teacher_register')
+
+
+@login_required
+def delete_session(request, pk):
+    """حذف نشست"""
+    if not (request.user.is_superuser or request.user.is_staff):
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:admin_dashboard')
+    
+    from django.contrib.sessions.models import Session
+    from .models import LoginHistory
+    
+    try:
+        session = Session.objects.get(pk=pk)
+        session_key = session.session_key
+        session.delete()
+        
+        # بروزرسانی LoginHistory
+        LoginHistory.objects.filter(
+            session_key=session_key,
+            logout_time__isnull=True
+        ).update(logout_time=timezone.now())
+        
+        messages.success(request, 'نشست با موفقیت حذف شد.')
+    except Session.DoesNotExist:
+        messages.error(request, 'نشست یافت نشد.')
+    
+    return redirect('dashboard:admin_sessions')

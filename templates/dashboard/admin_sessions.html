@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت نشست‌ها{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">مدیریت نشست‌های فعال</h2>
+        <p class="mb-0">نظارت و کنترل نشست‌های کاربران</p>
+    </div>
+
+    <!-- آمار -->
+    <div class="modern-card mb-4">
+        <div class="row text-center">
+            <div class="col-md-12">
+                <div class="stats-box border-info">
+                    <h3>{{ total_sessions }}</h3>
+                    <p class="text-muted mb-0">نشست‌های فعال</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست نشست‌ها -->
+    <div class="modern-card">
+        <h5 class="mb-4">نشست‌های فعال</h5>
+        
+        {% if sessions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>کاربر</th>
+                        <th>زمان ورود</th>
+                        <th>آدرس IP</th>
+                        <th>دستگاه</th>
+                        <th>مرورگر</th>
+                        <th>انقضا</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session_item in sessions %}
+                    <tr>
+                        <td>
+                            <strong>{{ session_item.user.get_full_name }}</strong><br>
+                            <small class="text-muted">{{ session_item.user.email }}</small>
+                        </td>
+                        <td>{{ session_item.login_time|date:"Y/m/d H:i" }}</td>
+                        <td>{{ session_item.ip_address|default:"-" }}</td>
+                        <td>{{ session_item.device_type|default:"-" }}</td>
+                        <td>{{ session_item.browser|default:"-" }}</td>
+                        <td>{{ session_item.session.expire_date|date:"Y/m/d H:i" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'dashboard:delete_session' session_item.session.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('آیا مطمئن هستید؟')">
+                                    حذف نشست
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            نشست فعالی یافت نشد.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت درخواست‌های معلمان{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">درخواست‌های همکاری معلمان</h2>
+
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-10">
+                            <label class="form-label">وضعیت</label>
+                            <select name="status" class="form-select">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار بررسی</option>
+                                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>پذیرفته شده</option>
+                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>رد شده</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست درخواست‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست درخواست‌ها ({{ applications.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>نام و نام خانوادگی</th>
+                                    <th>ایمیل</th>
+                                    <th>شماره تماس</th>
+                                    <th>تخصص</th>
+                                    <th>تجربه</th>
+                                    <th>تاریخ ارسال</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                <tr>
+                                    <td>{{ app.first_name }} {{ app.last_name }}</td>
+                                    <td>{{ app.email }}</td>
+                                    <td>{{ app.phone }}</td>
+                                    <td>{{ app.specialization|default:"—" }}</td>
+                                    <td>{{ app.experience_years|default:"—" }} سال</td>
+                                    <td>{{ app.submitted_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        {% if app.status == 'pending' %}
+                                            <span class="badge badge-warning">در انتظار</span>
+                                        {% elif app.status == 'accepted' %}
+                                            <span class="badge badge-success">پذیرفته شده</span>
+                                        {% elif app.status == 'rejected' %}
+                                            <span class="badge badge-danger">رد شده</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="/admin/account/teacherapplication/{{ app.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-eye"></i> مشاهده
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">درخواستی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

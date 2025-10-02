@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - داشبورد مدیریت{% endblock %}
+
+{% block extra_meta %}
+<style>
+    /* مخفی کردن navbar و footer سایت اصلی */
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .stats-box {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        height: 100%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border-top: 4px solid;
+    }
+    .stats-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .stats-box.primary { border-top-color: var(--color-primary); }
+    .stats-box.success { border-top-color: var(--color-highlight); }
+    .stats-box.info { border-top-color: var(--color-secondary); }
+    .stats-box.warning { border-top-color: var(--color-accent); }
+    .stats-box h3 {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+    .stats-box .stats-label {
+        color: #666;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    .stats-box .stats-footer {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+        color: #777;
+    }
+    .section-title {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--color-background);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+
+    <!-- آمار کلی -->
+    <h3 class="section-title">آمار کلی سیستم</h3>
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-box primary">
+                <h3>{{ total_users }}</h3>
+                <div class="stats-label">کل کاربران</div>
+                <div class="stats-footer">
+                    دانش‌آموزان: <strong>{{ total_students }}</strong><br>
+                    معلمان: <strong>{{ total_teachers }}</strong>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'dashboard:admin_users' %}" class="text-decoration-none" style="color: var(--color-primary); font-weight: 500;">
+                        مشاهده همه ←
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-box success">
+                <h3>{{ total_courses }}</h3>
+                <div class="stats-label">دوره‌های آموزشی</div>
+                <div class="stats-footer">
+                    فعال: <strong>{{ active_courses }}</strong>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'dashboard:admin_courses' %}" class="text-decoration-none" style="color: var(--color-highlight); font-weight: 500;">
+                        مشاهده همه ←
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-box info">
+                <h3>{{ total_enrollments }}</h3>
+                <div class="stats-label">ثبت‌نام‌ها</div>
+                <div class="stats-footer">
+                    در انتظار: <strong>{{ pending_enrollments }}</strong>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'dashboard:admin_enrollments' %}" class="text-decoration-none" style="color: var(--color-secondary); font-weight: 500;">
+                        مشاهده همه ←
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-box warning">
+                <h3>{{ pending_applications }}</h3>
+                <div class="stats-label">درخواست‌های معلمان</div>
+                <div class="stats-footer">
+                    در انتظار بررسی
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'dashboard:admin_applications' %}" class="text-decoration-none" style="color: #e6b100; font-weight: 500;">
+                        مشاهده همه ←
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آمار و نمودارها -->
+    <h3 class="section-title">آمار و گزارش‌ها</h3>
+    <div class="row mb-5">
+        <div class="col-lg-8 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">نمودار ثبت‌نام‌های 12 ماه گذشته</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="enrollmentChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">آمار ماه جاری</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="color: #666; font-weight: 500;">دانش‌آموزان جدید</span>
+                                <strong style="color: var(--color-primary); font-size: 1.1rem;">{{ monthly_stats.new_students }}</strong>
+                            </div>
+                        </li>
+                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="color: #666; font-weight: 500;">دوره‌های جدید</span>
+                                <strong style="color: var(--color-highlight); font-size: 1.1rem;">{{ monthly_stats.new_courses }}</strong>
+                            </div>
+                        </li>
+                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="color: #666; font-weight: 500;">ثبت‌نام‌های جدید</span>
+                                <strong style="color: var(--color-secondary); font-size: 1.1rem;">{{ monthly_stats.new_enrollments }}</strong>
+                            </div>
+                        </li>
+                        <li class="mb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="color: #666; font-weight: 500;">درآمد</span>
+                                <strong style="color: #e6b100; font-size: 1.1rem;">{{ monthly_stats.revenue|floatformat:0 }} تومان</strong>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نمودارهای تفکیکی -->
+    <h3 class="section-title">تحلیل ثبت‌نام‌ها و پرداخت‌ها</h3>
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">وضعیت ثبت‌نام‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="enrollmentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">وضعیت پرداخت‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- دوره‌های پرطرفدار -->
+    <h3 class="section-title">محبوب‌ترین دوره‌ها</h3>
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">محبوب‌ترین دوره‌ها</h5>
+                    <a href="{% url 'dashboard:admin_courses' %}" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>عنوان دوره</th>
+                                    <th>معلم</th>
+                                    <th>دسته‌بندی</th>
+                                    <th>تعداد ثبت‌نام</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in popular_courses %}
+                                <tr>
+                                    <td><strong style="color: var(--color-primary);">{{ course.title }}</strong></td>
+                                    <td>{{ course.teacher.user.get_full_name }}</td>
+                                    <td>{{ course.category.name|default:"—" }}</td>
+                                    <td><span class="badge badge-success">{{ course.enrollment_count }}</span></td>
+                                    <td>
+                                        {% if course.is_active %}
+                                            <span class="badge badge-success">فعال</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">غیرفعال</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">دوره‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آخرین فعالیت‌ها -->
+    <h3 class="section-title">آخرین فعالیت‌های سیستم</h3>
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">آخرین ثبت‌نام‌ها</h5>
+                    <a href="{% url 'dashboard:admin_enrollments' %}" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                </div>
+                <div class="card-body">
+                    {% for enrollment in recent_enrollments|slice:":5" %}
+                    <div class="enrollment-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="course-title mb-1">{{ enrollment.student.user.get_full_name }}</h6>
+                                <p class="course-meta mb-1">{{ enrollment.course.title }}</p>
+                                <small class="text-muted">{{ enrollment.enrolled_at|date:"Y/m/d H:i" }}</small>
+                            </div>
+                            <div>
+                                {% if enrollment.status == 'pending' %}
+                                    <span class="badge badge-warning">در انتظار</span>
+                                {% elif enrollment.status == 'confirmed' %}
+                                    <span class="badge badge-success">تایید شده</span>
+                                {% elif enrollment.status == 'cancelled' %}
+                                    <span class="badge badge-danger">لغو شده</span>
+                                {% else %}
+                                    <span class="badge badge-info">{{ enrollment.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <p class="text-muted">ثبت‌نامی یافت نشد</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">آخرین درخواست‌های معلمان</h5>
+                    <a href="{% url 'dashboard:admin_applications' %}" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                </div>
+                <div class="card-body">
+                    {% for app in recent_applications|slice:":5" %}
+                    <div class="enrollment-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="course-title mb-1">{{ app.first_name }} {{ app.last_name }}</h6>
+                                <p class="course-meta mb-1">{{ app.email }}</p>
+                                <small class="text-muted">{{ app.submitted_at|date:"Y/m/d H:i" }}</small>
+                            </div>
+                            <div>
+                                <span class="badge badge-warning">در انتظار بررسی</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <p class="text-muted">درخواستی یافت نشد</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // نمودار ثبت‌نام‌های ماهانه
+    const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+    new Chart(enrollmentCtx, {
+        type: 'line',
+        data: {
+            labels: ['12 ماه پیش', '11 ماه پیش', '10 ماه پیش', '9 ماه پیش', '8 ماه پیش', '7 ماه پیش', '6 ماه پیش', '5 ماه پیش', '4 ماه پیش', '3 ماه پیش', '2 ماه پیش', 'ماه جاری'],
+            datasets: [{
+                label: 'تعداد ثبت‌نام',
+                data: [{{ monthly_enrollment_data }}],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // نمودار وضعیت ثبت‌نام‌ها
+    const enrollmentStatusCtx = document.getElementById('enrollmentStatusChart').getContext('2d');
+    new Chart(enrollmentStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['تایید شده', 'در انتظار', 'لغو شده', 'تکمیل شده'],
+            datasets: [{
+                data: [
+                    {{ enrollment_stats.confirmed }},
+                    {{ enrollment_stats.pending }},
+                    {{ enrollment_stats.cancelled }},
+                    {{ enrollment_stats.completed }}
+                ],
+                backgroundColor: ['#198754', '#ffc107', '#dc3545', '#0dcaf0']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+
+    // نمودار وضعیت پرداخت‌ها
+    const paymentStatusCtx = document.getElementById('paymentStatusChart').getContext('2d');
+    new Chart(paymentStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['پرداخت شده', 'پرداخت نشده', 'پرداخت جزئی'],
+            datasets: [{
+                data: [
+                    {{ payment_stats.paid }},
+                    {{ payment_stats.unpaid }},
+                    {{ payment_stats.partial }}
+                ],
+                backgroundColor: ['#198754', '#dc3545', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+</script>
+{% endblock %} 

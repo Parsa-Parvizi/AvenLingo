@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - تاریخچه ورود{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">تاریخچه ورود کاربران</h2>
+        <p class="mb-0">نظارت بر ورود و خروج کاربران سیستم</p>
+    </div>
+
+    <!-- آمار سریع -->
+    <div class="modern-card mb-4">
+        <div class="row text-center">
+            <div class="col-md-6">
+                <div class="stats-box border-primary">
+                    <h3>{{ total_logins }}</h3>
+                    <p class="text-muted mb-0">مجموع ورودها</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stats-box border-success">
+                    <h3>{{ today_logins }}</h3>
+                    <p class="text-muted mb-0">ورودهای امروز</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="modern-card mb-4">
+        <h5 class="mb-3">فیلتر تاریخچه</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">کاربر (نام، ایمیل)</label>
+                <input type="text" name="user" class="form-control" value="{{ user_filter }}" placeholder="جستجو...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">از تاریخ</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">تا تاریخ</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">جستجو</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- لیست تاریخچه -->
+    <div class="modern-card">
+        <h5 class="mb-4">تاریخچه ورود (آخرین 100 مورد)</h5>
+        
+        {% if history %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>کاربر</th>
+                        <th>زمان ورود</th>
+                        <th>زمان خروج</th>
+                        <th>مدت زمان</th>
+                        <th>IP</th>
+                        <th>دستگاه</th>
+                        <th>مرورگر</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td><strong>{{ item.user.get_full_name }}</strong><br><small class="text-muted">{{ item.user.email }}</small></td>
+                        <td>{{ item.login_time|date:"Y/m/d H:i" }}</td>
+                        <td>{{ item.logout_time|date:"Y/m/d H:i"|default:"-" }}</td>
+                        <td>
+                            {% if item.logout_time %}
+                                {{ item.duration|timesince }}
+                            {% else %}
+                                <span class="badge badge-success">فعال</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.ip_address|default:"-" }}</td>
+                        <td>{{ item.device_type|default:"-" }}</td>
+                        <td>{{ item.browser|default:"-" }}</td>
+                        <td>
+                            {% if item.is_successful %}
+                                <span class="badge badge-success">موفق</span>
+                            {% else %}
+                                <span class="badge badge-danger">ناموفق</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            تاریخچه‌ای یافت نشد.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

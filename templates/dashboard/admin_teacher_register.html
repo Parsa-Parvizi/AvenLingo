@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - ثبت‌نام معلم{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">ثبت‌نام دستی معلم</h2>
+        <p class="mb-0">ثبت معلم جدید توسط مدیر سیستم</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="modern-card">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <!-- اطلاعات شخصی -->
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">اطلاعات شخصی</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">نام *</label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">نام خانوادگی *</label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">ایمیل *</label>
+                            <input type="email" name="email" class="form-control" required>
+                            <small class="text-muted">این ایمیل باید منحصر به فرد باشد</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">شماره تماس</label>
+                            <input type="text" name="phone" class="form-control" 
+                                   placeholder="09123456789">
+                        </div>
+                        
+                        <!-- رمز عبور -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3">اطلاعات ورود</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">رمز عبور *</label>
+                            <input type="password" name="password" class="form-control" required 
+                                   minlength="8">
+                            <small class="text-muted">حداقل 8 کاراکتر</small>
+                        </div>
+                        
+                        <!-- اطلاعات تخصصی -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3">اطلاعات تخصصی</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">تخصص</label>
+                            <input type="text" name="specialization" class="form-control" 
+                                   placeholder="مثلا: مکالمه انگلیسی">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">سال‌های تجربه</label>
+                            <input type="number" name="experience_years" class="form-control" 
+                                   min="0" max="50" value="0">
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">بیوگرافی</label>
+                            <textarea name="bio" class="form-control" rows="4" 
+                                      placeholder="توضیحات در مورد معلم..."></textarea>
+                        </div>
+                        
+                        <!-- دکمه‌ها -->
+                        <div class="col-12 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'dashboard:admin_users' %}" class="btn btn-secondary">
+                                    انصراف
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    ثبت معلم
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <strong>نکته:</strong> معلم ثبت شده بلافاصله فعال می‌شود و می‌تواند وارد سیستم شود.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

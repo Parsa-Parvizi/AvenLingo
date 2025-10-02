@@ -185,7 +185,7 @@
                                     <div class="col-lg-8">
                                         <div class="course-info">
                                             <h6 class="course-title mb-1">
-                                                <a href="{% url 'enrollment:enrollment_detail' enrollment.id %}" class="text-decoration-none">
+                                                <a href="{% url 'enrollment:enrollment-detail' enrollment.id %}" class="text-decoration-none">
                                                     {{ enrollment.course.title }}
                                                 </a>
                                             </h6>
@@ -237,7 +237,7 @@
                                 
                                 <!-- Action Buttons -->
                                 <div class="enrollment-actions mt-3">
-                                    <a href="{% url 'enrollment:enrollment_detail' enrollment.id %}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{% url 'enrollment:enrollment-detail' enrollment.id %}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye me-1"></i>جزئیات
                                     </a>
                                     
@@ -370,26 +370,6 @@
                 </div>
             </div>
             {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Enrollment Cancellation Modal -->
-<div class="modal fade" id="cancelEnrollmentModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">لغو ثبت‌نام</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>آیا مطمئن هستید که می‌خواهید این ثبت‌نام را لغو کنید؟</p>
-                <textarea class="form-control" id="cancellationReason" placeholder="دلیل لغو (اختیاری)..." rows="3"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                <button type="button" class="btn btn-danger" id="confirmCancellation">تأیید لغو</button>
-            </div>
         </div>
     </div>
 </div>

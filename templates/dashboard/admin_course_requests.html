@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - درخواست‌های دوره{% endblock %}
+
+{% block extra_meta %}
+<style>
+    /* مخفی کردن navbar و footer سایت اصلی */
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container my-4">
+    <div class="page-header">
+        <h2 class="mb-2">درخواست‌های دوره</h2>
+        <p class="mb-0">مدیریت و بررسی درخواست‌های دوره کاربران</p>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="modern-card mb-4">
+        <h5 class="mb-3">فیلتر درخواست‌ها</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">وضعیت</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                    <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>در حال بررسی</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>تایید شده</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>رد شده</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- آمار سریع -->
+    <div class="modern-card mb-4">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="stats-box border-warning">
+                    <h3>{{ pending_count }}</h3>
+                    <p class="text-muted mb-0">در انتظار بررسی</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-box border-success">
+                    <h3>{{ requests|length }}</h3>
+                    <p class="text-muted mb-0">مجموع فیلتر شده</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست درخواست‌ها -->
+    <div class="modern-card">
+        <h5 class="mb-4">لیست درخواست‌ها</h5>
+        
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>عنوان دوره</th>
+                        <th>کاربر</th>
+                        <th>دسته‌بندی</th>
+                        <th>سطح</th>
+                        <th>تعداد دانش‌آموز</th>
+                        <th>تاریخ</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td><strong>{{ request.course_title }}</strong></td>
+                        <td>{{ request.user.get_full_name }}</td>
+                        <td>{{ request.category|default:"-" }}</td>
+                        <td>{{ request.level|default:"-" }}</td>
+                        <td>{{ request.estimated_students }}</td>
+                        <td>{{ request.created_at|date:"Y/m/d" }}</td>
+                        <td>
+                            {% if request.status == 'pending' %}
+                                <span class="badge badge-warning">در انتظار</span>
+                            {% elif request.status == 'reviewing' %}
+                                <span class="badge badge-info">در حال بررسی</span>
+                            {% elif request.status == 'approved' %}
+                                <span class="badge badge-success">تایید شده</span>
+                            {% elif request.status == 'rejected' %}
+                                <span class="badge badge-danger">رد شده</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#detailModal{{ request.id }}">
+                                جزئیات
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Modal جزئیات -->
+                    <div class="modal fade" id="detailModal{{ request.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">جزئیات درخواست دوره</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <strong>عنوان:</strong> {{ request.course_title }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>کاربر:</strong> {{ request.user.get_full_name }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <strong>دسته‌بندی:</strong> {{ request.category|default:"-" }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>سطح:</strong> {{ request.level|default:"-" }}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>توضیحات:</strong>
+                                        <p>{{ request.description }}</p>
+                                    </div>
+                                    {% if request.admin_note %}
+                                    <div class="mb-3">
+                                        <strong>یادداشت مدیر:</strong>
+                                        <p class="text-muted">{{ request.admin_note }}</p>
+                                    </div>
+                                    {% endif %}
+                                    {% if request.reviewed_by %}
+                                    <div class="mb-3">
+                                        <strong>بررسی شده توسط:</strong> {{ request.reviewed_by.get_full_name }}
+                                        <br>
+                                        <strong>تاریخ بررسی:</strong> {{ request.reviewed_at|date:"Y/m/d H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            درخواستی یافت نشد.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

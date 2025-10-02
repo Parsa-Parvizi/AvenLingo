@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت دوره‌ها{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-highlight);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">مدیریت دوره‌ها</h2>
+
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">وضعیت</label>
+                            <select name="status" class="form-select">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="published" {% if status_filter == 'published' %}selected{% endif %}>منتشر شده</option>
+                                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>پیش‌نویس</option>
+                                <option value="archived" {% if status_filter == 'archived' %}selected{% endif %}>آرشیو</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">فعالیت</label>
+                            <select name="is_active" class="form-select">
+                                <option value="all" {% if is_active_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="active" {% if is_active_filter == 'active' %}selected{% endif %}>فعال</option>
+                                <option value="inactive" {% if is_active_filter == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">دسته‌بندی</label>
+                            <select name="category" class="form-select">
+                                <option value="all" {% if category_filter == 'all' %}selected{% endif %}>همه</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">جستجو</label>
+                            <input type="text" name="search" class="form-control" placeholder="عنوان یا توضیحات" value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست دوره‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست دوره‌ها ({{ courses.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>عنوان</th>
+                                    <th>معلم</th>
+                                    <th>دسته‌بندی</th>
+                                    <th>قیمت</th>
+                                    <th>ظرفیت</th>
+                                    <th>ثبت‌نام</th>
+                                    <th>وضعیت</th>
+                                    <th>فعالیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ course.title }}</strong>
+                                        {% if course.is_featured %}
+                                            <span class="badge bg-warning text-dark">ویژه</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ course.teacher.user.get_full_name|default:"—" }}</td>
+                                    <td>{{ course.category.name|default:"—" }}</td>
+                                    <td>
+                                        {% if course.is_free %}
+                                            <span class="badge bg-success">رایگان</span>
+                                        {% else %}
+                                            {{ course.price|floatformat:0 }} تومان
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ course.capacity }}</td>
+                                    <td><span class="badge bg-primary">{{ course.enrolled_count }}</span></td>
+                                    <td>
+                                        {% if course.status == 'published' %}
+                                            <span class="badge badge-success">منتشر شده</span>
+                                        {% elif course.status == 'draft' %}
+                                            <span class="badge badge-warning">پیش‌نویس</span>
+                                        {% elif course.status == 'archived' %}
+                                            <span class="badge badge-info">آرشیو</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if course.is_active %}
+                                            <span class="badge badge-success">فعال</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">غیرفعال</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="/admin/course/course/{{ course.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">دوره‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

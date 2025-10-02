@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت ثبت‌نام‌ها{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">مدیریت ثبت‌نام‌ها</h2>
+
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">وضعیت ثبت‌نام</label>
+                            <select name="status" class="form-select">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>تایید شده</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>تکمیل شده</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">وضعیت پرداخت</label>
+                            <select name="payment_status" class="form-select">
+                                <option value="all" {% if payment_status_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="paid" {% if payment_status_filter == 'paid' %}selected{% endif %}>پرداخت شده</option>
+                                <option value="unpaid" {% if payment_status_filter == 'unpaid' %}selected{% endif %}>پرداخت نشده</option>
+                                <option value="partial" {% if payment_status_filter == 'partial' %}selected{% endif %}>پرداخت جزئی</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">جستجو</label>
+                            <input type="text" name="search" class="form-control" placeholder="نام دانش‌آموز یا دوره" value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست ثبت‌نام‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست ثبت‌نام‌ها ({{ enrollments.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>دانش‌آموز</th>
+                                    <th>دوره</th>
+                                    <th>معلم</th>
+                                    <th>تاریخ ثبت‌نام</th>
+                                    <th>مبلغ پرداختی</th>
+                                    <th>وضعیت ثبت‌نام</th>
+                                    <th>وضعیت پرداخت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ enrollment.student.user.get_full_name }}</td>
+                                    <td>{{ enrollment.course.title }}</td>
+                                    <td>{{ enrollment.course.teacher.user.get_full_name }}</td>
+                                    <td>{{ enrollment.enrolled_at|date:"Y/m/d H:i" }}</td>
+                                    <td>{{ enrollment.amount_paid|floatformat:0 }} تومان</td>
+                                    <td>
+                                        {% if enrollment.status == 'pending' %}
+                                            <span class="badge badge-warning">در انتظار</span>
+                                        {% elif enrollment.status == 'confirmed' %}
+                                            <span class="badge badge-success">تایید شده</span>
+                                        {% elif enrollment.status == 'cancelled' %}
+                                            <span class="badge badge-danger">لغو شده</span>
+                                        {% elif enrollment.status == 'completed' %}
+                                            <span class="badge badge-info">تکمیل شده</span>
+                                        {% else %}
+                                            <span class="badge badge-info">{{ enrollment.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if enrollment.payment_status == 'paid' %}
+                                            <span class="badge badge-success">پرداخت شده</span>
+                                        {% elif enrollment.payment_status == 'unpaid' %}
+                                            <span class="badge badge-danger">پرداخت نشده</span>
+                                        {% elif enrollment.payment_status == 'partial' %}
+                                            <span class="badge badge-warning">پرداخت جزئی</span>
+                                        {% else %}
+                                            <span class="badge badge-info">{{ enrollment.get_payment_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="/admin/enrollment/enrollment/{{ enrollment.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">ثبت‌نامی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -212,7 +212,7 @@ table, th, td, tr,
     .col-lg-3 { flex: 0 0 auto; width: 100%; }
     .col-lg-4 { flex: 0 0 auto; width: 33.33333333%; }
     .col-lg-5 { flex: 0 0 auto; width: 41.66666667%; }
-    .col-lg-6 { flex: 0 0 auto; width: 50%; }
+    .col-lg-6 { flex: 0 0 auto; width: 100%; }
     .col-lg-7 { flex: 0 0 auto; width: 58.33333333%; }
     .col-lg-8 { flex: 0 0 auto; width: 66.66666667%; }
     .col-lg-9 { flex: 0 0 auto; width: 75%; }

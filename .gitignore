@@ -153,6 +153,7 @@ dmypy.json
 /media/
 /media_root/
 /uploads/
+payment_receipts/
 
 # Session and cache
 django_cache/

@@ -39,8 +39,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: DockerfileBack
-      target: production
+      dockerfile: Dockerfile
     container_name: englishteacher_web
     restart: unless-stopped
     environment:

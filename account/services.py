@@ -58,9 +58,13 @@ class UserRegistrationService:
                 # Create student profile
                 student = Student.create_for_user(user, **profile_data)
                 
-                # Generate and send verification email
-                token = user.generate_email_verification_token()
-                EmailService.send_student_verification_email(user, token)
+                # Generate and send verification email (optional)
+                try:
+                    token = user.generate_email_verification_token()
+                    EmailService.send_student_verification_email(user, token)
+                except Exception as email_error:
+                    logger.warning(f"Could not send verification email to {email}: {str(email_error)}")
+                    # Don't fail registration if email sending fails
                 
                 logger.info(f"Student registered successfully: {email}")
                 return user

@@ -18,7 +18,7 @@
                 </p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{% url 'enrollment:available_courses' %}" class="btn btn-primary">
+                <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>
                     دوره جدید
                 </a>
@@ -76,56 +76,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Filters -->
-    <div class="card filter-card mb-4">
-        <div class="card-body">
-            <form method="get" class="filter-form">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">وضعیت ثبت‌نام</label>
-                        <select name="status" class="form-select">
-                            <option value="">همه وضعیت‌ها</option>
-                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>در انتظار تأیید</option>
-                            <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>تأیید شده</option>
-                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>تکمیل شده</option>
-                            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>لغو شده</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label class="form-label">وضعیت پرداخت</label>
-                        <select name="payment_status" class="form-select">
-                            <option value="">همه وضعیت‌ها</option>
-                            <option value="paid" {% if request.GET.payment_status == 'paid' %}selected{% endif %}>پرداخت شده</option>
-                            <option value="unpaid" {% if request.GET.payment_status == 'unpaid' %}selected{% endif %}>پرداخت نشده</option>
-                            <option value="partial" {% if request.GET.payment_status == 'partial' %}selected{% endif %}>پرداخت جزئی</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <label class="form-label">جستجو</label>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="جستجو در نام دوره یا مدرس..." 
-                               value="{{ request.GET.search }}">
-                    </div>
-                    
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-fill">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            <a href="{% url 'enrollment:student_enrollments' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-redo"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Enrollments List -->
     <div class="card enrollments-card">
         <div class="card-header">
@@ -303,9 +253,21 @@
                         <!-- Action Buttons -->
                         <div class="enrollment-actions">
                             <div class="action-buttons">
-                                                                        <a href="{% url 'enrollment:enrollment-detail' enrollment.id %}" class="btn btn-outline-primary btn-sm">
+                                <a href="{% url 'enrollment:enrollment-detail' enrollment.id %}" class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-eye me-1"></i>جزئیات
                                 </a>
+                                
+                                {% if enrollment.status == 'pending' %}
+                                    {% if enrollment.payment_receipt %}
+                                        <span class="btn btn-outline-success btn-sm" style="cursor: default;">
+                                            <i class="fas fa-check-circle me-1"></i>فیش آپلود شده
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'enrollment:upload-receipt' enrollment.id %}" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-upload me-1"></i>آپلود فیش
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
                                 
                                 {% if enrollment.status == 'completed' %}
                                     <a href="{% url 'enrollment:enrollment_certificate' enrollment.id %}" class="btn btn-outline-success btn-sm">
@@ -380,72 +342,17 @@
                     <h4>هیچ ثبت‌نامی یافت نشد</h4>
                     {% if request.GET.status or request.GET.payment_status or request.GET.search %}
                         <p class="text-muted">نتیجه‌ای برای فیلترهای انتخاب شده یافت نشد.</p>
-                        <a href="{% url 'enrollment:student_enrollments' %}" class="btn btn-outline-primary">
+                        <a href="{% url 'enrollment:my-enrollments' %}" class="btn btn-outline-primary">
                             <i class="fas fa-redo me-2"></i>حذف فیلترها
                         </a>
                     {% else %}
                         <p class="text-muted">هنوز در هیچ دوره‌ای ثبت‌نام نکرده‌اید.</p>
-                        <a href="{% url 'enrollment:available_courses' %}" class="btn btn-primary">
+                        <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>مشاهده دوره‌ها
                         </a>
                     {% endif %}
                 </div>
             {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Cancellation Modal -->
-<div class="modal fade" id="cancelEnrollmentModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">لغو ثبت‌نام</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="cancellation-warning mb-3">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        شما در حال لغو ثبت‌نام در دوره <strong id="courseToCancel"></strong> هستید.
-                    </div>
-                </div>
-                
-                <form id="cancellationForm">
-                    <div class="mb-3">
-                        <label class="form-label">دلیل لغو ثبت‌نام</label>
-                        <select class="form-select" id="cancellationReason" required>
-                            <option value="">انتخاب کنید...</option>
-                            <option value="schedule_conflict">تداخل زمانی</option>
-                            <option value="financial_issues">مشکلات مالی</option>
-                            <option value="course_content">عدم تطابق محتوای دوره</option>
-                            <option value="personal_reasons">دلایل شخصی</option>
-                            <option value="health_issues">مشکلات سلامتی</option>
-                            <option value="relocation">تغییر محل سکونت</option>
-                            <option value="other">سایر دلایل</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">توضیحات اضافی (اختیاری)</label>
-                        <textarea class="form-control" id="additionalComments" rows="3" 
-                                  placeholder="لطفاً توضیحات بیشتری در مورد دلیل لغو ارائه دهید..."></textarea>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="confirmCancellation" required>
-                        <label class="form-check-label" for="confirmCancellation">
-                            تأیید می‌کنم که می‌خواهم این ثبت‌نام را لغو کنم
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                <button type="button" class="btn btn-danger" id="submitCancellation" disabled>
-                    <i class="fas fa-times me-2"></i>تأیید لغو
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -801,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال پردازش...';
         this.disabled = true;
         
-        fetch(`{% url 'enrollment:cancel_enrollment' 0 %}`.replace('0', enrollmentToCancel), {
+        fetch(`{% url 'enrollment:cancel-enrollment' 0 %}`.replace('0', enrollmentToCancel), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

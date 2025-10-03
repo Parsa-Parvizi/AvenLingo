@@ -43,52 +43,6 @@
     <div class="modern-card">
         <form method="post">
             {% csrf_token %}
-            
-            <!-- Password Policy -->
-            <div class="settings-section">
-                <h5 class="mb-3">خط‌مشی رمز عبور</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">حداقل طول رمز عبور</label>
-                        <input type="number" name="min_password_length" class="form-control" 
-                               value="{{ settings.min_password_length }}" min="4" max="32">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">انقضای رمز عبور (روز)</label>
-                        <input type="number" name="password_expiry_days" class="form-control" 
-                               value="{{ settings.password_expiry_days }}" min="0">
-                        <small class="text-muted">0 = هیچوقت منقضی نمی‌شود</small>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="require_uppercase" 
-                                   {% if settings.require_uppercase %}checked{% endif %}>
-                            <label class="form-check-label">نیاز به حروف بزرگ</label>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="require_lowercase" 
-                                   {% if settings.require_lowercase %}checked{% endif %}>
-                            <label class="form-check-label">نیاز به حروف کوچک</label>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="require_numbers" 
-                                   {% if settings.require_numbers %}checked{% endif %}>
-                            <label class="form-check-label">نیاز به اعداد</label>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="require_special_chars" 
-                                   {% if settings.require_special_chars %}checked{% endif %}>
-                            <label class="form-check-label">نیاز به کاراکترهای خاص</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Session Settings -->
             <div class="settings-section">
@@ -120,48 +74,6 @@
                         <label class="form-label">مدت قفل شدن (دقیقه)</label>
                         <input type="number" name="lockout_duration_minutes" class="form-control" 
                                value="{{ settings.lockout_duration_minutes }}" min="5">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Two-Factor Authentication -->
-            <div class="settings-section">
-                <h5 class="mb-3">احراز هویت دو مرحله‌ای (2FA)</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="enable_2fa" 
-                                   {% if settings.enable_2fa %}checked{% endif %}>
-                            <label class="form-check-label">فعال‌سازی 2FA</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="force_2fa_for_admins" 
-                                   {% if settings.force_2fa_for_admins %}checked{% endif %}>
-                            <label class="form-check-label">اجباری برای مدیران</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Other Settings -->
-            <div class="settings-section">
-                <h5 class="mb-3">سایر تنظیمات</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="enable_email_verification" 
-                                   {% if settings.enable_email_verification %}checked{% endif %}>
-                            <label class="form-check-label">فعال‌سازی تایید ایمیل</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="log_failed_attempts" 
-                                   {% if settings.log_failed_attempts %}checked{% endif %}>
-                            <label class="form-check-label">ثبت تلاش‌های ناموفق</label>
-                        </div>
                     </div>
                 </div>
             </div>

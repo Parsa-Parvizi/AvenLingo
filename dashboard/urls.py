@@ -5,19 +5,29 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard_home'),
-    path('student/<uuid:student_id>/', views.StudentDashboardView.as_view(), name='student_dashboard'),
+    path('student/', views.StudentDashboardView.as_view(), name='student_dashboard'),
     path('teacher/', views.TeacherDashboardView.as_view(), name='teacher_dashboard'),
     
     # Admin Dashboard URLs
     path('admin/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
     path('admin/users/', views.AdminUsersListView.as_view(), name='admin_users'),
+    path('admin/users/<uuid:user_id>/', views.AdminUserDetailView.as_view(), name='admin_user_detail'),
     path('admin/courses/', views.AdminCoursesListView.as_view(), name='admin_courses'),
+    path('admin/courses/<int:course_id>/', views.AdminCourseDetailView.as_view(), name='admin_course_detail'),
     path('admin/enrollments/', views.AdminEnrollmentsListView.as_view(), name='admin_enrollments'),
+    path('admin/enrollments/<int:enrollment_id>/', views.AdminEnrollmentDetailView.as_view(), name='admin_enrollment_detail'),
+    path('admin/enrollments/<int:enrollment_id>/approve/', views.admin_approve_enrollment, name='admin_approve_enrollment'),
+    path('admin/enrollments/<int:enrollment_id>/reject/', views.admin_reject_enrollment, name='admin_reject_enrollment'),
     
     # Requests Management
     path('admin/applications/', views.AdminApplicationsListView.as_view(), name='admin_applications'),
+    path('admin/applications/<uuid:application_id>/', views.AdminApplicationDetailView.as_view(), name='admin_application_detail'),
+    path('admin/applications/<uuid:application_id>/approve/', views.admin_approve_application, name='admin_approve_application'),
+    path('admin/applications/<uuid:application_id>/reject/', views.admin_reject_application, name='admin_reject_application'),
     path('admin/course-requests/', views.AdminCourseRequestsView.as_view(), name='admin_course_requests'),
     path('admin/consultation-requests/', views.AdminConsultationRequestsView.as_view(), name='admin_consultation_requests'),
+    path('admin/level-assessment-requests/', views.AdminLevelAssessmentRequestsView.as_view(), name='admin_level_assessment_requests'),
+    path('admin/level-assessment-requests/<int:request_id>/', views.AdminLevelAssessmentDetailView.as_view(), name='admin_level_assessment_detail'),
     
     # Security & Settings
     path('admin/login-history/', views.AdminLoginHistoryView.as_view(), name='admin_login_history'),

@@ -76,19 +76,38 @@ class EnrollmentDetailView(StudentRequiredMixin, DetailView):
         ).prefetch_related('history')
 
 
-class CourseEnrollmentView(StudentRequiredMixin, CreateView):
-    """Enroll a student in a course"""
+class CourseEnrollmentView(LoginRequiredMixin, CreateView):
+    """Enroll a student in a course - with strict student-only check"""
     model = Enrollment
     fields = ['note']
     template_name = 'enrollment/course_enrollment.html'
     
     def dispatch(self, request, *args, **kwargs):
-        self.course = get_object_or_404(Course, id=kwargs['course_id'], is_active=True)
+        # Must be authenticated
+        if not request.user.is_authenticated:
+            messages.warning(request, 'برای ثبت‌نام در دوره باید وارد حساب کاربری خود شوید.')
+            return redirect(f"{reverse('account:login')}?next={request.path}")
+        
+        # Must be student (not admin, not teacher)
+        if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
+            messages.error(request, 'فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند.')
+            return redirect('course:all-courses')
+        
+        self.course = get_object_or_404(Course, slug=kwargs['course_slug'], is_active=True)
         return super().dispatch(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.course
+        
+        # Check if student already has pending enrollment
+        if hasattr(self.request.user, 'student_profile'):
+            existing_enrollment = Enrollment.objects.filter(
+                student=self.request.user.student_profile,
+                course=self.course
+            ).first()
+            context['existing_enrollment'] = existing_enrollment
+        
         return context
     
     def form_valid(self, form):
@@ -97,32 +116,43 @@ class CourseEnrollmentView(StudentRequiredMixin, CreateView):
                 student = get_object_or_404(Student, user=self.request.user)
                 
                 # Check if already enrolled
-                if Enrollment.objects.filter(student=student, course=self.course).exists():
-                    messages.error(self.request, 'شما قبلاً در این دوره ثبت‌نام کرده‌اید.')
-                    return redirect('course:course_detail', pk=self.course.id)
+                existing = Enrollment.objects.filter(student=student, course=self.course).first()
+                if existing:
+                    if existing.status == 'pending':
+                        messages.warning(self.request, 'شما قبلاً در این دوره ثبت‌نام کرده‌اید و در انتظار تأیید هستید.')
+                        return redirect('enrollment:upload-receipt', enrollment_id=existing.id)
+                    elif existing.status == 'confirmed':
+                        messages.info(self.request, 'شما قبلاً در این دوره ثبت‌نام تأیید شده دارید.')
+                        return redirect('enrollment:enrollment_detail', pk=existing.id)
+                    else:
+                        messages.error(self.request, 'شما قبلاً در این دوره ثبت‌نام کرده‌اید.')
+                        return redirect('course:detail', slug=self.course.slug)
                 
-                # Check course capacity
-                if self.course.is_full:
-                    messages.error(self.request, 'ظرفیت این دوره تکمیل شده است.')
-                    return redirect('course:course_detail', pk=self.course.id)
+                # Check course capacity (only confirmed enrollments count)
+                confirmed_count = self.course.enrollments.filter(status='confirmed').count()
+                if confirmed_count >= self.course.capacity:
+                    messages.error(self.request, 'متأسفانه ظرفیت این دوره تکمیل شده است.')
+                    return redirect('course:detail', slug=self.course.slug)
                 
-                # Create enrollment
+                # Create enrollment in PENDING status
                 enrollment = form.save(commit=False)
                 enrollment.student = student
                 enrollment.course = self.course
                 enrollment.enrollment_source = 'website'
+                enrollment.status = 'pending'  # Important: stays pending until admin confirms
                 enrollment.save()
                 
                 # Log the enrollment
-                logger.info(f"New enrollment created: {enrollment} by user {self.request.user.username}")
+                logger.info(f"New enrollment created: {enrollment} by user {self.request.user.email}")
                 
                 messages.success(
                     self.request, 
-                    f'ثبت‌نام شما در دوره "{self.course.title}" با موفقیت انجام شد. '
-                    'پس از بررسی و تأیید، از طریق ایمیل یا تماس اطلاع‌رسانی خواهید شد.'
+                    f'ثبت‌نام شما در دوره "{self.course.title}" با موفقیت ثبت شد. '
+                    'لطفاً فیش واریزی خود را آپلود کنید.',
+                    extra_tags='enrollment'
                 )
                 
-                return redirect('enrollment:enrollment_detail', pk=enrollment.id)
+                return redirect('enrollment:upload-receipt', enrollment_id=enrollment.id)
                 
         except ValidationError as e:
             messages.error(self.request, str(e))
@@ -131,6 +161,49 @@ class CourseEnrollmentView(StudentRequiredMixin, CreateView):
             logger.error(f"Error during enrollment: {e}")
             messages.error(self.request, 'خطایی در فرآیند ثبت‌نام رخ داد. لطفاً دوباره تلاش کنید.')
             return self.form_invalid(form)
+
+
+class UploadReceiptView(StudentRequiredMixin, UpdateView):
+    """Upload payment receipt for pending enrollment"""
+    model = Enrollment
+    fields = ['payment_receipt', 'note']
+    template_name = 'enrollment/upload_receipt.html'
+    pk_url_kwarg = 'enrollment_id'
+    
+    def get_queryset(self):
+        student = get_object_or_404(Student, user=self.request.user)
+        return Enrollment.objects.filter(student=student)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['enrollment'] = self.object
+        context['course'] = self.object.course
+        return context
+    
+    def form_valid(self, form):
+        enrollment = form.save()
+        
+        # Create history record
+        EnrollmentHistory.objects.create(
+            enrollment=enrollment,
+            old_status=enrollment.status,
+            new_status=enrollment.status,
+            changed_by=self.request.user.email,
+            reason='فیش واریزی آپلود شد'
+        )
+        
+        logger.info(f"Payment receipt uploaded for enrollment: {enrollment}")
+        
+        messages.success(
+            self.request,
+            'فیش واریزی شما با موفقیت آپلود شد. پس از بررسی توسط مدیریت، وضعیت ثبت‌نام شما به‌روزرسانی خواهد شد.',
+            extra_tags='enrollment'
+        )
+        
+        return redirect('enrollment:my-enrollments')
+    
+    def get_success_url(self):
+        return reverse('enrollment:my-enrollments')
 
 
 @login_required
@@ -262,62 +335,3 @@ class QuickEnrollView(StudentRequiredMixin, CreateView):
                 'message': 'خطایی رخ داد. لطفاً دوباره تلاش کنید.'
             })
 
-
-# Course browsing and filtering views for enrollment
-class AvailableCoursesView(LoginRequiredMixin, ListView):
-    """List available courses for enrollment"""
-    model = Course
-    template_name = 'enrollment/available_courses.html'
-    context_object_name = 'courses'
-    paginate_by = 12
-    
-    def get_queryset(self):
-        queryset = Course.objects.filter(
-            is_active=True,
-            status='published'
-        ).select_related('teacher', 'category').order_by('-created_at')
-        
-        # Filter out courses the student is already enrolled in
-        if hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student':
-            try:
-                student = Student.objects.get(user=self.request.user)
-                enrolled_course_ids = Enrollment.objects.filter(
-                    student=student,
-                    status__in=['pending', 'confirmed']
-                ).values_list('course_id', flat=True)
-                queryset = queryset.exclude(id__in=enrolled_course_ids)
-            except Student.DoesNotExist:
-                pass
-        
-        # Apply filters
-        level = self.request.GET.get('level')
-        if level:
-            queryset = queryset.filter(level=level)
-            
-        class_type = self.request.GET.get('class_type')
-        if class_type:
-            queryset = queryset.filter(class_type=class_type)
-            
-        language = self.request.GET.get('language')
-        if language:
-            queryset = queryset.filter(category__language=language)
-            
-        return queryset
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Add filter options
-        from course.models import LANGUAGE_CHOICES
-        context.update({
-            'level_choices': Course.LEVEL_CHOICES,
-            'class_type_choices': Course.CLASS_TYPE_CHOICES,
-            'language_choices': LANGUAGE_CHOICES,
-            'current_filters': {
-                'level': self.request.GET.get('level', ''),
-                'class_type': self.request.GET.get('class_type', ''),
-                'language': self.request.GET.get('language', ''),
-            }
-        })
-        
-        return context

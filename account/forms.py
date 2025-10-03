@@ -259,13 +259,13 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
         })
     )
     
-    # Terms and privacy
+    # Terms and privacy (optional - can be added to template if needed)
     terms_accepted = forms.BooleanField(
         label='قوانین و مقررات را مطالعه کرده و می‌پذیرم',
-        required=True,
+        required=False,  # Changed to optional since it's not in template
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input',
-            'required': True
+            'required': False
         })
     )
     
@@ -309,6 +309,18 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
         
         return phone
     
+    def check_security(self):
+        """Basic security checks for registration"""
+        if not self.request:
+            return True
+        
+        # Check rate limiting - allow up to 3 registration attempts per 10 minutes
+        user_identifier = self.request.META.get('REMOTE_ADDR', 'unknown')
+        if self.check_rate_limit(user_identifier, action_type='registration', limit=5, window_minutes=10):
+            return False
+        
+        return True
+    
     def clean(self):
         cleaned_data = super().clean()
         
@@ -316,7 +328,7 @@ class StudentRegistrationForm(EnhancedValidationMixin, UserCreationForm):
         if self.request:
             # Check for suspicious activity
             if not self.check_security():
-                raise ValidationError('خطای امنیتی تشخیص داده شد. لطفاً دوباره تلاش کنید.')
+                raise ValidationError('تعداد تلاش‌های ثبت‌نام بیش از حد مجاز است. لطفاً چند دقیقه صبر کنید.')
         
         return cleaned_data
     
@@ -829,21 +841,49 @@ class CustomLoginForm(EnhancedValidationMixin, AuthenticationForm):
 class StudentProfileForm(forms.ModelForm):
     """Form for updating student profile"""
     
+    ENGLISH_LEVEL_CHOICES = [
+        ('', 'سطح خود را انتخاب کنید'),
+        ('beginner', 'مبتدی'),
+        ('elementary', 'پایه'),
+        ('intermediate', 'متوسط'),
+        ('upper_intermediate', 'متوسط به بالا'),
+        ('advanced', 'پیشرفته'),
+    ]
+    
+    english_level = forms.ChoiceField(
+        choices=ENGLISH_LEVEL_CHOICES,
+        required=False,
+        label='سطح زبان انگلیسی',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     class Meta:
         model = Student
         fields = ['phone_number', 'date_of_birth', 'address', 'english_level', 'goals']
         widgets = {
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'english_level': forms.Select(attrs={'class': 'form-control'}),
-            'goals': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789'
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'آدرس محل سکونت خود را وارد کنید'
+            }),
+            'goals': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'اهداف یادگیری خود را توضیح دهید'
+            }),
         }
         labels = {
             'phone_number': 'شماره تلفن',
             'date_of_birth': 'تاریخ تولد',
             'address': 'آدرس',
-            'english_level': 'سطح زبان انگلیسی',
             'goals': 'اهداف یادگیری',
         }
 

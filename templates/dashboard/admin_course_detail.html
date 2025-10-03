@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - جزئیات دوره{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 28px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #7c3aed;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .back-btn {
+        background: #64748b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: #475569;
+        color: white;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: #7c3aed;
+        font-size: 22px;
+    }
+
+    .course-image {
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .stat-box {
+        background: #f8f9ff;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #7c3aed;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 5px;
+    }
+
+    .enrollment-item {
+        background: #f8f9ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .enrollment-item:hover {
+        background: #f0f2ff;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    @media (max-width: 992px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="detail-container" dir="rtl">
+    <div class="page-header">
+        <div>
+            <i class="fas fa-book me-2"></i>
+            {{ course.title }}
+        </div>
+        <a href="{% url 'dashboard:admin_courses' %}" class="back-btn">
+            <i class="fas fa-arrow-right me-2"></i>
+            بازگشت به لیست
+        </a>
+    </div>
+
+    <div class="detail-grid">
+        <!-- Main Content -->
+        <div>
+            {% if course.image %}
+            <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+            {% endif %}
+
+            <div class="detail-card">
+                <h3 class="card-title">
+                    <i class="fas fa-info-circle"></i>
+                    اطلاعات دوره
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">عنوان:</span>
+                    <span class="info-value">{{ course.title }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">مدرس:</span>
+                    <span class="info-value">{{ course.teacher.full_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">دسته‌بندی:</span>
+                    <span class="info-value">{{ course.category.name|default:"—" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">سطح:</span>
+                    <span class="info-value">{{ course.get_level_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">گروه سنی:</span>
+                    <span class="info-value">{{ course.get_age_group_display|default:"—" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">نوع کلاس:</span>
+                    <span class="info-value">{{ course.get_class_type_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاریخ شروع:</span>
+                    <span class="info-value">{{ course.start_date|date:"Y/m/d" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاریخ پایان:</span>
+                    <span class="info-value">{{ course.end_date|date:"Y/m/d"|default:"—" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ساعت برگزاری:</span>
+                    <span class="info-value">{{ course.duration|default:"—" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">محل برگزاری:</span>
+                    <span class="info-value">{% if course.is_online %}آنلاین{% else %}{{ course.location|default:"—" }}{% endif %}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ظرفیت:</span>
+                    <span class="info-value">{{ course.capacity }} نفر</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تعداد جلسات:</span>
+                    <span class="info-value">{{ course.total_hours }} جلسه</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">شهریه:</span>
+                    <span class="info-value">
+                        {% if course.is_free %}
+                            رایگان
+                        {% else %}
+                            {{ course.price|floatformat:0 }} تومان
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">وضعیت:</span>
+                    <span class="info-value">
+                        {% if course.is_active %}
+                            <span class="status-badge status-confirmed">فعال</span>
+                        {% else %}
+                            <span class="status-badge status-cancelled">غیرفعال</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if course.description %}
+            <div class="detail-card">
+                <h3 class="card-title">
+                    <i class="fas fa-align-right"></i>
+                    توضیحات دوره
+                </h3>
+                <p style="line-height: 1.8; color: #475569; white-space: pre-wrap;">{{ course.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Statistics -->
+            <div class="detail-card">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    آمار ثبت‌نام‌ها
+                </h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">{{ total_enrollments }}</div>
+                        <div class="stat-label">کل ثبت‌نام‌ها</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ confirmed_enrollments }}</div>
+                        <div class="stat-label">تأیید شده</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ pending_enrollments }}</div>
+                        <div class="stat-label">در انتظار</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ course.available_seats }}</div>
+                        <div class="stat-label">صندلی خالی</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Enrollments -->
+            {% if enrollments %}
+            <div class="detail-card">
+                <h3 class="card-title">
+                    <i class="fas fa-users"></i>
+                    آخرین ثبت‌نام‌ها
+                </h3>
+                {% for enrollment in enrollments %}
+                <div class="enrollment-item">
+                    <div>
+                        <div style="font-weight: 600; color: #1e293b;">{{ enrollment.student.user.get_full_name }}</div>
+                        <div style="font-size: 13px; color: #64748b;">{{ enrollment.enrolled_at|date:"Y/m/d" }}</div>
+                    </div>
+                    <span class="status-badge status-{{ enrollment.status }}">{{ enrollment.get_status_display }}</span>
+                </div>
+                {% endfor %}
+                <div style="margin-top: 15px;">
+                    <a href="{% url 'dashboard:admin_enrollments' %}?course={{ course.id }}" class="btn btn-sm btn-outline-primary w-100">
+                        مشاهده همه ثبت‌نام‌ها
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

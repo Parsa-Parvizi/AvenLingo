@@ -573,6 +573,26 @@ header {
   color: #fff;
   border-color: #218838;
 }
+.auth-buttons .dashboard-btn {
+  background: #17a2b8;
+  color: #fff;
+  border-color: #17a2b8;
+}
+.auth-buttons .dashboard-btn:hover {
+  background: #138496;
+  color: #fff;
+  border-color: #138496;
+}
+.auth-buttons .profile-btn {
+  background: #6f42c1;
+  color: #fff;
+  border-color: #6f42c1;
+}
+.auth-buttons .profile-btn:hover {
+  background: #5a32a3;
+  color: #fff;
+  border-color: #5a32a3;
+}
 
 
 .google-btn {

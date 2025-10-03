@@ -14,16 +14,24 @@
       ></button>
       <div
         class="auth-buttons"
-        style="display: flex; gap: 10px; align-items: center"
->
+        style="display: flex; gap: 10px; align-items: center">
         {% if user.is_authenticated %}
         {% if request.resolver_match.app_name != 'dashboard' %}
         <a href="{% url 'dashboard:dashboard_home' %}" class="nav-link dashboard-btn"
           >داشبورد</a
         >
         {% endif %}
+        {% if user.user_type == 'student' and request.resolver_match.url_name != 'student_profile' %}
+        <a href="{% url 'account:student_profile' %}" class="nav-link profile-btn"
+          ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
+        >
+        {% elif user.user_type == 'teacher' and request.resolver_match.url_name != 'teacher_profile' %}
+        <a href="{% url 'account:teacher_profile' %}" class="nav-link profile-btn"
+          ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
+        >
+        {% endif %}
         <a href="{% url 'account:logout' %}" class="nav-link logout-btn"
-          >خروج</a
+          ><i class="fas fa-sign-out-alt"></i> خروج</a
         >
         {% else %}
         <a href="{% url 'account:login' %}" class="nav-link login-btn">ورود</a>

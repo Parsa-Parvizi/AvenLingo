@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت‌نام در دوره - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .enrollment-container {
+        max-width: 900px;
+        margin: 100px auto 50px;
+        padding: 0 20px;
+    }
+
+    .enrollment-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        text-align: center;
+        color: white;
+    }
+
+    .card-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .card-header .course-title {
+        font-size: 20px;
+        opacity: 0.95;
+    }
+
+    .card-body {
+        padding: 40px;
+    }
+
+    .course-summary {
+        background: #f8f9ff;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .course-summary h3 {
+        color: #2c3e50;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: white;
+        border-radius: 10px;
+    }
+
+    .summary-item i {
+        font-size: 20px;
+        color: #7c3aed;
+    }
+
+    .summary-label {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 3px;
+    }
+
+    .summary-value {
+        font-size: 15px;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .enrollment-info {
+        background: #dbeafe;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .enrollment-info h4 {
+        color: #1e40af;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .enrollment-info ul {
+        margin: 0;
+        padding-right: 20px;
+        color: #1e3a8a;
+    }
+
+    .enrollment-info li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+    }
+
+    .form-section label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .form-section textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 120px;
+        transition: all 0.3s ease;
+    }
+
+    .form-section textarea:focus {
+        outline: none;
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .btn-cancel:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .price-highlight {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .price-highlight h3 {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .price-highlight .price {
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+        .enrollment-container {
+            margin-top: 80px;
+        }
+
+        .card-header {
+            padding: 30px 20px;
+        }
+
+        .card-header h1 {
+            font-size: 24px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="enrollment-container">
+    <div class="enrollment-card">
+        <div class="card-header">
+            <h1><i class="fas fa-graduation-cap me-2"></i>تأیید ثبت‌نام</h1>
+            <div class="course-title">{{ course.title }}</div>
+        </div>
+
+        <div class="card-body">
+            {% if course.is_free %}
+            <div class="price-highlight" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                <h3>این دوره رایگان است</h3>
+                <div class="price">0 تومان</div>
+            </div>
+            {% else %}
+            <div class="price-highlight">
+                <h3>شهریه دوره</h3>
+                <div class="price">{{ course.price|floatformat:0 }} تومان</div>
+            </div>
+            {% endif %}
+
+            <div class="course-summary">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    خلاصه اطلاعات دوره
+                </h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <div class="summary-label">تاریخ شروع</div>
+                            <div class="summary-value">{{ course.start_date|date:"Y/m/d" }}</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <div class="summary-label">ساعت برگزاری</div>
+                            <div class="summary-value">{{ course.duration|default:"تعیین نشده" }}</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <div>
+                            <div class="summary-label">مدرس</div>
+                            <div class="summary-value">{{ course.teacher.full_name }}</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-users"></i>
+                        <div>
+                            <div class="summary-label">صندلی خالی</div>
+                            <div class="summary-value">{{ course.available_seats }} نفر</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-signal"></i>
+                        <div>
+                            <div class="summary-label">سطح</div>
+                            <div class="summary-value">{{ course.get_level_display }}</div>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <div class="summary-label">محل برگزاری</div>
+                            <div class="summary-value">{{ course.location|default:"آنلاین" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enrollment-info">
+                <h4>
+                    <i class="fas fa-exclamation-circle"></i>
+                    مراحل ثبت‌نام
+                </h4>
+                <ul>
+                    <li><strong>مرحله ۱:</strong> تأیید ثبت‌نام و ایجاد درخواست</li>
+                    <li><strong>مرحله ۲:</strong> آپلود فیش واریزی شهریه</li>
+                    <li><strong>مرحله ۳:</strong> بررسی توسط مدیریت و تأیید نهایی</li>
+                    <li><strong>توجه:</strong> پس از تأیید نهایی، یک صندلی از ظرفیت دوره کم می‌شود</li>
+                </ul>
+            </div>
+
+            <form method="post" id="enrollmentForm">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <label>
+                        <i class="fas fa-sticky-note me-2"></i>یادداشت(اختیاری)
+                    </label>
+                    <textarea name="note" placeholder="در صورت داشتن سوال یا نیاز به توضیح اضافی، در اینجا بنویسید..."></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-check-circle"></i>
+                        تأیید و ادامه
+                    </button>
+                    <a href="{% url 'course:detail' course.slug %}" class="btn-cancel">
+                        <i class="fas fa-times"></i>
+                        انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('enrollmentForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ثبت...';
+        });
+    });
+</script>
+{% endblock %}
+

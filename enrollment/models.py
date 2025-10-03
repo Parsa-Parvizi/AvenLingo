@@ -53,6 +53,7 @@ class Enrollment(models.Model):
     # Payment tracking
     amount_paid = models.DecimalField("مبلغ پرداخت شده", max_digits=10, decimal_places=0, default=0)
     discount_applied = models.DecimalField("تخفیف اعمال شده", max_digits=10, decimal_places=0, default=0)
+    payment_receipt = models.ImageField("فیش واریزی", upload_to='payment_receipts/', null=True, blank=True)
     
     # Enrollment source tracking
     enrollment_source = models.CharField(

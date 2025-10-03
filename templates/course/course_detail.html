@@ -58,10 +58,6 @@
             </p>
           </div>
           <div class="info-card">
-            <h3>ظرفیت کلاس</h3>
-            <p>{{ course.capacity }} نفر</p>
-          </div>
-          <div class="info-card">
             <h3>صندلی‌های خالی</h3>
             <p>{{ course.available_seats }} نفر</p>
           </div>
@@ -92,10 +88,45 @@
             <span class="price">{{ course.price|floatformat:0 }} تومان</span>
           {% endif %}
         </div>
-        {% if not course.is_full %}
-          <button class="btn btn-primary btn-large">ثبت‌نام در دوره</button>
+        
+        {% if user.is_authenticated and user.user_type == 'student' %}
+          {% if user_enrollment %}
+            {% if user_enrollment.status == 'pending' %}
+              <a href="{% url 'enrollment:upload-receipt' user_enrollment.id %}" class="btn btn-warning btn-large">
+                <i class="fas fa-upload me-2"></i>آپلود فیش واریزی
+              </a>
+              <p class="enrollment-status-text">ثبت‌نام شما در انتظار تأیید است</p>
+            {% elif user_enrollment.status == 'confirmed' %}
+              <button class="btn btn-success btn-large" disabled>
+                <i class="fas fa-check-circle me-2"></i>ثبت‌نام تأیید شده
+              </button>
+              <a href="{% url 'enrollment:enrollment-detail' user_enrollment.id %}" class="btn btn-outline-primary btn-sm mt-2">
+                مشاهده جزئیات ثبت‌نام
+              </a>
+            {% else %}
+              <button class="btn btn-secondary btn-large" disabled>{{ user_enrollment.get_status_display }}</button>
+            {% endif %}
+          {% elif course.is_full %}
+            <button class="btn btn-secondary btn-large" disabled>
+              <i class="fas fa-times-circle me-2"></i>ظرفیت تکمیل شده
+            </button>
+          {% else %}
+            <a href="{% url 'enrollment:enroll' course.slug %}" class="btn btn-primary btn-large">
+              <i class="fas fa-user-plus me-2"></i>ثبت‌نام در دوره
+            </a>
+            <div class="available-seats-info mt-2">
+              <i class="fas fa-users me-1"></i>
+              {{ course.available_seats }} صندلی خالی
+            </div>
+          {% endif %}
+        {% elif user.is_authenticated %}
+          <button class="btn btn-secondary btn-large" disabled>
+            فقط زبان‌آموزان می‌توانند ثبت‌نام کنند
+          </button>
         {% else %}
-          <button class="btn btn-secondary btn-large" disabled>کلاس تکمیل شده</button>
+          <a href="{% url 'account:login' %}?next={{ request.path }}" class="btn btn-primary btn-large">
+            <i class="fas fa-sign-in-alt me-2"></i>ورود برای ثبت‌نام
+          </a>
         {% endif %}
       </div>
 

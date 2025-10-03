@@ -1,0 +1,537 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}آپلود فیش واریزی - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-receipt-container {
+        max-width: 800px;
+        margin: 100px auto 50px;
+        padding: 0 20px;
+    }
+
+    .receipt-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header-custom {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .card-header-custom h2 {
+        color: #2c3e50;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .card-header-custom .course-name {
+        color: #7c3aed;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .info-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .info-section h4 {
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .info-value {
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .upload-section {
+        margin: 30px 0;
+    }
+
+    .upload-section label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 3px dashed #7c3aed;
+        border-radius: 15px;
+        padding: 40px;
+        background: #f8f9ff;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .file-upload-wrapper:hover {
+        background: #f0f2ff;
+        border-color: #6366f1;
+    }
+
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .upload-icon {
+        font-size: 50px;
+        color: #7c3aed;
+        margin-bottom: 15px;
+    }
+
+    .upload-text {
+        font-size: 16px;
+        color: #64748b;
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        font-size: 14px;
+        color: #94a3b8;
+    }
+
+    .file-preview {
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border: 2px solid #10b981;
+        border-radius: 10px;
+        display: none;
+    }
+
+    .file-preview.active {
+        display: block;
+    }
+
+    .file-preview-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .file-info i {
+        font-size: 30px;
+        color: #10b981;
+        margin-left: 15px;
+    }
+
+    .file-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .file-size {
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .remove-file {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .remove-file:hover {
+        background: #dc2626;
+    }
+
+    .current-receipt {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f0fdf4;
+        border: 2px solid #10b981;
+        border-radius: 10px;
+    }
+
+    .current-receipt-label {
+        font-size: 14px;
+        color: #059669;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .current-receipt img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .note-section {
+        margin: 30px 0;
+    }
+
+    .note-section label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .note-section textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.3s ease;
+    }
+
+    .note-section textarea:focus {
+        outline: none;
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-submit:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .alert-info {
+        background: #dbeafe;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: start;
+        gap: 15px;
+    }
+
+    .alert-info i {
+        font-size: 24px;
+        color: #3b82f6;
+        margin-top: 3px;
+    }
+
+    .alert-content h5 {
+        color: #1e40af;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .alert-content ul {
+        margin: 0;
+        padding-right: 20px;
+        color: #1e3a8a;
+    }
+
+    .alert-content li {
+        margin-bottom: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .upload-receipt-container {
+            margin-top: 80px;
+        }
+
+        .receipt-card {
+            padding: 25px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-receipt-container">
+    <div class="receipt-card">
+        <div class="card-header-custom">
+            <h2>آپلود فیش واریزی</h2>
+            <div class="course-name">{{ course.title }}</div>
+        </div>
+
+        <div class="alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div class="alert-content">
+                <h5>راهنمای پرداخت و آپلود فیش</h5>
+                <ul>
+                    <li>شهریه را به شماره حساب اعلام شده واریز کنید</li>
+                    <li>تصویر فیش واریزی را با کیفیت مناسب آپلود نمایید</li>
+                    <li>پس از بررسی توسط مدیریت، ثبت‌نام شما تأیید خواهد شد</li>
+                    <li>در صورت نیاز به راهنمایی با پشتیبانی تماس بگیرید</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h4><i class="fas fa-receipt me-2"></i>اطلاعات پرداخت</h4>
+            <div class="info-item">
+                <span class="info-label">مبلغ قابل پرداخت:</span>
+                <span class="info-value">
+                    {% if course.is_free %}
+                        رایگان
+                    {% else %}
+                        {{ course.price|floatformat:0 }} تومان
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">وضعیت ثبت‌نام:</span>
+                <span class="info-value">{{ enrollment.get_status_display }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">تاریخ ثبت‌نام:</span>
+                <span class="info-value">{{ enrollment.enrolled_at|date:"Y/m/d - H:i" }}</span>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            
+            <div class="upload-section">
+                <label>
+                    <i class="fas fa-cloud-upload-alt me-2"></i>فیش واریزی
+                    {% if not course.is_free %}<span style="color: #ef4444;">*</span>{% endif %}
+                </label>
+                
+                <div class="file-upload-wrapper" id="fileUploadWrapper">
+                    <input type="file" name="payment_receipt" id="paymentReceipt" 
+                           accept="image/*" {% if not course.is_free %}required{% endif %}>
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-text">کلیک کنید یا تصویر را بکشید</div>
+                    <div class="upload-hint">فرمت‌های مجاز: JPG, PNG, PDF (حداکثر 5MB)</div>
+                </div>
+
+                <div class="file-preview" id="filePreview">
+                    <div class="file-preview-content">
+                        <div class="file-info">
+                            <i class="fas fa-file-image"></i>
+                            <div class="file-details">
+                                <span class="file-name" id="fileName"></span>
+                                <span class="file-size" id="fileSize"></span>
+                            </div>
+                        </div>
+                        <button type="button" class="remove-file" id="removeFile">
+                            <i class="fas fa-times"></i> حذف
+                        </button>
+                    </div>
+                </div>
+
+                {% if enrollment.payment_receipt %}
+                <div class="current-receipt">
+                    <span class="current-receipt-label">
+                        <i class="fas fa-check-circle me-2"></i>فیش آپلود شده قبلی:
+                    </span>
+                    <a href="{{ enrollment.payment_receipt.url }}" target="_blank">
+                        <img src="{{ enrollment.payment_receipt.url }}" alt="فیش واریزی">
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="note-section">
+                <label>
+                    <i class="fas fa-sticky-note me-2"></i>یادداشت (اختیاری)
+                </label>
+                <textarea name="note" placeholder="در صورت نیاز، توضیحات اضافی خود را وارد کنید...">{{ enrollment.note }}</textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-check-circle"></i>
+                    ثبت و ارسال
+                </button>
+                <a href="{% url 'enrollment:my-enrollments' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    انصراف
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('paymentReceipt');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeBtn = document.getElementById('removeFile');
+        const uploadWrapper = document.getElementById('fileUploadWrapper');
+        const submitBtn = document.getElementById('submitBtn');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('حجم فایل نباید بیشتر از 5 مگابایت باشد');
+                    fileInput.value = '';
+                    return;
+                }
+
+                // Show preview
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                filePreview.classList.add('active');
+                uploadWrapper.style.borderColor = '#10b981';
+                uploadWrapper.style.background = '#f0fdf4';
+            }
+        });
+
+        removeBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            filePreview.classList.remove('active');
+            uploadWrapper.style.borderColor = '#7c3aed';
+            uploadWrapper.style.background = '#f8f9ff';
+        });
+
+        // Drag and drop
+        uploadWrapper.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadWrapper.style.borderColor = '#6366f1';
+            uploadWrapper.style.background = '#eef2ff';
+        });
+
+        uploadWrapper.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadWrapper.style.borderColor = '#7c3aed';
+            uploadWrapper.style.background = '#f8f9ff';
+        });
+
+        uploadWrapper.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Form validation
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال...';
+        });
+    });
+</script>
+{% endblock %}
+

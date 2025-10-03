@@ -10,10 +10,14 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
+import logging
 
 from account.models import Student, Teacher, User, TeacherApplication
 from course.models import Course, Category
 from enrollment.models import Enrollment
+from core.models import DeterminationRequest
+
+logger = logging.getLogger('dashboard')
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -26,8 +30,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if user.is_superuser:
             return redirect('dashboard:admin_dashboard')
         elif user.user_type == 'student':
-            student = get_object_or_404(Student, user=user)
-            return redirect('dashboard:student_dashboard', student_id=student.id)
+            return redirect('dashboard:student_dashboard')
         elif user.user_type == 'teacher':
             return redirect('dashboard:teacher_dashboard')
         else:
@@ -53,7 +56,7 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        student = get_object_or_404(Student, id=kwargs['student_id'])
+        student = get_object_or_404(Student, user=self.request.user)
         context['student'] = student
 
         from enrollment.models import Enrollment
@@ -267,9 +270,10 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         
         # آمار کلی سیستم
         context.update({
-            'total_users': User.objects.count(),
             'total_students': Student.objects.count(),
+            'active_students': Student.objects.filter(user__is_active=True).count(),
             'total_teachers': Teacher.objects.count(),
+            'active_teachers': Teacher.objects.filter(user__is_active=True).count(),
             'total_courses': Course.objects.count(),
             'active_courses': Course.objects.filter(is_active=True).count(),
             'total_enrollments': Enrollment.objects.count(),
@@ -331,6 +335,16 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         ).order_by('-enrollment_count')[:5]
         
         context['popular_courses'] = popular_courses
+        
+        # محبوب‌ترین معلمان (بر اساس تعداد ثبت‌نام‌های تأیید شده)
+        popular_teachers = Teacher.objects.annotate(
+            confirmed_enrollments=Count(
+                'courses__enrollments',
+                filter=Q(courses__enrollments__status='confirmed')
+            )
+        ).filter(confirmed_enrollments__gt=0).order_by('-confirmed_enrollments')[:5]
+        
+        context['popular_teachers'] = popular_teachers
         
         return context
 
@@ -751,3 +765,404 @@ def delete_session(request, pk):
         messages.error(request, 'نشست یافت نشد.')
     
     return redirect('dashboard:admin_sessions')
+
+
+class AdminEnrollmentDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه جزئیات ثبت‌نام برای ادمین با امکان تأیید/رد"""
+    template_name = 'dashboard/admin_enrollment_detail.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        enrollment_id = kwargs.get('enrollment_id')
+        
+        enrollment = get_object_or_404(
+            Enrollment.objects.select_related(
+                'student__user', 'course', 'course__teacher__user', 'course__category'
+            ).prefetch_related('history'),
+            id=enrollment_id
+        )
+        
+        context['enrollment'] = enrollment
+        context['student'] = enrollment.student
+        context['course'] = enrollment.course
+        
+        return context
+
+
+@login_required
+@require_http_methods(["POST"])
+def admin_approve_enrollment(request, enrollment_id):
+    """تأیید ثبت‌نام توسط ادمین"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'message': 'دسترسی غیرمجاز.'}, status=403)
+    
+    try:
+        from enrollment.models import Enrollment, EnrollmentHistory
+        from django.contrib.auth.models import User as DjangoUser
+        
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+        
+        # بررسی وضعیت فعلی
+        if enrollment.status == 'confirmed':
+            return JsonResponse({
+                'success': False,
+                'message': 'این ثبت‌نام قبلاً تأیید شده است.'
+            })
+        
+        # بررسی ظرفیت دوره (فقط confirmed ها را حساب می‌کنیم)
+        confirmed_count = enrollment.course.enrollments.filter(status='confirmed').count()
+        if confirmed_count >= enrollment.course.capacity:
+            return JsonResponse({
+                'success': False,
+                'message': 'ظرفیت دوره تکمیل شده است.'
+            })
+        
+        # تأیید ثبت‌نام
+        old_status = enrollment.status
+        enrollment.status = 'confirmed'
+        enrollment.confirmed_at = timezone.now()
+        
+        # به‌روزرسانی وضعیت پرداخت
+        # اگر دوره رایگان است، وضعیت پرداخت را paid می‌کنیم
+        # اگر دوره غیر رایگان است و فیش آپلود شده، paid می‌کنیم
+        if enrollment.course.is_free:
+            enrollment.payment_status = 'paid'
+        elif enrollment.payment_receipt:
+            enrollment.payment_status = 'paid'
+            enrollment.amount_paid = enrollment.course.price
+        
+        enrollment.save()
+        
+        # ثبت تاریخچه
+        EnrollmentHistory.objects.create(
+            enrollment=enrollment,
+            old_status=old_status,
+            new_status='confirmed',
+            changed_by=request.user.email,
+            reason='تأیید توسط مدیریت'
+        )
+        
+        # ارسال پیام موفقیت به داشبورد زبان‌آموز
+        from django.contrib.sessions.models import Session
+        from django.contrib import messages as django_messages
+        
+        # پیدا کردن session های فعال کاربر
+        user_sessions = Session.objects.filter(
+            expire_date__gte=timezone.now()
+        )
+        
+        for session in user_sessions:
+            session_data = session.get_decoded()
+            if session_data.get('_auth_user_id') == str(enrollment.student.user.id):
+                # اضافه کردن پیام به session
+                session_data.setdefault('_messages', [])
+                from django.contrib.messages.storage.base import Message
+                msg = {
+                    'message': f'تبریک! ثبت‌نام شما در دوره "{enrollment.course.title}" توسط مدیریت تأیید شد.',
+                    'level': 25,  # SUCCESS
+                    'extra_tags': 'enrollment',
+                }
+                # Note: این روش ساده‌تر است که message را در دیتابیس ذخیره کنیم
+                # یا از notification system استفاده کنیم
+        
+        logger.info(f"Enrollment {enrollment_id} approved by admin {request.user.email}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'ثبت‌نام با موفقیت تأیید شد.',
+            'enrollment_status': enrollment.get_status_display(),
+            'available_seats': enrollment.course.available_seats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error approving enrollment {enrollment_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در تأیید ثبت‌نام: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def admin_reject_enrollment(request, enrollment_id):
+    """رد ثبت‌نام توسط ادمین"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'message': 'دسترسی غیرمجاز.'}, status=403)
+    
+    try:
+        from enrollment.models import Enrollment, EnrollmentHistory
+        import json
+        
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+        
+        # دریافت دلیل رد از request
+        data = json.loads(request.body) if request.body else {}
+        reject_reason = data.get('reason', 'عدم تأیید توسط مدیریت')
+        
+        # بررسی وضعیت فعلی
+        if enrollment.status == 'cancelled':
+            return JsonResponse({
+                'success': False,
+                'message': 'این ثبت‌نام قبلاً لغو شده است.'
+            })
+        
+        # رد ثبت‌نام (بدون تأثیر روی ظرفیت)
+        old_status = enrollment.status
+        enrollment.status = 'cancelled'
+        enrollment.cancelled_at = timezone.now()
+        enrollment.admin_note = f"{enrollment.admin_note}\n\nرد شده: {reject_reason}" if enrollment.admin_note else f"رد شده: {reject_reason}"
+        enrollment.save()
+        
+        # ثبت تاریخچه
+        EnrollmentHistory.objects.create(
+            enrollment=enrollment,
+            old_status=old_status,
+            new_status='cancelled',
+            changed_by=request.user.email,
+            reason=reject_reason
+        )
+        
+        logger.info(f"Enrollment {enrollment_id} rejected by admin {request.user.email}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'ثبت‌نام رد شد.',
+            'enrollment_status': enrollment.get_status_display()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error rejecting enrollment {enrollment_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در رد ثبت‌نام: {str(e)}'
+        }, status=500)
+
+
+class AdminApplicationDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه جزئیات درخواست همکاری برای ادمین"""
+    template_name = 'dashboard/admin_application_detail.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        application_id = kwargs.get('application_id')
+        
+        application = get_object_or_404(TeacherApplication, id=application_id)
+        
+        context['application'] = application
+        
+        return context
+
+
+@login_required
+@require_http_methods(["POST"])
+def admin_approve_application(request, application_id):
+    """تأیید درخواست همکاری توسط ادمین"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'message': 'دسترسی غیرمجاز.'}, status=403)
+    
+    try:
+        application = get_object_or_404(TeacherApplication, id=application_id)
+        
+        if application.status == 'approved':
+            return JsonResponse({
+                'success': False,
+                'message': 'این درخواست قبلاً تأیید شده است.'
+            })
+        
+        # تأیید درخواست
+        application.status = 'approved'
+        application.reviewed_at = timezone.now()
+        application.reviewed_by = request.user
+        application.save()
+        
+        logger.info(f"Teacher application {application_id} approved by admin {request.user.email}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'درخواست همکاری با موفقیت تأیید شد. معلم می‌تواند حساب کاربری خود را ایجاد کند.',
+            'application_status': application.get_status_display()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error approving application {application_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در تأیید درخواست: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def admin_reject_application(request, application_id):
+    """رد درخواست همکاری توسط ادمین"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'message': 'دسترسی غیرمجاز.'}, status=403)
+    
+    try:
+        import json
+        
+        application = get_object_or_404(TeacherApplication, id=application_id)
+        
+        # دریافت دلیل رد
+        data = json.loads(request.body) if request.body else {}
+        reject_reason = data.get('reason', 'عدم تأیید توسط مدیریت')
+        
+        if application.status == 'rejected':
+            return JsonResponse({
+                'success': False,
+                'message': 'این درخواست قبلاً رد شده است.'
+            })
+        
+        # رد درخواست
+        application.status = 'rejected'
+        application.reviewed_at = timezone.now()
+        application.reviewed_by = request.user
+        application.admin_notes = f"{application.admin_notes}\n\nرد شده: {reject_reason}" if application.admin_notes else f"رد شده: {reject_reason}"
+        application.save()
+        
+        logger.info(f"Teacher application {application_id} rejected by admin {request.user.email}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'درخواست همکاری رد شد.',
+            'application_status': application.get_status_display()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error rejecting application {application_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در رد درخواست: {str(e)}'
+        }, status=500)
+
+
+class AdminLevelAssessmentRequestsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست درخواست‌های تعیین سطح"""
+    template_name = 'dashboard/admin_level_assessment_requests.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        search_query = self.request.GET.get('search', '')
+        
+        requests = DeterminationRequest.objects.all()
+        
+        if search_query:
+            requests = requests.filter(
+                Q(name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(phone__icontains=search_query)
+            )
+        
+        context['requests'] = requests.order_by('-submitted_at')
+        context['search_query'] = search_query
+        context['total_requests'] = DeterminationRequest.objects.count()
+        
+        return context
+
+
+class AdminLevelAssessmentDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه جزئیات درخواست تعیین سطح"""
+    template_name = 'dashboard/admin_level_assessment_detail.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request_id = kwargs.get('request_id')
+        
+        assessment_request = get_object_or_404(DeterminationRequest, id=request_id)
+        
+        context['assessment_request'] = assessment_request
+        
+        return context
+
+
+class AdminUserDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه جزئیات کاربر برای ادمین"""
+    template_name = 'dashboard/admin_user_detail.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = kwargs.get('user_id')
+        
+        user = get_object_or_404(User, id=user_id)
+        
+        context['user_detail'] = user
+        
+        # Get related data
+        if user.user_type == 'student':
+            try:
+                context['student'] = Student.objects.get(user=user)
+                context['enrollments'] = Enrollment.objects.filter(student=context['student']).select_related('course')[:5]
+            except Student.DoesNotExist:
+                context['student'] = None
+        elif user.user_type == 'teacher':
+            try:
+                context['teacher'] = Teacher.objects.get(user=user)
+                context['courses'] = Course.objects.filter(teacher=context['teacher'])[:5]
+            except Teacher.DoesNotExist:
+                context['teacher'] = None
+        
+        return context
+
+
+class AdminCourseDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه جزئیات دوره برای ادمین"""
+    template_name = 'dashboard/admin_course_detail.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('dashboard:dashboard_home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        course = get_object_or_404(
+            Course.objects.select_related('teacher__user', 'category'),
+            id=course_id
+        )
+        
+        context['course'] = course
+        
+        # Get enrollments
+        enrollments = Enrollment.objects.filter(course=course).select_related('student__user')
+        context['enrollments'] = enrollments.order_by('-enrolled_at')[:10]
+        context['total_enrollments'] = enrollments.count()
+        context['confirmed_enrollments'] = enrollments.filter(status='confirmed').count()
+        context['pending_enrollments'] = enrollments.filter(status='pending').count()
+        
+        return context

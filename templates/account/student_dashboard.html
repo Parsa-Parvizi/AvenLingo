@@ -119,48 +119,6 @@
         </div>
     </div>
 
-    <!-- Progress Overview -->
-    {% if learning_progress %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card progress-overview-card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        پیشرفت یادگیری
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="progress-item">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>نرخ تکمیل</span>
-                                    <span class="fw-bold">{{ learning_progress.completion_rate }}%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" style="width: {{ learning_progress.completion_rate }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="progress-item">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>دوره‌های فعال</span>
-                                    <span class="fw-bold">{{ learning_progress.active_rate }}%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-info" style="width: {{ learning_progress.active_rate }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Main Content Row -->
     <div class="row">
         <!-- Enrollments Section -->
@@ -264,64 +222,55 @@
                             </div>
                             <h6>هنوز در هیچ دوره‌ای ثبت‌نام نکرده‌اید</h6>
                             <p class="text-muted">برای شروع یادگیری، در دوره‌های موجود ثبت‌نام کنید</p>
-                            <a href="{% url 'enrollment:available-courses' %}" class="btn btn-primary">
+                            <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
                                 <i class="fas fa-plus me-2"></i>مشاهده دوره‌ها
                             </a>
                         </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="card modern-card mb-4">
+            <!-- Progress Overview -->
+            {% if learning_progress %}
+            <div class="card progress-overview-card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-                        دسترسی سریع
+                        <i class="fas fa-chart-line me-2"></i>
+                        پیشرفت یادگیری
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="quick-actions">
-                        <a href="{% url 'enrollment:available-courses' %}" class="quick-action-item">
-                            <div class="quick-action-icon">
-                                <i class="fas fa-search"></i>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="progress-item">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>نرخ تکمیل</span>
+                                    <span class="fw-bold">{{ learning_progress.completion_rate }}%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: {{ learning_progress.completion_rate }}%"></div>
+                                </div>
                             </div>
-                            <div class="quick-action-content">
-                                <h6>جستجوی دوره</h6>
-                                <p>دوره‌های جدید کشف کنید</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="progress-item">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>دوره‌های فعال</span>
+                                    <span class="fw-bold">{{ learning_progress.active_rate }}%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width: {{ learning_progress.active_rate }}%"></div>
+                                </div>
                             </div>
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                        
-                        <a href="{% url 'enrollment:my-enrollments' %}" class="quick-action-item">
-                            <div class="quick-action-icon">
-                                <i class="fas fa-list"></i>
-                            </div>
-                            <div class="quick-action-content">
-                                <h6>مدیریت ثبت‌نام‌ها</h6>
-                                <p>ثبت‌نام‌های خود را مدیریت کنید</p>
-                            </div>
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                        
-                        <a href="{% url 'account:student_profile' %}" class="quick-action-item">
-                            <div class="quick-action-icon">
-                                <i class="fas fa-user-edit"></i>
-                            </div>
-                            <div class="quick-action-content">
-                                <h6>ویرایش پروفایل</h6>
-                                <p>اطلاعات خود را به‌روزرسانی کنید</p>
-                            </div>
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
+        </div>
 
-            <!-- Available Courses -->
+        <!-- Available Courses Sidebar -->
+        <div class="col-lg-4">
             {% if available_courses %}
             <div class="card modern-card">
                 <div class="card-header">
@@ -362,7 +311,7 @@
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'enrollment:available-courses' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'course:all-courses' %}" class="btn btn-outline-primary btn-sm">
                             مشاهده همه دوره‌ها
                             <i class="fas fa-arrow-left ms-1"></i>
                         </a>
@@ -370,6 +319,59 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions - Full Width at Bottom -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card modern-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        دسترسی سریع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'course:all-courses' %}" class="quick-action-item">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="quick-action-content">
+                                    <h6>جستجوی دوره</h6>
+                                    <p>دوره‌های جدید کشف کنید</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <a href="{% url 'enrollment:my-enrollments' %}" class="quick-action-item">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div class="quick-action-content">
+                                    <h6>مدیریت ثبت‌نام‌ها</h6>
+                                    <p>ثبت‌نام‌های خود را مدیریت کنید</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <a href="{% url 'account:student_profile' %}" class="quick-action-item">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-user-edit"></i>
+                                </div>
+                                <div class="quick-action-content">
+                                    <h6>ویرایش پروفایل</h6>
+                                    <p>اطلاعات خود را به‌روزرسانی کنید</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

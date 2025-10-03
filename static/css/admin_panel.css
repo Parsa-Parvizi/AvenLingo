@@ -1,0 +1,363 @@
+/* ===================================
+   استایل‌های عمومی پنل ادمین
+   =================================== */
+
+/* دکمه‌ها */
+.btn {
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-success {
+    background: var(--color-highlight);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 16px;
+    font-size: 14px;
+}
+
+.btn-lg {
+    padding: 14px 32px;
+    font-size: 18px;
+}
+
+/* فرم‌ها و اینپوت‌ها */
+.form-control, .form-select {
+    padding: 12px 16px;
+    font-size: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    min-height: 48px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* کارت‌ها */
+.modern-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 2px solid #f5f5f5;
+    background: #fafafa;
+    border-radius: 12px 12px 0 0;
+}
+
+.card-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* جداول */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 16px;
+    border-bottom: 2px solid #dee2e6;
+    text-align: right;
+}
+
+.table tbody td {
+    padding: 16px;
+    vertical-align: middle;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fa;
+    transition: background 0.2s ease;
+}
+
+/* بج‌ها */
+.badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-primary {
+    background: #cce5ff;
+    color: #004085;
+}
+
+/* نوار جستجو */
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    padding-right: 48px !important;
+}
+
+.search-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 18px;
+    pointer-events: none;
+}
+
+/* فیلترها */
+.filters-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+}
+
+.filter-col {
+    flex: 1;
+}
+
+.filter-col.filter-btn {
+    flex: 0 0 auto;
+    min-width: 140px;
+}
+
+/* خالی بودن لیست */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    .form-control, .form-select {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .filter-col.filter-btn {
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 12px 8px;
+    }
+}
+
+/* آیکون‌ها */
+.fas, .far {
+    margin-left: 6px;
+}
+
+/* انیمیشن لودینگ */
+.spinner-border {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-width: 2px;
+}
+
+/* دکمه ثبت معلم */
+.btn-register-teacher {
+    background: linear-gradient(135deg, var(--color-highlight) 0%, #218838 100%);
+    color: white;
+    font-weight: 700;
+    padding: 12px 28px;
+    font-size: 16px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-register-teacher:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    background: linear-gradient(135deg, #218838 0%, var(--color-highlight) 100%);
+}
+
+.btn-register-teacher i {
+    margin-left: 8px;
+    font-size: 18px;
+}
+
+/* دکمه‌های اکشن */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.action-buttons .btn {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* بهبود نوار پیجینیشن */
+.pagination {
+    margin-top: 24px;
+    justify-content: center;
+}
+
+.pagination .page-link {
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-primary);
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    margin: 0 4px;
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+

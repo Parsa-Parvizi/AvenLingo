@@ -9,13 +9,12 @@ urlpatterns = [
     path('enrollment/<int:pk>/', views.EnrollmentDetailView.as_view(), name='enrollment-detail'),
     
     # Course enrollment
-    path('enroll/<int:course_id>/', views.CourseEnrollmentView.as_view(), name='enroll'),
+    path('enroll/<path:course_slug>/', views.CourseEnrollmentView.as_view(), name='enroll'),
+    path('upload-receipt/<int:enrollment_id>/', views.UploadReceiptView.as_view(), name='upload-receipt'),
     path('quick-enroll/', views.QuickEnrollView.as_view(), name='quick-enroll'),
     
     # Enrollment management
     path('cancel/<int:enrollment_id>/', views.cancel_enrollment, name='cancel-enrollment'),
     path('certificate/<int:enrollment_id>/', views.enrollment_certificate, name='certificate'),
     
-    # Course browsing
-    path('available-courses/', views.AvailableCoursesView.as_view(), name='available-courses'),
 ]

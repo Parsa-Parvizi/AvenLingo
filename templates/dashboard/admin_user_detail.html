@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - جزئیات کاربر{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 28px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #7c3aed;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .back-btn {
+        background: #64748b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: #475569;
+        color: white;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: #7c3aed;
+        font-size: 22px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .user-type-badge {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .type-student {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .type-teacher {
+        background: #e7d4f5;
+        color: #4a1d7a;
+    }
+
+    .type-admin {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .list-section {
+        margin-top: 20px;
+    }
+
+    .list-item {
+        background: #f8f9ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .list-item:hover {
+        background: #f0f2ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="detail-container" dir="rtl">
+    <div class="page-header">
+        <div>
+            <i class="fas fa-user me-2"></i>
+            جزئیات کاربر
+        </div>
+        <a href="{% url 'dashboard:admin_users' %}" class="back-btn">
+            <i class="fas fa-arrow-right me-2"></i>
+            بازگشت به لیست
+        </a>
+    </div>
+
+    <!-- User Information -->
+    <div class="detail-card">
+        <h3 class="card-title">
+            <i class="fas fa-id-card"></i>
+            اطلاعات کاربری
+        </h3>
+        <div class="info-row">
+            <span class="info-label">نام و نام خانوادگی:</span>
+            <span class="info-value">{{ user_detail.get_full_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">ایمیل:</span>
+            <span class="info-value">{{ user_detail.email }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">نوع کاربر:</span>
+            <span class="user-type-badge type-{{ user_detail.user_type }}">
+                {% if user_detail.user_type == 'student' %}زبان‌آموز
+                {% elif user_detail.user_type == 'teacher' %}معلم
+                {% elif user_detail.is_superuser %}ادمین
+                {% endif %}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">وضعیت حساب:</span>
+            <span class="status-badge {% if user_detail.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {% if user_detail.is_active %}فعال{% else %}غیرفعال{% endif %}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">تاریخ عضویت:</span>
+            <span class="info-value">{{ user_detail.date_joined|date:"Y/m/d - H:i" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">آخرین ورود:</span>
+            <span class="info-value">{{ user_detail.last_login|date:"Y/m/d - H:i"|default:"—" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">سوپریوزر:</span>
+            <span class="info-value">{% if user_detail.is_superuser %}بله{% else %}خیر{% endif %}</span>
+        </div>
+    </div>
+
+    <!-- Student Specific -->
+    {% if student %}
+    <div class="detail-card">
+        <h3 class="card-title">
+            <i class="fas fa-user-graduate"></i>
+            اطلاعات زبان‌آموز
+        </h3>
+        <div class="info-row">
+            <span class="info-label">شماره تماس:</span>
+            <span class="info-value">{{ student.phone_number|default:"ثبت نشده" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">سطح زبان:</span>
+            <span class="info-value">{{ student.english_level|default:"ثبت نشده" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">تاریخ تولد:</span>
+            <span class="info-value">{{ student.date_of_birth|date:"Y/m/d"|default:"ثبت نشده" }}</span>
+        </div>
+
+        {% if enrollments %}
+        <div class="list-section">
+            <h4 style="margin-bottom: 15px;">آخرین ثبت‌نام‌ها:</h4>
+            {% for enrollment in enrollments %}
+            <div class="list-item">
+                <span>{{ enrollment.course.title }}</span>
+                <span class="status-badge status-{{ enrollment.status }}">{{ enrollment.get_status_display }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Teacher Specific -->
+    {% if teacher %}
+    <div class="detail-card">
+        <h3 class="card-title">
+            <i class="fas fa-chalkboard-teacher"></i>
+            اطلاعات معلم
+        </h3>
+        <div class="info-row">
+            <span class="info-label">شماره تماس:</span>
+            <span class="info-value">{{ teacher.phone_number|default:"ثبت نشده" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">تخصص:</span>
+            <span class="info-value">{{ teacher.expertise|default:"ثبت نشده" }}</span>
+        </div>
+
+        {% if courses %}
+        <div class="list-section">
+            <h4 style="margin-bottom: 15px;">دوره‌های تدریس:</h4>
+            {% for course in courses %}
+            <div class="list-item">
+                <span>{{ course.title }}</span>
+                <a href="{% url 'dashboard:admin_course_detail' course.id %}" class="btn btn-sm btn-outline-primary">مشاهده</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

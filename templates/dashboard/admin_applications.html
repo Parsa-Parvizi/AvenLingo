@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
 <style>
     body { padding-top: 0 !important; }
     .content { margin-top: 0 !important; }
@@ -30,15 +31,20 @@
 {% include 'dashboard/admin_navbar.html' %}
 
 <div class="container-fluid py-4" dir="rtl">
-    <h2 class="page-header">درخواست‌های همکاری معلمان</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-header mb-0">درخواست‌های همکاری معلمان</h2>
+        <a href="{% url 'account:register_teacher_by_admin' %}" class="btn btn-register-teacher">
+            <i class="fas fa-user-plus"></i> ثبت معلم دستی
+        </a>
+    </div>
 
     <!-- فیلترها -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-10">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
                             <label class="form-label">وضعیت</label>
                             <select name="status" class="form-select">
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
@@ -47,8 +53,8 @@
                                 <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>رد شده</option>
                             </select>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
                                 <i class="fas fa-search"></i> جستجو
                             </button>
                         </div>
@@ -99,9 +105,11 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="/admin/account/teacherapplication/{{ app.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
-                                            <i class="fas fa-eye"></i> مشاهده
-                                        </a>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'dashboard:admin_application_detail' app.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> مشاهده
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}

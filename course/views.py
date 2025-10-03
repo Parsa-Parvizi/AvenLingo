@@ -176,9 +176,21 @@ def course_detail_view(request, course_slug):
         category=course.category
     ).exclude(id=course.id)[:3]  # type: ignore
     
+    # Check if user is enrolled in this course
+    user_enrollment = None
+    if request.user.is_authenticated and hasattr(request.user, 'user_type') and request.user.user_type == 'student':
+        try:
+            from account.models import Student
+            from enrollment.models import Enrollment
+            student = Student.objects.get(user=request.user)
+            user_enrollment = Enrollment.objects.filter(student=student, course=course).first()
+        except Student.DoesNotExist:
+            pass
+    
     context = {
         'course': course,
         'similar_courses': similar_courses,
+        'user_enrollment': user_enrollment,
     }
     
     return render(request, 'course/course_detail.html', context)

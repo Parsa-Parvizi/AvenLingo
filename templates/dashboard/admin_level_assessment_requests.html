@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} - مدیریت درخواست‌های تعیین سطح{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-secondary);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .stats-card h3 {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .stats-card .number {
+        font-size: 36px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <div class="page-header">
+        <div>
+            <i class="fas fa-clipboard-check me-2"></i>
+            مدیریت درخواست‌های تعیین سطح
+        </div>
+        <div class="stats-card" style="padding: 10px 20px; margin: 0;">
+            <span style="font-size: 14px; opacity: 0.9;">کل درخواست‌ها: </span>
+            <span style="font-size: 24px; font-weight: 700;">{{ total_requests }}</span>
+        </div>
+    </div>
+
+    <!-- جستجو -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">جستجو</label>
+                            <input type="text" name="search" class="form-select" 
+                                   placeholder="نام، ایمیل یا شماره تماس..." 
+                                   value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                            {% if search_query %}
+                            <a href="{% url 'dashboard:admin_level_assessment_requests' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> حذف فیلتر
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول درخواست‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>شناسه</th>
+                                    <th>نام</th>
+                                    <th>ایمیل</th>
+                                    <th>تلفن</th>
+                                    <th>تاریخ ارسال</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in requests %}
+                                <tr>
+                                    <td>{{ req.id }}</td>
+                                    <td>{{ req.name }}</td>
+                                    <td>{{ req.email }}</td>
+                                    <td>{{ req.phone }}</td>
+                                    <td>{{ req.submitted_at|date:"Y/m/d - H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'dashboard:admin_level_assessment_detail' req.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> مشاهده
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        {% if search_query %}
+                                            نتیجه‌ای یافت نشد
+                                        {% else %}
+                                            درخواستی ثبت نشده است
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

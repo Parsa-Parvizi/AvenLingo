@@ -18,6 +18,15 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
+    def create_student(self, email, password, first_name, last_name, **extra_fields):
+        """Create a student user"""
+        extra_fields.setdefault('user_type', 'student')
+        extra_fields.setdefault('is_active', True)
+        extra_fields['first_name'] = first_name
+        extra_fields['last_name'] = last_name
+        
+        return self.create_user(email, password, **extra_fields)
+    
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -81,6 +90,35 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+    
+    def save(self, *args, **kwargs):
+        """Override save to enforce security rules"""
+        # معلم‌ها و زبان‌آموزان نمی‌توانند superuser باشند
+        # فقط از طریق console django می‌توان superuser ایجاد کرد
+        if self.user_type in ['teacher', 'student']:
+            self.is_superuser = False
+            self.is_staff = False
+        
+        super().save(*args, **kwargs)
+    
+    def generate_email_verification_token(self):
+        """Generate a verification token for email confirmation"""
+        import secrets
+        token = secrets.token_urlsafe(32)
+        self.email_verification_token = token
+        # Use update_fields to avoid recursion
+        super(User, self).save(update_fields=['email_verification_token'])
+        return token
+    
+    @property
+    def is_student(self):
+        """Check if user is a student"""
+        return self.user_type == 'student'
+    
+    @property
+    def is_teacher(self):
+        """Check if user is a teacher"""
+        return self.user_type == 'teacher'
 
 
 class Student(models.Model):
@@ -109,6 +147,17 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.user.email}"
     
+    @classmethod
+    def create_for_user(cls, user, **profile_data):
+        """Create a student profile for a user"""
+        return cls.objects.create(
+            user=user,
+            phone_number=profile_data.get('phone_number', ''),
+            date_of_birth=profile_data.get('date_of_birth'),
+            english_level=profile_data.get('english_level', ''),
+            goals=profile_data.get('goals', '')
+        )
+    
     def get_profile_completion_percentage(self):
         """Calculate the completion percentage of the student's profile"""
         total_fields = 8  # Total number of profile fields to check
@@ -135,6 +184,14 @@ class Student(models.Model):
             completed_fields += 1
             
         return int((completed_fields / total_fields) * 100)
+
+
+class TeacherApplicationManager(models.Manager):
+    """Custom manager for TeacherApplication"""
+    
+    def for_email(self, email):
+        """Filter applications by email"""
+        return self.filter(email__iexact=email)
 
 
 class TeacherApplication(models.Model):
@@ -172,6 +229,8 @@ class TeacherApplication(models.Model):
     submitted_at = models.DateTimeField('تاریخ ارسال', default=timezone.now)
     reviewed_at = models.DateTimeField('تاریخ بررسی', blank=True, null=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_applications')
+    
+    objects = TeacherApplicationManager()
     
     class Meta:
         verbose_name = "درخواست همکاری مدرس"

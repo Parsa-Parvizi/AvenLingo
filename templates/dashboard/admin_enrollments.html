@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
 <style>
     body { padding-top: 0 !important; }
     .content { margin-top: 0 !important; }
@@ -37,8 +38,8 @@
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-3">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
                             <label class="form-label">وضعیت ثبت‌نام</label>
                             <select name="status" class="form-select">
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
@@ -48,7 +49,7 @@
                                 <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>تکمیل شده</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="filter-col">
                             <label class="form-label">وضعیت پرداخت</label>
                             <select name="payment_status" class="form-select">
                                 <option value="all" {% if payment_status_filter == 'all' %}selected{% endif %}>همه</option>
@@ -57,12 +58,15 @@
                                 <option value="partial" {% if payment_status_filter == 'partial' %}selected{% endif %}>پرداخت جزئی</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="filter-col" style="flex: 2;">
                             <label class="form-label">جستجو</label>
-                            <input type="text" name="search" class="form-control" placeholder="نام دانش‌آموز یا دوره" value="{{ search_query }}">
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="search" class="form-control search-input" placeholder="نام دانش‌آموز یا دوره..." value="{{ search_query }}">
+                            </div>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
                                 <i class="fas fa-search"></i> جستجو
                             </button>
                         </div>
@@ -127,7 +131,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="/admin/enrollment/enrollment/{{ enrollment.id }}/change/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <a href="{% url 'dashboard:admin_enrollment_detail' enrollment.id %}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     </td>

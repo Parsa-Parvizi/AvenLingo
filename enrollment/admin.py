@@ -14,7 +14,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
     
     list_display = [
         'id', 'student_name', 'course_title', 'colored_status', 
-        'payment_status_badge', 'enrolled_date', 'confirmed_date', 
+        'payment_status_badge', 'receipt_status', 'enrolled_date', 'confirmed_date', 
         'amount_info', 'actions_column'
     ]
     
@@ -43,7 +43,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
     readonly_fields = [
         'enrolled_at', 'last_activity', 'remaining_amount', 
         'is_active', 'is_overdue_payment', 'can_be_cancelled',
-        'is_course_started'
+        'is_course_started', 'receipt_preview'
     ]
     
     fieldsets = (
@@ -55,7 +55,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('اطلاعات مالی', {
-            'fields': ('amount_paid', 'discount_applied', 'remaining_amount'),
+            'fields': ('amount_paid', 'discount_applied', 'remaining_amount', 'payment_receipt', 'receipt_preview'),
             'classes': ('collapse',)
         }),
         ('جزئیات اضافی', {
@@ -155,6 +155,40 @@ class EnrollmentAdmin(admin.ModelAdmin):
         else:
             return format_html('<span style="color: red;">عدم پرداخت</span>')
     amount_info.short_description = 'وضعیت مالی'
+    
+    def receipt_status(self, obj):
+        """Display receipt upload status"""
+        if obj.payment_receipt:
+            return format_html(
+                '<a href="{}" target="_blank" style="color: green;">'
+                '<i class="fas fa-check-circle"></i> مشاهده فیش</a>',
+                obj.payment_receipt.url
+            )
+        else:
+            return format_html('<span style="color: red;"><i class="fas fa-times-circle"></i> آپلود نشده</span>')
+    receipt_status.short_description = 'فیش واریزی'
+    
+    def receipt_preview(self, obj):
+        """Display receipt image preview in admin"""
+        if obj.payment_receipt:
+            return format_html(
+                '<div style="margin: 10px 0;">'
+                '<a href="{}" target="_blank">'
+                '<img src="{}" style="max-width: 400px; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />'
+                '</a>'
+                '<div style="margin-top: 10px;">'
+                '<a href="{}" target="_blank" class="button" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none;">'
+                '<i class="fas fa-external-link-alt"></i> مشاهده در تب جدید'
+                '</a>'
+                '</div>'
+                '</div>',
+                obj.payment_receipt.url,
+                obj.payment_receipt.url,
+                obj.payment_receipt.url
+            )
+        else:
+            return format_html('<p style="color: #94a3b8;">فیش واریزی آپلود نشده است.</p>')
+    receipt_preview.short_description = 'پیش‌نمایش فیش'
     
     def actions_column(self, obj):
         """Display action buttons"""

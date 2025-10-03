@@ -41,7 +41,7 @@ class StudentRegistrationView(CreateView):
     model = User
     form_class = StudentRegistrationForm
     template_name = 'account/student_register.html'
-    success_url = reverse_lazy('account:email_verification')
+    success_url = reverse_lazy('account:login')
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -57,8 +57,8 @@ class StudentRegistrationView(CreateView):
             user_name = form.cleaned_data.get('first_name', 'کاربر')
             messages.success(
                 self.request,
-                f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد. '
-                f'لطفاً ایمیل خود را برای فعال‌سازی حساب تایید کنید.'
+                f'{user_name} عزیز، حساب کاربری شما با موفقیت ایجاد شد! '
+                f'اکنون می‌توانید با ایمیل و رمز عبور خود وارد شوید.'
             )
             
             # Log successful registration
@@ -71,8 +71,37 @@ class StudentRegistrationView(CreateView):
             return self.form_invalid(form)
         except Exception as e:
             logger.error(f'Unexpected error in student registration: {str(e)}')
-            messages.error(self.request, 'خطای غیرمنتظره. لطفاً دوباره تلاش کنید.')
+            messages.error(self.request, 'خطای غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.')
             return self.form_invalid(form)
+    
+    def form_invalid(self, form):
+        """Handle invalid form submission with proper error messages"""
+        # Collect all errors and display them
+        error_messages = []
+        
+        # Field-specific errors
+        for field_name, errors in form.errors.items():
+            if field_name == '__all__':
+                # Non-field errors
+                for error in errors:
+                    error_messages.append(str(error))
+            else:
+                # Field errors with field label
+                field_label = form.fields.get(field_name).label if field_name in form.fields else field_name
+                for error in errors:
+                    error_messages.append(f"{field_label}: {error}")
+        
+        # Display all errors
+        if error_messages:
+            for error in error_messages:
+                messages.error(self.request, error)
+        else:
+            messages.error(
+                self.request,
+                'ثبت‌نام ناموفق بود. لطفاً اطلاعات وارد شده را بررسی کنید.'
+            )
+        
+        return super().form_invalid(form)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -157,6 +186,42 @@ class CustomLoginView(LoginView):
     form_class = CustomLoginForm
     template_name = 'account/login.html'
     redirect_authenticated_user = True
+    
+    def get(self, request, *args, **kwargs):
+        """Clear any old success messages before displaying login page"""
+        # فقط پیام‌های مربوط به ایجاد حساب کاربری را نگه دار
+        storage = messages.get_messages(request)
+        messages_to_keep = []
+        
+        # لیست پیام‌های مجاز که فقط مربوط به ایجاد حساب کاربری هستند
+        allowed_phrases = [
+            'حساب کاربری شما با موفقیت ایجاد شد',  # ثبت‌نام موفق
+            'ایمیل تایید برای شما ارسال شد',  # تایید ایمیل
+        ]
+        
+        # Tags که نباید در صفحه login نمایش داده شوند
+        excluded_tags = ['enrollment', 'profile', 'dashboard']
+        
+        for message in storage:
+            message_text = str(message)
+            message_tags = message.extra_tags or ''
+            
+            # حذف پیام‌هایی که tag ممنوعه دارند
+            if any(tag in message_tags for tag in excluded_tags):
+                continue
+            
+            # فقط اگر پیام دقیقاً مربوط به ایجاد حساب کاربری باشد
+            if any(phrase in message_text for phrase in allowed_phrases):
+                messages_to_keep.append(message)
+        
+        # پاک کردن همه پیام‌ها
+        storage.used = True
+        
+        # اضافه کردن دوباره فقط پیام‌های مجاز
+        for msg in messages_to_keep:
+            messages.add_message(request, msg.level, msg.message, msg.extra_tags)
+        
+        return super().get(request, *args, **kwargs)
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -827,7 +892,7 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 **form.cleaned_data
             )
             
-            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
+            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.', extra_tags='profile')
             return redirect(self.success_url)
             
         except Exception as e:
@@ -870,7 +935,7 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 **form.cleaned_data
             )
             
-            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.')
+            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.', extra_tags='profile')
             return redirect(self.success_url)
             
         except Exception as e:

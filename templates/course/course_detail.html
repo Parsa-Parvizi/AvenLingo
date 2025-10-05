@@ -223,9 +223,9 @@
         
         <div class="teacher-info">
           <h4>{{ course.teacher.full_name }}</h4>
-          {% if course.teacher.expertise %}
-            <p class="teacher-expertise">{{ course.teacher.expertise }}</p>
-          {% endif %}
+          {% comment %} {% if course.teacher.specialties %}
+            <p class="teacher-expertise">{{ course.teacher.specialties }}</p>
+          {% endif %} {% endcomment %}
           {% if course.teacher.bio %}
             <p class="teacher-bio">{{ course.teacher.bio|truncatewords:25 }}</p>
           {% endif %}
@@ -266,10 +266,308 @@
     </div>
   </div>
   {% endif %}
+
+  {% if teacher_other_courses %}
+  <div class="teacher-other-courses">
+    <h2>دیگر دوره‌های {{ course.teacher.user.get_full_name }}</h2>
+    <div class="course-grid">
+      {% for teacher_course in teacher_other_courses %}
+        <div class="course-card">
+          {% if teacher_course.image %}
+            <img src="{{ teacher_course.image.url }}" alt="{{ teacher_course.title }}" class="course-image">
+          {% else %}
+            <div class="course-image-placeholder"></div>
+          {% endif %}
+          
+          <div class="course-content">
+            <h3>{{ teacher_course.title }}</h3>
+            <p class="course-description">{{ teacher_course.short_description|default:teacher_course.description|truncatewords:15 }}</p>
+            <div class="course-meta">
+              <span class="level">سطح: {{ teacher_course.get_level_display }}</span>
+              <span class="category">دسته: {{ teacher_course.category.name }}</span>
+            </div>
+            <div class="course-footer">
+              <span class="price">
+                {% if teacher_course.is_free %}رایگان{% else %}{{ teacher_course.price|floatformat:0 }} تومان{% endif %}
+              </span>
+              {% if teacher_course.slug %}<a href="{% url 'course:detail' teacher_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </section>
 
 {% block extra_css %}
 <style>
+  /* Teacher Card Styles */
+  .teacher-card-clickable {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+    margin-bottom: 30px;
+  }
+
+  .teacher-card-clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .teacher-card-clickable h3 {
+    color: #1f2937;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+  }
+
+  .teacher-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 20px auto;
+    border: 4px solid #f8fafc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .teacher-image-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    border: 4px solid #f8fafc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: #64748b;
+    font-size: 2.5rem;
+  }
+
+  .teacher-info {
+    text-align: center;
+  }
+
+  .teacher-info h4 {
+    color: #1f2937;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .teacher-expertise {
+    color: #3b82f6;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    background: #eff6ff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .teacher-bio {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Teacher Other Courses Section */
+  .teacher-other-courses {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #e5e7eb;
+  }
+
+  .teacher-other-courses h2 {
+    color: #1f2937;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    text-align: center;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  .teacher-other-courses h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+  }
+
+  .teacher-other-courses .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
+
+  .teacher-other-courses .course-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+  }
+
+  .teacher-other-courses .course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .teacher-other-courses .course-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+
+  .teacher-other-courses .course-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 3rem;
+  }
+
+  .teacher-other-courses .course-content {
+    padding: 20px;
+  }
+
+  .teacher-other-courses .course-content h3 {
+    color: #1e293b;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  .teacher-other-courses .course-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+
+  .teacher-other-courses .course-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .teacher-other-courses .course-meta span {
+    color: #475569;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .teacher-other-courses .course-meta span::before {
+    content: '•';
+    color: #3b82f6;
+    font-weight: bold;
+  }
+
+  .teacher-other-courses .course-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .teacher-other-courses .price {
+    color: #059669;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .teacher-other-courses .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  /* Responsive for teacher card */
+  @media (max-width: 768px) {
+    .teacher-card-clickable {
+      padding: 20px;
+    }
+    
+    .teacher-card-clickable h3 {
+      font-size: 1.1rem;
+    }
+    
+    .teacher-image,
+    .teacher-image-placeholder {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .teacher-info h4 {
+      font-size: 1.2rem;
+    }
+    
+    .teacher-expertise {
+      font-size: 0.9rem;
+      padding: 6px 12px;
+    }
+    
+    .teacher-bio {
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Responsive for teacher other courses */
+  @media (max-width: 768px) {
+    .teacher-other-courses h2 {
+      font-size: 1.5rem;
+    }
+    
+    .teacher-other-courses .course-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .teacher-other-courses .course-footer {
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+    
+    .teacher-other-courses .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
   /* Enhanced disabled button styles */
   .btn-disabled-full {
     background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;

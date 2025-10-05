@@ -312,6 +312,7 @@ class Teacher(models.Model):
     # Professional Information
     bio = models.TextField('بیوگرافی', blank=True)
     specialties = models.TextField('تخصص‌ها', default='')
+    image = models.ImageField('تصویر پروفایل', upload_to='teachers/', blank=True, null=True)
     hourly_rate = models.DecimalField('نرخ ساعتی', max_digits=10, decimal_places=2, blank=True, null=True)
     
     # Status
@@ -395,6 +396,11 @@ class Teacher(models.Model):
         # This is a placeholder - implement actual rating calculation
         # based on course reviews when review system is implemented
         return None
+    
+    @property
+    def full_name(self):
+        """Get full name of teacher"""
+        return self.user.get_full_name() or f"{self.user.first_name} {self.user.last_name}".strip() or "نام تعریف نشده"
     
     @property
     def registration_status(self):

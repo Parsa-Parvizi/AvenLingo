@@ -183,6 +183,17 @@ def course_detail_view(request, course_slug):
         category=course.category
     ).exclude(id=course.id)[:3]  # type: ignore
     
+    # دیگر دوره‌های استاد (بهترین دوره‌ها)
+    teacher_other_courses = Course.objects.filter( # type: ignore
+        is_active=True,
+        teacher=course.teacher,
+        status='published'
+    ).exclude(id=course.id).order_by( # type: ignore
+        '-is_featured',  # اولویت با دوره‌های ویژه
+        '-enrollments__status',  # سپس بر اساس تعداد ثبت‌نام
+        '-created_at'  # و در نهایت جدیدترین
+    )[:3]  # type: ignore
+    
     # Check if user is enrolled in this course
     user_enrollment = None
     if request.user.is_authenticated and hasattr(request.user, 'user_type') and request.user.user_type == 'student':
@@ -202,6 +213,7 @@ def course_detail_view(request, course_slug):
     context = {
         'course': course,
         'similar_courses': similar_courses,
+        'teacher_other_courses': teacher_other_courses,
         'user_enrollment': user_enrollment,
         'available_seats': available_seats,
         'is_full': is_full,

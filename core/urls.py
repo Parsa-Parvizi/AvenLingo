@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import home_view, determination, advice, search_view, collabrate, request_course
+from .views import home_view, determination, advice, search_view, request_course
+from account.views import TeacherApplicationView
 
 app_name = 'core'
 
@@ -9,6 +10,6 @@ urlpatterns = [
     
     path('determination/', determination, name='determination'),
     path('advice/', advice, name='advice'),
-    path('collaborate/', collabrate, name='collaborate'),
+    path('collaborate/', TeacherApplicationView.as_view(), name='collaborate'),
     path('request-course/', request_course, name='request-course'),
 ]

@@ -35,7 +35,6 @@ urlpatterns = [
     path('profile/teacher/', views.TeacherProfileView.as_view(), name='teacher_profile'),
     
     # Teacher Application URLs
-    path('teacher/apply/', views.TeacherApplicationView.as_view(), name='teacher_apply'),
     path('teacher/apply/success/', views.TeacherApplicationSuccessView.as_view(), name='teacher_apply_success'),
     
     # Admin URLs for Teacher Applications

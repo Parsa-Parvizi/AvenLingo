@@ -1,0 +1,538 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ویرایش پروفایل معلم{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-page {
+    padding: 40px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: calc(100vh - 200px);
+}
+
+.profile-header {
+    background: linear-gradient(135deg, var(--color-primary, #1F3A93) 0%, var(--color-secondary, #2C3E50) 100%);
+    color: white;
+    padding: 30px 0;
+    margin-bottom: 30px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.profile-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.profile-form-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.form-section {
+    padding: 30px;
+}
+
+.form-section h3 {
+    color: var(--color-primary, #1F3A93);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--color-primary, #1F3A93);
+    box-shadow: 0 0 0 0.2rem rgba(31, 58, 147, 0.25);
+    outline: none;
+}
+
+.btn-group {
+    display: flex;
+    gap: 15px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-profile {
+    padding: 12px 30px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary, #1F3A93), var(--color-secondary, #2C3E50));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0f2a7a, #1a2d3a);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(31, 58, 147, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #343a40);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+}
+
+.profile-tips {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.profile-tips h4 {
+    color: var(--color-primary, #1F3A93);
+    margin-bottom: 15px;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-list li {
+    padding: 5px 0;
+    padding-right: 20px;
+    position: relative;
+}
+
+.tips-list li::before {
+    content: '\f058';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: #28a745;
+    position: absolute;
+    right: 0;
+    top: 5px;
+}
+
+.completion-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .profile-header {
+        margin: 0 -15px 20px;
+        border-radius: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container">
+        <div class="profile-header">
+            <h1>
+                <i class="fas fa-user-tie"></i>
+                ویرایش پروفایل معلم
+            </h1>
+            <p>اطلاعات حرفه‌ای و شخصی خود را به‌روزرسانی کنید</p>
+            
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="profile-form-container">
+            <form method="post" class="profile-form">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-user"></i>
+                        اطلاعات شخصی
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}">
+                                {{ form.first_name.label }}
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">
+                                    {{ form.first_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.last_name.id_for_label }}">
+                                {{ form.last_name.label }}
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">
+                                    {{ form.last_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.date_of_birth.id_for_label }}">
+                            {{ form.date_of_birth.label }}
+                        </label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="text-danger">
+                                {{ form.date_of_birth.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            تاریخ تولد خود را انتخاب کنید
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-user-tie"></i>
+                        اطلاعات حرفه‌ای
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.bio.id_for_label }}">
+                            {{ form.bio.label }}
+                        </label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <div class="text-danger">
+                                {{ form.bio.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            درباره خود، تجربه‌تان و روش تدریس خود بنویسید (حداقل 50 کاراکتر)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.specialties.id_for_label }}">
+                            {{ form.specialties.label }}
+                        </label>
+                        {{ form.specialties }}
+                        {% if form.specialties.errors %}
+                            <div class="text-danger">
+                                {{ form.specialties.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            تخصص‌ها و مهارت‌های خود را با کاما جدا کنید (مثال: گرامر، مکالمه، آیلتس)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.experience_years.id_for_label }}">
+                            {{ form.experience_years.label }}
+                        </label>
+                        {{ form.experience_years }}
+                        {% if form.experience_years.errors %}
+                            <div class="text-danger">
+                                {{ form.experience_years.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            تعداد سال تجربه تدریس
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.experience_description.id_for_label }}">
+                            {{ form.experience_description.label }}
+                        </label>
+                        {{ form.experience_description }}
+                        {% if form.experience_description.errors %}
+                            <div class="text-danger">
+                                {{ form.experience_description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            توضیحات تجربه تدریس خود
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-graduation-cap"></i>
+                        تحصیلات
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.education_level.id_for_label }}">
+                                {{ form.education_level.label }}
+                            </label>
+                            {{ form.education_level }}
+                            {% if form.education_level.errors %}
+                                <div class="text-danger">
+                                    {{ form.education_level.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.education_field.id_for_label }}">
+                                {{ form.education_field.label }}
+                            </label>
+                            {{ form.education_field }}
+                            {% if form.education_field.errors %}
+                                <div class="text-danger">
+                                    {{ form.education_field.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.education_institution.id_for_label }}">
+                            {{ form.education_institution.label }}
+                        </label>
+                        {{ form.education_institution }}
+                        {% if form.education_institution.errors %}
+                            <div class="text-danger">
+                                {{ form.education_institution.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-clock"></i>
+                        زمان‌بندی فعالیت
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.availability_days.id_for_label }}">
+                                {{ form.availability_days.label }}
+                            </label>
+                            {{ form.availability_days }}
+                            {% if form.availability_days.errors %}
+                                <div class="text-danger">
+                                    {{ form.availability_days.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                روزهای هفته که در دسترس هستید
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.availability_hours.id_for_label }}">
+                                {{ form.availability_hours.label }}
+                            </label>
+                            {{ form.availability_hours }}
+                            {% if form.availability_hours.errors %}
+                                <div class="text-danger">
+                                    {{ form.availability_hours.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                ساعات روز که در دسترس هستید
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-share-alt"></i>
+                        شبکه‌های اجتماعی
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.telegram_username.id_for_label }}">
+                                {{ form.telegram_username.label }}
+                            </label>
+                            {{ form.telegram_username }}
+                            {% if form.telegram_username.errors %}
+                                <div class="text-danger">
+                                    {{ form.telegram_username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.whatsapp_number.id_for_label }}">
+                                {{ form.whatsapp_number.label }}
+                            </label>
+                            {{ form.whatsapp_number }}
+                            {% if form.whatsapp_number.errors %}
+                                <div class="text-danger">
+                                    {{ form.whatsapp_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.instagram_username.id_for_label }}">
+                                {{ form.instagram_username.label }}
+                            </label>
+                            {{ form.instagram_username }}
+                            {% if form.instagram_username.errors %}
+                                <div class="text-danger">
+                                    {{ form.instagram_username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.linkedin_username.id_for_label }}">
+                                {{ form.linkedin_username.label }}
+                            </label>
+                            {{ form.linkedin_username }}
+                            {% if form.linkedin_username.errors %}
+                                <div class="text-danger">
+                                    {{ form.linkedin_username.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                نام کاربری یا URL پروفایل لینکدین خود را وارد کنید
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn-profile btn-primary">
+                        <i class="fas fa-save"></i>
+                        ذخیره تغییرات
+                    </button>
+                    <a href="{% url 'dashboard:teacher_dashboard' %}" class="btn-profile btn-secondary">
+                        <i class="fas fa-arrow-right"></i>
+                        بازگشت به داشبورد
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+    
+    // Form validation
+    const form = document.querySelector('.profile-form');
+    form.addEventListener('submit', function(e) {
+        const bio = document.getElementById('id_bio');
+        const specialties = document.getElementById('id_specialties');
+        
+        if (bio.value.trim().length < 50) {
+            e.preventDefault();
+            alert('لطفاً بیوگرافی خود را حداقل 50 کاراکتر بنویسید.');
+            bio.focus();
+            return false;
+        }
+        
+        if (specialties.value.trim().length < 10) {
+            e.preventDefault();
+            alert('لطفاً تخصص‌های خود را با حداقل 10 کاراکتر بنویسید.');
+            specialties.focus();
+            return false;
+        }
+    });
+    
+    // Real-time character count for bio
+    const bioField = document.getElementById('id_bio');
+    if (bioField) {
+        const charCount = document.createElement('small');
+        charCount.className = 'form-text text-muted';
+        charCount.style.float = 'left';
+        bioField.parentNode.appendChild(charCount);
+        
+        function updateCharCount() {
+            const length = bioField.value.length;
+            charCount.textContent = `${length} کاراکتر (حداقل 50 کاراکتر)`;
+            charCount.style.color = length >= 50 ? '#28a745' : '#dc3545';
+        }
+        
+        bioField.addEventListener('input', updateCharCount);
+        updateCharCount();
+    }
+});
+</script>
+{% endblock %}

@@ -148,6 +148,31 @@
         box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
     }
 
+    .form-section input[type="file"] {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-section input[type="file"]:focus {
+        outline: none;
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .form-section .text-muted {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #64748b;
+    }
+
     .action-buttons {
         display: flex;
         gap: 15px;
@@ -322,14 +347,20 @@
                     مراحل ثبت‌نام
                 </h4>
                 <ul>
-                    <li><strong>مرحله ۱:</strong> تأیید ثبت‌نام و ایجاد درخواست</li>
-                    <li><strong>مرحله ۲:</strong> آپلود فیش واریزی شهریه</li>
-                    <li><strong>مرحله ۳:</strong> بررسی توسط مدیریت و تأیید نهایی</li>
-                    <li><strong>توجه:</strong> پس از تأیید نهایی، یک صندلی از ظرفیت دوره کم می‌شود</li>
+                    {% if course.is_free %}
+                        <li><strong>مرحله ۱:</strong> تأیید ثبت‌نام و ایجاد درخواست</li>
+                        <li><strong>مرحله ۲:</strong> بررسی توسط مدیریت و تأیید نهایی</li>
+                        <li><strong>توجه:</strong> این دوره رایگان است و نیازی به پرداخت شهریه ندارید</li>
+                    {% else %}
+                        <li><strong>مرحله ۱:</strong> تأیید ثبت‌نام و ایجاد درخواست</li>
+                        <li><strong>مرحله ۲:</strong> آپلود فیش واریزی شهریه</li>
+                        <li><strong>مرحله ۳:</strong> بررسی توسط مدیریت و تأیید نهایی</li>
+                        <li><strong>توجه:</strong> پس از تأیید نهایی، یک صندلی از ظرفیت دوره کم می‌شود</li>
+                    {% endif %}
                 </ul>
             </div>
 
-            <form method="post" id="enrollmentForm">
+            <form method="post" id="enrollmentForm" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="form-section">
@@ -338,6 +369,19 @@
                     </label>
                     <textarea name="note" placeholder="در صورت داشتن سوال یا نیاز به توضیح اضافی، در اینجا بنویسید..."></textarea>
                 </div>
+
+                {% if not course.is_free %}
+                <div class="form-section">
+                    <label>
+                        <i class="fas fa-receipt me-2"></i>فیش واریزی (الزامی)
+                    </label>
+                    <input type="file" name="payment_receipt" accept="image/*,.pdf" required class="form-control">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        تصویر یا PDF فیش واریزی خود را آپلود کنید (حداکثر ۵ مگابایت)
+                    </small>
+                </div>
+                {% endif %}
 
                 <div class="action-buttons">
                     <button type="submit" class="btn-submit" id="submitBtn">

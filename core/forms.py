@@ -1,5 +1,5 @@
 from django import forms
-from .models import AdviceRequest, DeterminationRequest, RequestCourse, CollabrateRequest
+from .models import AdviceRequest, DeterminationRequest, RequestCourse, CollabrateRequest, ContactMessage
 
 
 class AdviceRequestForm(forms.ModelForm):
@@ -121,3 +121,54 @@ class RequestCourseForm(forms.ModelForm):
                 'placeholder': 'توضیحات بیشتر درباره دوره مورد نظر'
             })
         }
+
+
+class ContactMessageForm(forms.ModelForm):
+    """فرم تماس با ما"""
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'phone', 'subject', 'message']
+        labels = {
+            'name': 'نام و نام خانوادگی',
+            'email': 'ایمیل',
+            'phone': 'شماره تماس',
+            'subject': 'موضوع پیام',
+            'message': 'متن پیام',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام و نام خانوادگی خود را وارد کنید',
+                'required': True
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'آدرس ایمیل خود را وارد کنید',
+                'required': True
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789',
+                'pattern': '[0-9]{11}',
+            }),
+            'subject': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'موضوع پیام خود را بنویسید',
+                'required': True
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'پیام خود را اینجا بنویسید...',
+                'required': True
+            })
+        }
+    
+    def clean_phone(self):
+        """اعتبارسنجی شماره تلفن"""
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('شماره تلفن باید فقط شامل اعداد باشد.')
+        if phone and len(phone) != 11:
+            raise forms.ValidationError('شماره تلفن باید 11 رقم باشد.')
+        return phone

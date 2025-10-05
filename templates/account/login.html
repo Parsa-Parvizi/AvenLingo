@@ -484,7 +484,7 @@ input[type="text"].form-control[id*="password"] {
                             <span class="toggle-label">{{ form.remember_me.label }}</span>
                             <span class="toggle-slider"></span>
                         </label>
-                        <a href="{% url 'account:password_reset' %}" style="color: var(--color-primary, #1F3A93); text-decoration: none; font-size: 0.95rem; font-weight: 500;">
+                        <a style="color: var(--color-primary, #1F3A93); text-decoration: none; font-size: 0.95rem; font-weight: 500;">
                             فراموشی رمز عبور؟
                         </a>
                     </div>
@@ -502,7 +502,7 @@ input[type="text"].form-control[id*="password"] {
                     <a href="{% url 'account:student_register' %}" class="auth-link primary">
                         ثبت‌نام دانش‌آموز
                     </a>
-                    <a href="{% url 'account:teacher_apply' %}" class="auth-link secondary">
+                    <a href="{% url 'core:collaborate' %}" class="auth-link secondary">
                         درخواست همکاری مدرس
                     </a>
                 </div>

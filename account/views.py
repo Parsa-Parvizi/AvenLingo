@@ -133,7 +133,7 @@ class TeacherRegistrationView(CreateView):
                 request, 
                 'درخواست تایید شده‌ای برای این ایمیل یافت نشد یا منقضی شده است.'
             )
-            return redirect('account:teacher_apply')
+            return redirect('core:collaborate')
         
         # Check if teacher account already exists
         if Teacher.objects.filter(application=self.application).exists():
@@ -478,7 +478,7 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         except Teacher.DoesNotExist:
             if request.user.user_type == 'teacher':
                 messages.error(request, 'حساب مدرس شما هنوز تکمیل/تایید نشده است. لطفاً پس از تایید ادمین ثبت‌نام مدرس را تکمیل کنید.')
-                return redirect('account:teacher_apply')
+                return redirect('core:collaborate')
         return super().dispatch(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
@@ -565,7 +565,7 @@ class TeacherApplicationView(CreateView):
     """Enhanced teacher application view with improved validation"""
     model = TeacherApplication
     form_class = TeacherApplicationForm
-    template_name = 'account/teacher_apply.html'
+    template_name = 'core/collabrate.html'
     success_url = reverse_lazy('account:teacher_apply_success')
     
     def get_form_kwargs(self):
@@ -884,15 +884,46 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_object(self):
         return get_object_or_404(Student, user=self.request.user)
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.get_object()
+        
+        # Add profile edit limitation info to context
+        context['can_edit_profile'] = student.can_edit_profile_today()
+        context['remaining_edits'] = student.get_remaining_edits_today()
+        context['daily_edits_used'] = student.daily_profile_edits
+        
+        return context
+    
     def form_valid(self, form):
         try:
+            student = self.get_object()
+            
+            # Check if student can edit profile today (max 5 edits per day)
+            if not student.can_edit_profile_today():
+                remaining_edits = student.get_remaining_edits_today()
+                messages.error(
+                    self.request, 
+                    f'شما امروز بیش از ۵ بار پروفایل خود را ویرایش کرده‌اید. لطفاً فردا دوباره تلاش کنید.',
+                    extra_tags='profile_limit'
+                )
+                return redirect('dashboard:student_dashboard')
+            
             # Use service layer for profile updates
-            student = UserProfileService.update_student_profile(
-                student=self.get_object(),
+            updated_student = UserProfileService.update_student_profile(
+                student=student,
                 **form.cleaned_data
             )
             
-            messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.', extra_tags='profile')
+            # Increment the daily edit count
+            updated_student.increment_profile_edit_count()
+            
+            remaining_edits = updated_student.get_remaining_edits_today()
+            messages.success(
+                self.request, 
+                f'پروفایل شما با موفقیت بروزرسانی شد. {remaining_edits} ویرایش دیگر امروز باقی مانده است.',
+                extra_tags='profile'
+            )
             return redirect(self.success_url)
             
         except Exception as e:
@@ -1026,7 +1057,7 @@ def check_teacher_registration(request, email):
                 request,
                 'درخواست تایید شده‌ای برای این ایمیل یافت نشد یا منقضی شده است.'
             )
-            return redirect('account:teacher_apply')
+            return redirect('core:collaborate')
         
         # Check if teacher account already exists
         if Teacher.objects.filter(application=application).exists():
@@ -1038,5 +1069,5 @@ def check_teacher_registration(request, email):
     except Exception as e:
         logger.error(f'Error checking teacher registration eligibility: {str(e)}')
         messages.error(request, 'خطا در بررسی واجد شرایط بودن.')
-        return redirect('account:teacher_apply')
+        return redirect('account:collaborate')
 

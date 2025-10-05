@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}فعالیت‌های اخیر{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+.activities-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+.activities-header {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.activities-list {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.activity-item {
+    padding: 20px 25px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: #f8f9fa;
+}
+
+.activity-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.assignment {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+}
+
+.activity-icon.enrollment {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.activity-icon.grading {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.activity-icon.course {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.activity-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.activity-time {
+    color: #999;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.activity-type-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.activity-type-badge.assignment {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.activity-type-badge.enrollment {
+    background: #d4edda;
+    color: #155724;
+}
+
+.activity-type-badge.grading {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.activity-type-badge.course {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.empty-activities {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-activities i {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-top: 4px solid var(--color-primary);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .activity-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="activities-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="activities-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-2">
+                        <i class="fas fa-clock me-2"></i>
+                        فعالیت‌های اخیر
+                    </h2>
+                    <p class="mb-0 opacity-75">مشاهده آخرین فعالیت‌های شما در سیستم</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'teacher:dashboard' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        بازگشت به داشبورد
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-number">{{ activities|length }}</div>
+                <div class="stat-label">کل فعالیت‌ها</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ activities|length }}</div>
+                <div class="stat-label">امروز</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4</div>
+                <div class="stat-label">انواع فعالیت</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">نرخ فعالیت</div>
+            </div>
+        </div>
+
+        <!-- Activities List -->
+        {% if activities %}
+            <div class="activities-list">
+                {% for activity in activities %}
+                <div class="activity-item">
+                    <div class="activity-icon {{ activity.type }}">
+                        <i class="{{ activity.icon }}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="d-flex align-items-center">
+                            <h6 class="activity-title mb-0">{{ activity.title }}</h6>
+                            <span class="activity-type-badge {{ activity.type }}">
+                                {% if activity.type == 'assignment' %}
+                                    تکلیف
+                                {% elif activity.type == 'enrollment' %}
+                                    ثبت‌نام
+                                {% elif activity.type == 'grading' %}
+                                    تصحیح
+                                {% elif activity.type == 'course' %}
+                                    دوره
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="activity-description mb-0">{{ activity.description }}</p>
+                        <div class="activity-time">
+                            <i class="fas fa-clock"></i>
+                            {{ activity.created_at|date:"Y/m/d H:i" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-activities">
+                <i class="fas fa-clock"></i>
+                <h4>هنوز فعالیتی ثبت نشده است</h4>
+                <p>فعالیت‌های شما اینجا نمایش داده می‌شوند</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

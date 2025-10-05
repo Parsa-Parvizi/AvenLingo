@@ -2,11 +2,15 @@
 {% load static %}
 
 {% block title %}
-    {% if about.title %}{{ about.title }}{% else %}درباره ما{% endif %} | {{ company_info.company_name|default:"آکادمی زبان انگلیسی" }}
+    About Us |
 {% endblock %}
 
 {% block meta_description %}
-    {% if about.meta_description %}{{ about.meta_description }}{% else %}آکادمی زبان انگلیسی با سال‌ها تجربه در آموزش زبان انگلیسی{% endif %}
+    درباره ما 
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/aboutus.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -24,7 +28,7 @@
                                 {% if about.title %}
                                     {{ about.title }}
                                 {% else %}
-                                    درباره آکادمی زبان انگلیسی
+                                    درباره آکادمی زبان آون
                                 {% endif %}
                             </h1>
                             
@@ -34,35 +38,22 @@
                             
                             <div class="stats-preview">
                                 <div class="stat-item">
-                                    <span class="stat-number">{{ about.students_count|default:"۱۰۰۰+" }}</span>
+                                    <span class="stat-number counter" data-target="{{ about.students_count|default:"100" }}">0</span>
                                     <span class="stat-label">دانش‌آموز</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-number">{{ about.teachers_count|default:"۲۰+" }}</span>
+                                    <span class="stat-number counter" data-target="{{ about.teachers_count|default:"10" }}">0</span>
                                     <span class="stat-label">استاد مجرب</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-number">{{ about.courses_count|default:"۵۰+" }}</span>
+                                    <span class="stat-number counter" data-target="{{ about.courses_count|default:"30" }}">0</span>
                                     <span class="stat-label">دوره آموزشی</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-number">{{ about.experience_years|default:"۱۰+" }}</span>
+                                    <span class="stat-number counter" data-target="{{ about.experience_years|default:"5" }}">0</span>
                                     <span class="stat-label">سال تجربه</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-lg-6">
-                        <div class="hero-image">
-                            {% if about.main_image %}
-                                <img src="{{ about.main_image.url }}" alt="{{ about.title }}" class="img-fluid">
-                            {% else %}
-                                <div class="placeholder-image">
-                                    <i class="fas fa-graduation-cap"></i>
-                                    <p>تصویر آکادمی</p>
-                                </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -120,34 +111,6 @@
                 <!-- Sidebar -->
                 <div class="col-lg-4">
                     <div class="about-sidebar">
-                        
-                        <!-- Stats Card -->
-                        <div class="stats-card">
-                            <h3>آمار و ارقام</h3>
-                            <div class="stats-list">
-                                <div class="stat-row">
-                                    <span class="stat-icon"><i class="fas fa-users"></i></span>
-                                    <span class="stat-text">دانش‌آموزان فعال</span>
-                                    <span class="stat-value">{{ about.students_count|default:"۱۰۰۰+" }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></span>
-                                    <span class="stat-text">اساتید مجرب</span>
-                                    <span class="stat-value">{{ about.teachers_count|default:"۲۰+" }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-icon"><i class="fas fa-book"></i></span>
-                                    <span class="stat-text">دوره‌های آموزشی</span>
-                                    <span class="stat-value">{{ about.courses_count|default:"۵۰+" }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
-                                    <span class="stat-text">سال‌های تجربه</span>
-                                    <span class="stat-value">{{ about.experience_years|default:"۱۰+" }}</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Team Image -->
                         {% if about.team_image %}
                             <div class="team-card">
@@ -220,315 +183,74 @@
                 <p>از همین امروز مسیر یادگیری زبان انگلیسی خود را با ما آغاز کنید</p>
                 <div class="cta-buttons">
                     <a href="{% url 'course:all-courses' %}" class="btn btn-primary">مشاهده دوره‌ها</a>
-                    <a href="{% url 'core:determination' %}" class="btn btn-outline">تعیین سطح</a>
+                    <a href="{% url 'core:determination' %}" class="btn btn-primary">درخواست تعیین سطح</a>
                 </div>
             </div>
         </div>
     </section>
 </div>
-
-<!-- Styles -->
-<style>
-.about-page {
-    padding-top: 20px;
-}
-
-.about-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 80px 0;
-    margin-bottom: 50px;
-}
-
-.page-title {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-.hero-subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    opacity: 0.9;
-}
-
-.stats-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-number {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #ffd700;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.hero-image {
-    text-align: center;
-}
-
-.placeholder-image {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 60px;
-    text-align: center;
-}
-
-.placeholder-image i {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    opacity: 0.7;
-}
-
-.about-content {
-    padding: 50px 0;
-}
-
-.content-main h2 {
-    color: #333;
-    margin-bottom: 30px;
-    font-weight: 600;
-}
-
-.text-content {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #555;
-    margin-bottom: 40px;
-}
-
-.mvv-section {
-    margin-top: 50px;
-}
-
-.mvv-item {
-    margin-bottom: 40px;
-    padding: 30px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    border-right: 4px solid #667eea;
-}
-
-.mvv-item h3 {
-    color: #333;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-}
-
-.mvv-item h3 i {
-    margin-left: 10px;
-    color: #667eea;
-}
-
-.about-sidebar {
-    padding-right: 30px;
-}
-
-.stats-card, .team-card, .contact-cta {
-    background: white;
-    border-radius: 10px;
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.stats-card h3, .team-card h4, .contact-cta h4 {
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.stat-row {
-    display: flex;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.stat-row:last-child {
-    border-bottom: none;
-}
-
-.stat-icon {
-    width: 40px;
-    color: #667eea;
-}
-
-.stat-text {
-    flex: 1;
-    margin-right: 15px;
-}
-
-.stat-value {
-    font-weight: 600;
-    color: #333;
-}
-
-.team-card img {
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.contact-cta p {
-    margin-bottom: 20px;
-    color: #666;
-}
-
-.btn {
-    display: inline-block;
-    padding: 12px 30px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    margin: 5px;
-}
-
-.btn-primary {
-    background: #667eea;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #5a67d8;
-    transform: translateY(-2px);
-}
-
-.btn-outline {
-    border: 2px solid #667eea;
-    color: #667eea;
-}
-
-.btn-outline:hover {
-    background: #667eea;
-    color: white;
-}
-
-.about-testimonials {
-    background: #f8f9fa;
-    padding: 80px 0;
-}
-
-.section-title {
-    text-align: center;
-    margin-bottom: 50px;
-    color: #333;
-    font-weight: 600;
-}
-
-.testimonial-card {
-    background: white;
-    border-radius: 10px;
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.rating {
-    margin-bottom: 15px;
-}
-
-.rating i {
-    color: #ffd700;
-    margin-left: 2px;
-}
-
-.testimonial-content p {
-    font-style: italic;
-    margin-bottom: 20px;
-    color: #555;
-}
-
-.testimonial-author {
-    display: flex;
-    align-items: center;
-}
-
-.testimonial-author img,
-.avatar-placeholder {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-left: 15px;
-}
-
-.avatar-placeholder {
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #adb5bd;
-}
-
-.author-info h5 {
-    margin: 0;
-    color: #333;
-}
-
-.author-info span {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.about-cta {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 80px 0;
-    text-align: center;
-}
-
-.cta-content h2 {
-    margin-bottom: 20px;
-    font-weight: 600;
-}
-
-.cta-content p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    opacity: 0.9;
-}
-
-.cta-buttons .btn {
-    background: white;
-    color: #667eea;
-    margin: 10px;
-}
-
-.cta-buttons .btn:hover {
-    background: #f8f9fa;
-    transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
+<script>
+// Counter Animation with Easing
+function animateCounter(element) {
+    const target = parseInt(element.getAttribute('data-target'));
+    const duration = 2000; // 2 seconds
+    const startTime = performance.now();
+    
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersianNumber(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return num.toString().replace(/\d/g, digit => persianDigits[digit]);
     }
     
-    .stats-preview {
-        justify-content: center;
-        gap: 20px;
+    // Easing function (ease-out)
+    function easeOutQuad(t) {
+        return t * (2 - t);
     }
     
-    .about-sidebar {
-        padding-right: 15px;
-        margin-top: 40px;
+    function updateCounter(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutQuad(progress);
+        const current = Math.floor(easedProgress * target);
+        
+        if (progress < 1) {
+            element.textContent = toPersianNumber(current);
+            requestAnimationFrame(updateCounter);
+        } else {
+            element.textContent = toPersianNumber(target) + '+';
+        }
     }
     
-    .cta-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
+    requestAnimationFrame(updateCounter);
 }
-</style>
+
+// Intersection Observer برای شروع انیمیشن وقتی عنصر در viewport است
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const counters = entry.target.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                if (!counter.classList.contains('animated')) {
+                    counter.classList.add('animated');
+                    animateCounter(counter);
+                }
+            });
+            observer.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+// مشاهده قسمت hero
+document.addEventListener('DOMContentLoaded', () => {
+    const statsPreview = document.querySelector('.stats-preview');
+    if (statsPreview) {
+        observer.observe(statsPreview);
+    }
+});
+</script>
 {% endblock %}

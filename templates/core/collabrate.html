@@ -5,17 +5,52 @@
 * { 
     font-family: 'Vazir', sans-serif !important; 
 } 
+
+.page-section {
+    background: white;
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: #333;
+}
+
+.page-section h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
 .collabrate-form { 
     direction: rtl; 
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 } 
+
 .collabrate-form button { 
     display: block; 
     margin: 20px auto; 
     text-align: center; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 } 
+
+.collabrate-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
 .success-message { 
     color: #198754; 
     text-align: center; 
@@ -23,32 +58,53 @@
     font-size: 1.1rem; 
     font-family: 'Vazir', sans-serif; 
 }
+
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
+
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
 }
+
 .form-control {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 12px 15px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
     font-size: 14px;
     direction: rtl;
+    background: #fff;
+    color: #333;
+    transition: all 0.3s ease;
 }
+
 .form-control:focus {
-    border-color: #007bff;
+    border-color: #667eea;
     outline: none;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: #fff;
 }
+
+.form-control::placeholder {
+    color: #999;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
 .file-upload-info {
     font-size: 12px;
     color: #666;
     margin-top: 5px;
 }
+
 .file-preview {
     margin-top: 10px;
     padding: 10px;
@@ -57,11 +113,13 @@
     border: 1px solid #e9ecef;
     display: none;
 }
+
 .file-info {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
+
 .btn-remove {
     background: #dc3545;
     color: white;
@@ -71,6 +129,26 @@
     font-size: 12px;
     cursor: pointer;
 }
+
+/* Error messages */
+.form-group .text-danger {
+    color: #dc3545 !important;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .collabrate-form {
+        margin: 0 10px;
+        padding: 20px;
+    }
+    
+    .page-section h1 {
+        font-size: 2rem;
+    }
+}
 </style>
 <div class="page-section">
   <h1>درخواست همکاری</h1>
@@ -78,10 +156,18 @@
     {% csrf_token %}
     
     <div class="form-group">
-        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-        {{ form.name }}
-        {% if form.name.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.name.errors.0 }}</div>
+        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.first_name.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.last_name.errors.0 }}</div>
         {% endif %}
     </div>
     
@@ -94,24 +180,56 @@
     </div>
     
     <div class="form-group">
-        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
-        {{ form.phone }}
-        {% if form.phone.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.phone.errors.0 }}</div>
+        <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+        {{ form.phone_number }}
+        {% if form.phone_number.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.phone_number.errors.0 }}</div>
         {% endif %}
     </div>
     
     <div class="form-group">
-        <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
-        {{ form.message }}
-        {% if form.message.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.message.errors.0 }}</div>
+        <label for="{{ form.education.id_for_label }}">{{ form.education.label }}</label>
+        {{ form.education }}
+        {% if form.education.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.education.errors.0 }}</div>
         {% endif %}
     </div>
     
     <div class="form-group">
-        <label for="{{ form.resume.id_for_label }}">{{ form.resume.label }} (اختیاری)</label>
-        {{ form.resume }}
+        <label for="{{ form.experience.id_for_label }}">{{ form.experience.label }}</label>
+        {{ form.experience }}
+        {% if form.experience.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.experience.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.certifications.id_for_label }}">{{ form.certifications.label }}</label>
+        {{ form.certifications }}
+        {% if form.certifications.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.certifications.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.specialties.id_for_label }}">{{ form.specialties.label }}</label>
+        {{ form.specialties }}
+        {% if form.specialties.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.specialties.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.motivation.id_for_label }}">{{ form.motivation.label }}</label>
+        {{ form.motivation }}
+        {% if form.motivation.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.motivation.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.cv_file.id_for_label }}">{{ form.cv_file.label }}</label>
+        {{ form.cv_file }}
         <div class="file-upload-info">
             فرمت مجاز: PDF | حداکثر حجم: 5 مگابایت
         </div>
@@ -121,8 +239,8 @@
                 <button type="button" class="btn-remove" onclick="removeFile()">حذف</button>
             </div>
         </div>
-        {% if form.resume.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.resume.errors.0 }}</div>
+        {% if form.cv_file.errors %}
+            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.cv_file.errors.0 }}</div>
         {% endif %}
     </div>
     
@@ -135,7 +253,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('{{ form.resume.id_for_label }}');
+    const fileInput = document.getElementById('{{ form.cv_file.id_for_label }}');
     const filePreview = document.getElementById('filePreview');
     const fileName = document.getElementById('fileName');
     
@@ -168,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function removeFile() {
-    const fileInput = document.getElementById('{{ form.resume.id_for_label }}');
+    const fileInput = document.getElementById('{{ form.cv_file.id_for_label }}');
     const filePreview = document.getElementById('filePreview');
     
     fileInput.value = '';

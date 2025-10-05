@@ -62,10 +62,20 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         from enrollment.models import Enrollment
         from course.models import Course
 
-        enrollments = Enrollment.objects.filter(student=student).select_related('course', 'course__teacher', 'course__category').order_by('-enrolled_at')
+        # Get all enrollments for the student
+        enrollments = Enrollment.objects.filter(student=student).select_related(
+            'course', 'course__teacher', 'course__category'
+        ).order_by('-enrolled_at')
+        
+        # Get confirmed enrollments for "My Courses" section (only confirmed courses)
+        confirmed_enrollments_queryset = enrollments.filter(status='confirmed').select_related(
+            'course', 'course__teacher', 'course__category'
+        ).order_by('-enrolled_at')
+        
         context['enrollments'] = enrollments
+        context['confirmed_enrollments'] = confirmed_enrollments_queryset
         context['total_enrollments'] = enrollments.count()
-        context['confirmed_enrollments'] = enrollments.filter(status='confirmed').count()
+        context['confirmed_enrollments_count'] = enrollments.filter(status='confirmed').count()
         context['pending_enrollments'] = enrollments.filter(status='pending').count()
         context['cancelled_enrollments'] = enrollments.filter(status='cancelled').count()
         context['completed_enrollments'] = enrollments.filter(status='completed').count()
@@ -81,20 +91,23 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         context['stats'] = {
             'profile_completion': student.get_profile_completion_percentage(),
             'total_courses': enrollments.count(),
-            'active_courses': enrollments.filter(status='confirmed').count(),
-            'pending_courses': enrollments.filter(status='pending').count(),
-            'completed_courses': enrollments.filter(status='completed').count(),
+            'active_courses': context['confirmed_enrollments_count'],
+            'pending_courses': context['pending_enrollments'],
+            'completed_courses': context['completed_enrollments'],
         }
 
-        enrolled_course_ids = enrollments.filter(
-            status__in=['pending', 'confirmed']
-        ).values_list('course_id', flat=True)
+        # Get enrolled course IDs to exclude from suggestions
+        enrolled_course_ids = enrollments.values_list('course_id', flat=True)
+        
+        # Get suggested courses (excluding already enrolled ones)
+        # Prioritize recent courses and featured courses
         available_courses = Course.objects.filter(
             is_active=True,
             status='published'
         ).exclude(id__in=enrolled_course_ids).select_related(
             'teacher__user', 'category'
-        ).order_by('-created_at')[:6]
+        ).order_by('-is_featured', '-created_at')[:6]
+        
         context['available_courses'] = available_courses
 
         try:
@@ -104,11 +117,12 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         except Exception:
             context['dashboard_content'] = None
 
-        total_confirmed = context['confirmed_enrollments'] + context['completed_enrollments']
+        # Calculate learning progress
+        total_confirmed = context['confirmed_enrollments_count'] + context['completed_enrollments']
         if total_confirmed > 0:
             context['learning_progress'] = {
                 'completion_rate': int((context['completed_enrollments'] / total_confirmed) * 100),
-                'active_rate': int((context['confirmed_enrollments'] / total_confirmed) * 100),
+                'active_rate': int((context['confirmed_enrollments_count'] / total_confirmed) * 100),
             }
         else:
             context['learning_progress'] = {'completion_rate': 0, 'active_rate': 0}
@@ -134,7 +148,7 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         except Teacher.DoesNotExist:
             if request.user.user_type == 'teacher':
                 messages.error(request, 'حساب مدرس شما هنوز تکمیل/تایید نشده است. لطفاً پس از تایید ادمین ثبت‌نام مدرس را تکمیل کنید.')
-                return redirect('account:teacher_apply')
+                return redirect('core:collaborate')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

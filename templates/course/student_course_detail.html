@@ -1,0 +1,620 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}| {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+/* Assignment Styles */
+.assignment-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    border-right: 4px solid var(--color-primary);
+}
+
+.assignment-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.assignment-header {
+    margin-bottom: 15px;
+}
+
+.assignment-title {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.assignment-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.assignment-type-homework {
+    background: #d4edda;
+    color: #155724;
+}
+
+.assignment-type-quiz {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.assignment-type-project {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.assignment-type-exam {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.assignment-points {
+    color: #ffc107;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.assignment-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.assignment-info .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.assignment-info .info-item i {
+    color: var(--color-primary);
+    width: 16px;
+}
+
+.assignment-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.assignment-actions .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+}
+
+.submission-status {
+    margin-top: 10px;
+}
+
+.submission-status .badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+}
+
+.empty-assignments {
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px dashed #dee2e6;
+}
+.course-header {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.course-info-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.teacher-info {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.teacher-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 20px;
+    border: 4px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.course-schedule {
+    background: var(--color-background);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border-right: 4px solid var(--color-primary);
+}
+
+.schedule-item:last-child {
+    margin-bottom: 0;
+}
+
+.schedule-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+}
+
+.course-content {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.content-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.content-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.progress-card {
+    background: linear-gradient(135deg, var(--color-highlight), var(--color-primary));
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+}
+
+.progress-circle {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .course-header {
+        padding: 20px 0;
+        text-align: center;
+    }
+    
+    .teacher-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .teacher-avatar {
+        margin: 0 0 15px 0;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Course Header -->
+<div class="course-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="mb-3">{{ course.title }}</h1>
+                <p class="lead mb-0">{{ course.short_description|default:course.description|truncatewords:20 }}</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="course-status">
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-check-circle me-2"></i>دوره فعال
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Course Information -->
+            <div class="course-info-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    اطلاعات دوره
+                </h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-calendar me-2"></i>تاریخ شروع:</strong>
+                            <span class="text-muted">
+                                {% if course.start_date %}
+                                    {{ course.start_date|date:"Y/m/d" }}
+                                {% else %}
+                                    تعیین نشده
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-clock me-2"></i>زمان کلاس:</strong>
+                            <span class="text-muted">
+                                {% if course.class_time %}
+                                    {{ course.class_time }}
+                                {% else %}
+                                    تعیین نشده
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-users me-2"></i>ظرفیت:</strong>
+                            <span class="text-muted">{{ course.capacity }} نفر</span>
+                        </div>
+                        <div class="info-item mb-3">
+                            <strong><i class="fas fa-map-marker-alt me-2"></i>محل برگزاری:</strong>
+                            <span class="text-muted">
+                                {% if course.is_online %}
+                                    آنلاین
+                                {% elif course.location %}
+                                    {{ course.location }}
+                                {% else %}
+                                    تعیین نشده
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Content -->
+            <div class="course-content">
+                <h4 class="mb-4">
+                    <i class="fas fa-book me-2"></i>
+                    محتوای دوره
+                </h4>
+                
+                <div class="content-section">
+                    <h5><i class="fas fa-clipboard-list me-2"></i>توضیحات دوره</h5>
+                    <div class="course-description">
+                        {{ course.description|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h5><i class="fas fa-tasks me-2"></i>اهداف دوره</h5>
+                    <p class="text-muted">اهداف این دوره به زودی اضافه خواهد شد...</p>
+                </div>
+
+                <div class="content-section">
+                    <h5><i class="fas fa-play-circle me-2"></i>ویدیوهای آموزشی</h5>
+                    <p class="text-muted">ویدیوهای آموزشی به زودی در دسترس خواهد بود...</p>
+                </div>
+
+                <div class="content-section">
+                    <h5><i class="fas fa-file-alt me-2"></i>فایل‌های آموزشی</h5>
+                    <p class="text-muted">فایل‌های آموزشی به زودی در دسترس خواهد بود...</p>
+                </div>
+
+                <!-- Assignments Section -->
+                <div class="content-section">
+                    <h5><i class="fas fa-tasks me-2"></i>تکالیف و آزمون‌ها</h5>
+                    {% if assignments %}
+                        <div class="assignments-list">
+                            {% for assignment in assignments %}
+                            <div class="assignment-card mb-3">
+                                <div class="assignment-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="assignment-title mb-1">{{ assignment.title }}</h6>
+                                            <span class="assignment-type-badge assignment-type-{{ assignment.assignment_type }}">
+                                                {% if assignment.assignment_type == 'homework' %}
+                                                    <i class="fas fa-home me-1"></i>تکلیف خانگی
+                                                {% elif assignment.assignment_type == 'quiz' %}
+                                                    <i class="fas fa-question-circle me-1"></i>آزمون کوتاه
+                                                {% elif assignment.assignment_type == 'project' %}
+                                                    <i class="fas fa-project-diagram me-1"></i>پروژه
+                                                {% elif assignment.assignment_type == 'exam' %}
+                                                    <i class="fas fa-clipboard-check me-1"></i>امتحان
+                                                {% else %}
+                                                    <i class="fas fa-tasks me-1"></i>{{ assignment.get_assignment_type_display }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <span class="assignment-points">
+                                            <i class="fas fa-star me-1"></i>{{ assignment.total_points }} امتیاز
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="assignment-body">
+                                    {% if assignment.description %}
+                                        <p class="assignment-description">{{ assignment.description|truncatechars:150 }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="assignment-info">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span>مهلت ارسال: {{ assignment.due_date|date:"Y/m/d H:i" }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <span>نمره قبولی: {{ assignment.passing_score }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="assignment-actions mt-3">
+                                        <a href="{% url 'course:assignment_detail' assignment.id %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>مشاهده جزئیات
+                                        </a>
+                                        
+                                        {% if assignment.instruction_file %}
+                                            <a href="{% url 'course:assignment_download' assignment.id %}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-download me-1"></i>دانلود فایل
+                                            </a>
+                                        {% endif %}
+                                        
+                                        {% if assignment.can_submit %}
+                                            <a href="{% url 'course:assignment_submit' assignment.id %}" class="btn btn-success btn-sm">
+                                                <i class="fas fa-upload me-1"></i>ارسال تکلیف
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if assignment.submission_status %}
+                                        <div class="submission-status mt-2">
+                                            {% if assignment.submission_status == 'submitted' %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-clock me-1"></i>در انتظار تصحیح
+                                                </span>
+                                            {% elif assignment.submission_status == 'graded' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>تصحیح شده
+                                                    {% if assignment.submission_score %}
+                                                        ({{ assignment.submission_score }}/{{ assignment.total_points }})
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-assignments text-center py-4">
+                            <i class="fas fa-clipboard-list text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted">هنوز تکلیفی تعریف نشده است</h6>
+                            <p class="text-muted">تکالیف این دوره به زودی اضافه خواهد شد</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Teacher Information -->
+            <div class="teacher-info">
+                <img src="{% if teacher.profile_picture %}{{ teacher.profile_picture.url }}{% else %}{% static 'images/default-teacher.png' %}{% endif %}" 
+                     alt="{{ teacher.user.get_full_name }}" class="teacher-avatar">
+                <div>
+                    <h5 class="mb-1">{{ teacher.user.get_full_name }}</h5>
+                    <p class="text-muted mb-2">{{ teacher.specialization|default:"مدرس زبان انگلیسی" }}</p>
+                    <div class="teacher-rating">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <span class="ms-2">5.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Schedule -->
+            <div class="course-schedule">
+                <h5 class="mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    برنامه زمانی
+                </h5>
+                
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div>
+                        <strong>شروع دوره</strong>
+                        <p class="mb-0 text-muted">
+                            {% if course.start_date %}
+                                {{ course.start_date|date:"Y/m/d" }}
+                            {% else %}
+                                تعیین نشده
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <strong>زمان کلاس</strong>
+                        <p class="mb-0 text-muted">
+                            {% if course.class_time %}
+                                {{ course.class_time }}
+                            {% else %}
+                                تعیین نشده
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-stop"></i>
+                    </div>
+                    <div>
+                        <strong>پایان دوره</strong>
+                        <p class="mb-0 text-muted">
+                            {% if course.end_date %}
+                                {{ course.end_date|date:"Y/m/d" }}
+                            {% else %}
+                                تعیین نشده
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Class Room Link -->
+                {% if course.class_room_link and course.is_online and enrollment.status == 'confirmed' %}
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div>
+                        <strong>لینک کلاس آنلاین</strong>
+                        <div class="mt-2">
+                            <a href="{{ course.class_room_link }}" 
+                               target="_blank" 
+                               class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                ورود به کلاس
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>
+                            روی دکمه کلیک کنید تا وارد کلاس آنلاین شوید
+                        </small>
+                    </div>
+                </div>
+                {% elif course.class_room_link and not course.is_online %}
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <strong>لینک کلاس</strong>
+                        <p class="mb-0 text-muted">
+                            این دوره حضوری است - لینک کلاس فقط برای جلسات آنلاین استفاده می‌شود
+                        </p>
+                    </div>
+                </div>
+                {% elif course.is_online and enrollment.status != 'confirmed' %}
+                <div class="schedule-item">
+                    <div class="schedule-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div>
+                        <strong>لینک کلاس آنلاین</strong>
+                        <p class="mb-0 text-muted">
+                            پس از تأیید ثبت‌نام، لینک کلاس در دسترس خواهد بود
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-outline-light w-100">
+                    <i class="fas fa-arrow-right me-2"></i>بازگشت به داشبورد
+                </a>
+                
+                {% if enrollment.status == 'completed' %}
+                    <a href="{% url 'enrollment:enrollment_certificate' enrollment.id %}" class="btn btn-light w-100">
+                        <i class="fas fa-certificate me-2"></i>دانلود گواهی
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple progress animation
+document.addEventListener('DOMContentLoaded', function() {
+    const progressCircle = document.querySelector('.progress-ring circle:last-child');
+    const progressText = document.querySelector('.progress-text');
+    const percentage = parseInt(progressText.textContent);
+    
+    if (progressCircle && percentage > 0) {
+        const circumference = 2 * Math.PI * 54;
+        const offset = circumference - (percentage / 100) * circumference;
+        progressCircle.style.strokeDashoffset = circumference;
+        
+        setTimeout(() => {
+            progressCircle.style.transition = 'stroke-dashoffset 1s ease-in-out';
+            progressCircle.style.strokeDashoffset = offset;
+        }, 500);
+    }
+});
+</script>
+{% endblock %}

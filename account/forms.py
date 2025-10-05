@@ -891,19 +891,156 @@ class StudentProfileForm(forms.ModelForm):
 class TeacherProfileForm(forms.ModelForm):
     """Form for updating teacher profile"""
     
+    # User fields
+    first_name = forms.CharField(
+        label='نام',
+        max_length=30,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        label='نام خانوادگی',
+        max_length=30,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
     class Meta:
         model = Teacher
-        fields = ['bio', 'specialties', 'hourly_rate']
+        fields = [
+            'bio', 'specialties', 'date_of_birth',
+            'telegram_username', 'whatsapp_number', 'instagram_username', 'linkedin_username',
+            'education_level', 'education_field', 'education_institution',
+            'experience_years', 'experience_description',
+            'availability_days', 'availability_hours'
+        ]
         widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'specialties': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 4,
+                'placeholder': 'درباره خود، تجربه‌تان و روش تدریس خود بنویسید...'
+            }),
+            'specialties': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 3,
+                'placeholder': 'تخصص‌ها و مهارت‌های خود را با کاما جدا کنید...'
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'telegram_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '@username'
+            }),
+            'whatsapp_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789'
+            }),
+            'instagram_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '@username'
+            }),
+            'linkedin_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '@username یا URL پروفایل'
+            }),
+            'education_level': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'مثال: کارشناسی، کارشناسی ارشد، دکتری'
+            }),
+            'education_field': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'مثال: زبان انگلیسی، آموزش زبان'
+            }),
+            'education_institution': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام دانشگاه یا موسسه'
+            }),
+            'experience_years': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '50'
+            }),
+            'experience_description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'توضیحات تجربه تدریس خود...'
+            }),
+            'availability_days': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'روزهای هفته که در دسترس هستید...'
+            }),
+            'availability_hours': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'ساعات روز که در دسترس هستید...'
+            }),
         }
         labels = {
             'bio': 'بیوگرافی',
             'specialties': 'تخصص‌ها',
-            'hourly_rate': 'نرخ ساعتی (تومان)',
+            'date_of_birth': 'تاریخ تولد',
+            'telegram_username': 'نام کاربری تلگرام',
+            'whatsapp_number': 'شماره واتساپ',
+            'instagram_username': 'نام کاربری اینستاگرام',
+            'linkedin_username': 'نام کاربری لینکدین',
+            'education_level': 'سطح تحصیلات',
+            'education_field': 'رشته تحصیلات',
+            'education_institution': 'موسسه تحصیلات',
+            'experience_years': 'سال تجربه تدریس',
+            'experience_description': 'توضیحات تجربه',
+            'availability_days': 'روزهای فعالیت',
+            'availability_hours': 'ساعات فعالیت',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Initialize user fields with current values
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+    
+    def clean_bio(self):
+        """اعتبارسنجی بیوگرافی"""
+        bio = self.cleaned_data.get('bio', '').strip()
+        if bio and len(bio) < 50:
+            raise ValidationError('بیوگرافی باید حداقل 50 کاراکتر باشد.')
+        return bio
+    
+    def clean_specialties(self):
+        """اعتبارسنجی تخصص‌ها"""
+        specialties = self.cleaned_data.get('specialties', '').strip()
+        if specialties and len(specialties) < 10:
+            raise ValidationError('تخصص‌ها باید حداقل 10 کاراکتر باشد.')
+        return specialties
+    
+    
+    def clean_whatsapp_number(self):
+        """اعتبارسنجی شماره واتساپ"""
+        whatsapp = self.cleaned_data.get('whatsapp_number', '').strip()
+        if whatsapp:
+            # حذف کاراکترهای غیرعددی
+            whatsapp_clean = ''.join(filter(str.isdigit, whatsapp))
+            if len(whatsapp_clean) < 10 or len(whatsapp_clean) > 15:
+                raise ValidationError('شماره واتساپ باید بین 10 تا 15 رقم باشد.')
+            return whatsapp_clean
+        return whatsapp
+    
+    def save(self, commit=True):
+        """ذخیره پروفایل معلم با به‌روزرسانی اطلاعات کاربر"""
+        teacher = super().save(commit=False)
+        
+        # به‌روزرسانی اطلاعات کاربر
+        if teacher.user:
+            teacher.user.first_name = self.cleaned_data.get('first_name', '')
+            teacher.user.last_name = self.cleaned_data.get('last_name', '')
+            teacher.user.save(update_fields=['first_name', 'last_name'])
+        
+        if commit:
+            teacher.save()
+        
+        return teacher
 
 
 class CustomPasswordResetForm(EnhancedValidationMixin, PasswordResetForm):

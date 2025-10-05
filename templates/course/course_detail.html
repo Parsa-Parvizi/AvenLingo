@@ -92,9 +92,15 @@
         {% if user.is_authenticated and user.user_type == 'student' %}
           {% if user_enrollment %}
             {% if user_enrollment.status == 'pending' %}
-              <a href="{% url 'enrollment:upload-receipt' user_enrollment.id %}" class="btn btn-warning btn-large">
-                <i class="fas fa-upload me-2"></i>آپلود فیش واریزی
-              </a>
+              {% if not course.is_free %}
+                <a href="{% url 'enrollment:upload-receipt' user_enrollment.id %}" class="btn btn-warning btn-large">
+                  <i class="fas fa-upload me-2"></i>آپلود فیش واریزی
+                </a>
+              {% else %}
+                <button class="btn btn-warning btn-large" disabled>
+                  <i class="fas fa-clock me-2"></i>در انتظار تأیید
+                </button>
+              {% endif %}
               <p class="enrollment-status-text">ثبت‌نام شما در انتظار تأیید است</p>
             {% elif user_enrollment.status == 'confirmed' %}
               <button class="btn btn-success btn-large" disabled>
@@ -106,17 +112,31 @@
             {% else %}
               <button class="btn btn-secondary btn-large" disabled>{{ user_enrollment.get_status_display }}</button>
             {% endif %}
-          {% elif course.is_full %}
-            <button class="btn btn-secondary btn-large" disabled>
-              <i class="fas fa-times-circle me-2"></i>ظرفیت تکمیل شده
+          {% elif is_full %}
+            <button class="btn btn-large btn-disabled-full" disabled>
+              <i class="fas fa-users-slash me-2"></i>ظرفیت تکمیل شده
             </button>
+            <div class="capacity-full-info">
+              <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="title">ظرفیت این دوره تکمیل شده است</div>
+              <div class="subtitle">متأسفانه امکان ثبت‌نام در این دوره وجود ندارد</div>
+            </div>
+            <div class="waiting-list-suggestion">
+              <div class="icon">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="title">لیست انتظار</div>
+              <div class="subtitle">در صورت کنسل شدن ثبت‌نام‌ها، به شما اطلاع‌رسانی می‌شود</div>
+            </div>
           {% else %}
             <a href="{% url 'enrollment:enroll' course.slug %}" class="btn btn-primary btn-large">
               <i class="fas fa-user-plus me-2"></i>ثبت‌نام در دوره
             </a>
             <div class="available-seats-info mt-2">
               <i class="fas fa-users me-1"></i>
-              {{ course.available_seats }} صندلی خالی
+              {{ available_seats }} صندلی خالی
             </div>
           {% endif %}
         {% elif user.is_authenticated %}
@@ -129,6 +149,68 @@
           </a>
         {% endif %}
       </div>
+
+      <!-- Class Room Link -->
+      {% if course.class_room_link and course.is_online and user_enrollment and user_enrollment.status == 'confirmed' %}
+      <div class="class-room-section">
+        <h3>کلاس آنلاین</h3>
+        <div class="class-room-card">
+          <div class="class-room-info">
+            <i class="fas fa-video class-room-icon"></i>
+            <div>
+              <h4>لینک کلاس آنلاین</h4>
+              <p class="class-room-description">
+                برای شرکت در کلاس آنلاین روی دکمه زیر کلیک کنید
+              </p>
+            </div>
+          </div>
+          <a href="{{ course.class_room_link }}" 
+             target="_blank" 
+             class="btn btn-primary btn-large class-room-btn">
+            <i class="fas fa-external-link-alt me-2"></i>
+            ورود به کلاس
+          </a>
+        </div>
+        <small class="class-room-note">
+          <i class="fas fa-info-circle me-1"></i>
+          لینک کلاس در پنجره جدید باز می‌شود
+        </small>
+      </div>
+      {% elif course.class_room_link and course.is_online and user_enrollment and user_enrollment.status != 'confirmed' %}
+      <div class="class-room-section">
+        <h3>کلاس آنلاین</h3>
+        <div class="class-room-card">
+          <div class="class-room-info">
+            <i class="fas fa-lock class-room-icon"></i>
+            <div>
+              <h4>لینک کلاس آنلاین</h4>
+              <p class="class-room-description">
+                پس از تأیید ثبت‌نام، لینک کلاس آنلاین در دسترس خواهد بود
+              </p>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-large class-room-btn" disabled>
+            <i class="fas fa-lock me-2"></i>
+            در انتظار تأیید
+          </button>
+        </div>
+      </div>
+      {% elif course.class_room_link and not course.is_online %}
+      <div class="class-room-section">
+        <h3>کلاس آنلاین</h3>
+        <div class="class-room-card">
+          <div class="class-room-info">
+            <i class="fas fa-info-circle class-room-icon"></i>
+            <div>
+              <h4>لینک کلاس</h4>
+              <p class="class-room-description">
+                این دوره حضوری است - لینک کلاس فقط برای جلسات آنلاین استفاده می‌شود
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
       {% if course.teacher %}
       <a href="{% url 'teacher:detail' course.teacher.id %}" class="teacher-card-clickable">
@@ -185,4 +267,116 @@
   </div>
   {% endif %}
 </section>
+
+{% block extra_css %}
+<style>
+  /* Enhanced disabled button styles */
+  .btn-disabled-full {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+    color: #6b7280 !important;
+    border: 2px solid #d1d5db !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .btn-disabled-full::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .btn-disabled-full:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+  }
+
+  .btn-disabled-full i {
+    color: #9ca3af !important;
+  }
+
+  /* Capacity full info */
+  .capacity-full-info {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  .capacity-full-info .icon {
+    font-size: 2rem;
+    color: #f59e0b;
+    margin-bottom: 8px;
+  }
+
+  .capacity-full-info .title {
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 5px;
+  }
+
+  .capacity-full-info .subtitle {
+    font-size: 0.9rem;
+    color: #a16207;
+    margin: 0;
+  }
+
+  /* Waiting list suggestion */
+  .waiting-list-suggestion {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  .waiting-list-suggestion .icon {
+    font-size: 1.5rem;
+    color: #3b82f6;
+    margin-bottom: 8px;
+  }
+
+  .waiting-list-suggestion .title {
+    font-weight: 600;
+    color: #1e40af;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+  }
+
+  .waiting-list-suggestion .subtitle {
+    font-size: 0.85rem;
+    color: #1e3a8a;
+    margin: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .capacity-full-info,
+    .waiting-list-suggestion {
+      padding: 12px;
+    }
+    
+    .capacity-full-info .icon,
+    .waiting-list-suggestion .icon {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
 {% endblock %} 

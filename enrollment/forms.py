@@ -67,19 +67,25 @@ class EnrollmentForm(forms.ModelForm):
     
     class Meta:
         model = Enrollment
-        fields = ['note']
+        fields = ['note', 'payment_receipt']
         widgets = {
             'note': forms.Textarea(attrs={
                 'rows': 4,
                 'class': 'form-control',
                 'placeholder': 'توضیحات اضافی در مورد ثبت‌نام شما...'
+            }),
+            'payment_receipt': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
             })
         }
         labels = {
-            'note': 'توضیحات اضافی'
+            'note': 'توضیحات اضافی',
+            'payment_receipt': 'فیش واریزی'
         }
         help_texts = {
-            'note': 'انگیزه ثبت‌نام، اهداف یادگیری، یا سایر توضیحات'
+            'note': 'انگیزه ثبت‌نام، اهداف یادگیری، یا سایر توضیحات',
+            'payment_receipt': 'تصویر یا PDF فیش واریزی (فقط برای دوره‌های غیررایگان)'
         }
     
     def __init__(self, *args, **kwargs):
@@ -90,6 +96,13 @@ class EnrollmentForm(forms.ModelForm):
         # Set course-specific help texts
         if self.course:
             self.fields['note'].help_text = f'توضیحات اضافی برای دوره "{self.course.title}"'
+            
+            # Hide payment receipt field for free courses
+            if self.course.is_free:
+                self.fields['payment_receipt'].required = False
+                self.fields['payment_receipt'].widget = forms.HiddenInput()
+            else:
+                self.fields['payment_receipt'].required = True
     
     def clean_emergency_contact_phone(self):
         phone = self.cleaned_data.get('emergency_contact_phone')
@@ -120,6 +133,22 @@ class EnrollmentForm(forms.ModelForm):
             raise ValidationError('توضیحات نباید بیش از ۱۰۰۰ کاراکتر باشد.')
         
         return note
+    
+    def clean_payment_receipt(self):
+        receipt = self.cleaned_data.get('payment_receipt')
+        
+        # Only validate if course is not free and receipt is provided
+        if self.course and not self.course.is_free and receipt:
+            # Check file size (max 5MB)
+            if receipt.size > 5 * 1024 * 1024:
+                raise ValidationError('حجم فایل نباید بیش از ۵ مگابایت باشد.')
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+            if receipt.content_type not in allowed_types:
+                raise ValidationError('فرمت فایل باید JPEG، PNG یا PDF باشد.')
+        
+        return receipt
     
     def clean(self):
         cleaned_data = super().clean()

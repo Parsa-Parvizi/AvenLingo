@@ -6,8 +6,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from account.models import Teacher
 from django.core.mail import send_mail
+from django.utils.safestring import mark_safe
 from .models import (
-    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse
+    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage
 )
 
 User = get_user_model()
@@ -189,6 +190,95 @@ class RequestCourseAdmin(admin.ModelAdmin):
     
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    """مدیریت پیام‌های تماس با ما"""
+    
+    list_display = ['name_display', 'subject_display', 'email', 'status_badge', 'created_at_display']
+    list_filter = ['status', 'created_at']
+    search_fields = ['name', 'email', 'phone', 'subject', 'message']
+    ordering = ['-created_at']
+    actions = ['mark_as_read', 'mark_as_replied', 'mark_as_archived']
+    list_per_page = 20
+    
+    fieldsets = (
+        ('📧 اطلاعات فرستنده', {
+            'fields': ('name', 'email', 'phone')
+        }),
+        ('💬 محتوای پیام', {
+            'fields': ('subject', 'message')
+        }),
+        ('📊 وضعیت و پیگیری', {
+            'fields': ('status', 'admin_note'),
+            'classes': ('wide',)
+        }),
+        ('🕒 اطلاعات زمانی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def name_display(self, obj):
+        """نمایش نام با آیکون"""
+        return format_html('<strong>👤 {}</strong>', obj.name)
+    name_display.short_description = 'نام'
+    
+    def subject_display(self, obj):
+        """نمایش موضوع با محدودیت کاراکتر"""
+        if len(obj.subject) > 50:
+            return format_html('<span title="{}">{} ...</span>', obj.subject, obj.subject[:50])
+        return obj.subject
+    subject_display.short_description = 'موضوع'
+    
+    def status_badge(self, obj):
+        """نمایش وضعیت با badge رنگی"""
+        status_styles = {
+            'new': '<span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 12px; font-weight: bold;">🆕 جدید</span>',
+            'read': '<span style="background: #17a2b8; color: #fff; padding: 4px 12px; border-radius: 12px;">👁️ خوانده شده</span>',
+            'replied': '<span style="background: #28a745; color: #fff; padding: 4px 12px; border-radius: 12px;">✅ پاسخ داده شده</span>',
+            'archived': '<span style="background: #6c757d; color: #fff; padding: 4px 12px; border-radius: 12px;">📦 بایگانی</span>',
+        }
+        return mark_safe(status_styles.get(obj.status, obj.status))
+    status_badge.short_description = 'وضعیت'
+    
+    def created_at_display(self, obj):
+        """نمایش تاریخ فارسی"""
+        from django.utils import timezone
+        return obj.created_at.strftime('%Y/%m/%d - %H:%M')
+    created_at_display.short_description = 'تاریخ ارسال'
+    
+    # Actions
+    def mark_as_read(self, request, queryset):
+        """علامت‌گذاری به عنوان خوانده شده"""
+        updated = queryset.exclude(status='read').update(status='read')
+        self.message_user(request, f'{updated} پیام به عنوان خوانده شده علامت‌گذاری شد.')
+    mark_as_read.short_description = '👁️ علامت‌گذاری به عنوان خوانده شده'
+    
+    def mark_as_replied(self, request, queryset):
+        """علامت‌گذاری به عنوان پاسخ داده شده"""
+        updated = queryset.update(status='replied')
+        self.message_user(request, f'{updated} پیام به عنوان پاسخ داده شده علامت‌گذاری شد.')
+    mark_as_replied.short_description = '✅ علامت‌گذاری به عنوان پاسخ داده شده'
+    
+    def mark_as_archived(self, request, queryset):
+        """بایگانی کردن پیام‌ها"""
+        updated = queryset.update(status='archived')
+        self.message_user(request, f'{updated} پیام بایگانی شد.')
+    mark_as_archived.short_description = '📦 بایگانی کردن'
+    
+    def has_add_permission(self, request):
+        """غیرفعال کردن امکان افزودن دستی"""
+        return False
+    
+    def get_readonly_fields(self, request, obj=None):
+        """فیلدهای فقط خواندنی"""
+        if obj:  # در حالت ویرایش
+            return ['name', 'email', 'phone', 'subject', 'message', 'created_at', 'updated_at']
+        return ['created_at', 'updated_at']
 
 
 # @admin.register(Log)

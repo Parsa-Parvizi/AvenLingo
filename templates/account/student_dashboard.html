@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}داشبورد دانش‌آموز{% endblock %}
+{% block title %}| Student Dashboard{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -13,21 +13,8 @@
     <div class="welcome-header mb-4">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="text-gradient">خوش آمدید، {{ student.user.get_full_name }}!</h1>
+                <h1>خوش آمدید، {{ student.user.get_full_name }}!</h1>
                 <p class="text-muted mb-0">پیشرفت تحصیلی خود را دنبال کنید و دوره‌های جدید کشف کنید</p>
-            </div>
-            <div class="col-md-4 text-end">
-                <div class="profile-completion-badge">
-                    <div class="circular-progress" data-percentage="{{ stats.profile_completion }}">
-                        <svg class="progress-ring" width="80" height="80">
-                            <circle cx="40" cy="40" r="30" stroke="#e9ecef" stroke-width="4" fill="transparent"/>
-                            <circle cx="40" cy="40" r="30" stroke="#28a745" stroke-width="4" fill="transparent"
-                                    stroke-dasharray="188.4" stroke-dashoffset="188.4" class="progress-ring-circle"/>
-                        </svg>
-                        <div class="progress-text">{{ stats.profile_completion }}%</div>
-                    </div>
-                    <small class="text-muted d-block mt-2">تکمیل پروفایل</small>
-                </div>
             </div>
         </div>
     </div>
@@ -119,15 +106,121 @@
         </div>
     </div>
 
-    <!-- Main Content Row -->
-    <div class="row">
-        <!-- Enrollments Section -->
-        <div class="col-lg-8">
-            <div class="card modern-card mb-4">
+    <!-- My Courses Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-book-open me-2"></i>
+                        <i class="fas fa-graduation-cap me-2"></i>
                         دوره‌های من
+                    </h5>
+                    {% comment %} <a href="{% url 'enrollment:my-enrollments' %}" class="btn btn-outline-primary btn-sm">
+                        مشاهده همه
+                        <i class="fas fa-arrow-left ms-1"></i>
+                    </a> {% endcomment %}
+                </div>
+                <div class="card-body">
+                    {% if confirmed_enrollments %}
+                        <div class="row">
+                            {% for enrollment in confirmed_enrollments|slice:":6" %}
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="course-card-item">
+                                    <div class="course-thumbnail">
+                                        {% if enrollment.course.image %}
+                                            <img src="{{ enrollment.course.image.url }}" alt="{{ enrollment.course.title }}">
+                                        {% else %}
+                                            <div class="placeholder-image">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="course-status-overlay">
+                                            <span class="status-badge confirmed">فعال</span>
+                                        </div>
+                                    </div>
+                                    <div class="course-details">
+                                        <h6 class="course-title">{{ enrollment.course.title|truncatechars:50 }}</h6>
+                                        <p class="course-teacher">
+                                            <i class="fas fa-user-tie me-1"></i>
+                                            {{ enrollment.course.teacher.user.get_full_name }}
+                                        </p>
+                                        <div class="course-meta">
+                                            <span class="course-info">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {% if enrollment.course.class_time %}
+                                                    {{ enrollment.course.class_time }}
+                                                {% else %}
+                                                    زمان تعیین نشده
+                                                {% endif %}
+                                            </span>
+                                            <span class="enrollment-date">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                {{ enrollment.enrolled_at|date:"Y/m/d" }}
+                                            </span>
+                                        </div>
+                                        
+                                        {% if enrollment.course.start_date %}
+                                        <div class="course-schedule mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                شروع: {{ enrollment.course.start_date|date:"Y/m/d" }}
+                                                {% if enrollment.course.end_date %}
+                                                    - پایان: {{ enrollment.course.end_date|date:"Y/m/d" }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if enrollment.completion_percentage > 0 %}
+                                        <div class="completion-progress mt-2">
+                                            <div class="progress-bar-mini">
+                                                <div class="progress-fill" style="width: {{ enrollment.completion_percentage }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ enrollment.completion_percentage }}% تکمیل</small>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="course-actions mt-3">
+                                            <a href="{% url 'course:student-course-detail' enrollment.course.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                                <i class="fas fa-eye me-1"></i>مشاهده دوره
+                                            </a>
+                                            
+                                            {% if enrollment.status == 'completed' %}
+                                                <a href="{% url 'enrollment:enrollment_certificate' enrollment.id %}" class="btn btn-sm btn-outline-success w-100 mt-2">
+                                                    <i class="fas fa-certificate me-1"></i>دانلود گواهی
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h6>هنوز هیچ دوره فعالی ندارید</h6>
+                            <p class="text-muted">پس از تأیید ثبت‌نام‌هایتان، دوره‌های فعال شما اینجا نمایش داده می‌شوند</p>
+                            <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>مشاهده دوره‌ها
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Enrollments Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-alt me-2"></i>
+                        ثبت‌نام‌های من
                     </h5>
                     <a href="{% url 'enrollment:my-enrollments' %}" class="btn btn-outline-primary btn-sm">
                         مشاهده همه
@@ -137,7 +230,7 @@
                 <div class="card-body">
                     {% if enrollments %}
                         <div class="enrollment-list">
-                            {% for enrollment in enrollments|slice:":5" %}
+                            {% for enrollment in enrollments|slice:":6" %}
                             <div class="enrollment-item">
                                 <div class="row align-items-center">
                                     <div class="col-lg-8">
@@ -229,49 +322,13 @@
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Progress Overview -->
-            {% if learning_progress %}
-            <div class="card progress-overview-card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        پیشرفت یادگیری
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="progress-item">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>نرخ تکمیل</span>
-                                    <span class="fw-bold">{{ learning_progress.completion_rate }}%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" style="width: {{ learning_progress.completion_rate }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="progress-item">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>دوره‌های فعال</span>
-                                    <span class="fw-bold">{{ learning_progress.active_rate }}%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-info" style="width: {{ learning_progress.active_rate }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
+    </div>
 
-        <!-- Available Courses Sidebar -->
-        <div class="col-lg-4">
-            {% if available_courses %}
+    <!-- Suggested Courses Section -->
+    {% if available_courses %}
+    <div class="row">
+        <div class="col-12">
             <div class="card modern-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -280,103 +337,51 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="suggested-courses">
-                        {% for course in available_courses|slice:":3" %}
-                        <div class="suggested-course-item">
-                            <div class="course-thumbnail">
-                                {% if course.image %}
-                                    <img src="{{ course.image.url }}" alt="{{ course.title }}">
-                                {% else %}
-                                    <div class="placeholder-image">
-                                        <i class="fas fa-book"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="course-details">
-                                <h6 class="course-title">{{ course.title|truncatechars:40 }}</h6>
-                                <p class="course-teacher">{{ course.teacher.user.get_full_name }}</p>
-                                <div class="course-meta">
-                                    {% if course.is_free %}
-                                        <span class="price-badge free">رایگان</span>
+                    <div class="row">
+                        {% for course in available_courses|slice:":6" %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="suggested-course-item">
+                                <div class="course-thumbnail">
+                                    {% if course.image %}
+                                        <img src="{{ course.image.url }}" alt="{{ course.title }}">
                                     {% else %}
-                                        <span class="price-badge">{{ course.price|floatformat:0 }} تومان</span>
+                                        <div class="placeholder-image">
+                                            <i class="fas fa-book"></i>
+                                        </div>
                                     {% endif %}
                                 </div>
-                                <button class="btn btn-sm btn-primary quick-enroll-btn" data-course-id="{{ course.id }}">
-                                    <i class="fas fa-plus me-1"></i>ثبت‌نام سریع
-                                </button>
+                                <div class="course-details">
+                                    <h6 class="course-title">{{ course.title|truncatechars:40 }}</h6>
+                                    <p class="course-teacher">{{ course.teacher.user.get_full_name }}</p>
+                                    <div class="course-meta">
+                                        {% if course.is_free %}
+                                            <span class="price-badge free">رایگان</span>
+                                        {% else %}
+                                            <span class="price-badge">{{ course.price|floatformat:0 }} تومان</span>
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-sm btn-primary quick-enroll-btn" data-course-id="{{ course.id }}">
+                                        <i class="fas fa-plus me-1"></i>ثبت‌نام سریع
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        {% if not forloop.last %}<hr class="course-divider">{% endif %}
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'course:all-courses' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% url 'course:all-courses' %}" class="btn btn-outline-primary">
                             مشاهده همه دوره‌ها
                             <i class="fas fa-arrow-left ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
-
-    <!-- Quick Actions - Full Width at Bottom -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card modern-card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-                        دسترسی سریع
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <a href="{% url 'course:all-courses' %}" class="quick-action-item">
-                                <div class="quick-action-icon">
-                                    <i class="fas fa-search"></i>
-                                </div>
-                                <div class="quick-action-content">
-                                    <h6>جستجوی دوره</h6>
-                                    <p>دوره‌های جدید کشف کنید</p>
-                                </div>
-                            </a>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <a href="{% url 'enrollment:my-enrollments' %}" class="quick-action-item">
-                                <div class="quick-action-icon">
-                                    <i class="fas fa-list"></i>
-                                </div>
-                                <div class="quick-action-content">
-                                    <h6>مدیریت ثبت‌نام‌ها</h6>
-                                    <p>ثبت‌نام‌های خود را مدیریت کنید</p>
-                                </div>
-                            </a>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <a href="{% url 'account:student_profile' %}" class="quick-action-item">
-                                <div class="quick-action-icon">
-                                    <i class="fas fa-user-edit"></i>
-                                </div>
-                                <div class="quick-action-content">
-                                    <h6>ویرایش پروفایل</h6>
-                                    <p>اطلاعات خود را به‌روزرسانی کنید</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/student_dashboard.js' %}"></script>
-{% endblock %} 
+{% endblock %}

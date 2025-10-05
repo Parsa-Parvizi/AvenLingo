@@ -1,8 +1,15 @@
-from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView, DetailView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.db.models import Q, Case, When, IntegerField, Count
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from .models import Course, Category, LANGUAGE_CHOICES, CLASS_TYPE_CHOICES, ONLINE_CHOICES
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.urls import reverse_lazy, reverse
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.utils import timezone
+from .models import Course, Category, Assignment, AssignmentSubmission, LANGUAGE_CHOICES, CLASS_TYPE_CHOICES, ONLINE_CHOICES
+from .forms import AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm
 import re
 
 
@@ -187,10 +194,17 @@ def course_detail_view(request, course_slug):
         except Student.DoesNotExist:
             pass
     
+    # Calculate available seats (only confirmed enrollments count)
+    confirmed_enrollments = course.enrollments.filter(status='confirmed').count()
+    available_seats = course.capacity - confirmed_enrollments
+    is_full = confirmed_enrollments >= course.capacity
+    
     context = {
         'course': course,
         'similar_courses': similar_courses,
         'user_enrollment': user_enrollment,
+        'available_seats': available_seats,
+        'is_full': is_full,
     }
     
     return render(request, 'course/course_detail.html', context)
@@ -200,5 +214,366 @@ def latest_courses_view(request):
     """نمایش آخرین کلاس‌ها"""
     latest_courses = Course.objects.filter(is_active=True).order_by('-created_at')[:6]  # type: ignore
     return render(request, 'course/latest_courses.html', {'courses': latest_courses})
+
+
+@login_required
+def student_course_detail_view(request, course_id):
+    """صفحه مخصوص زبان‌آموز برای مشاهده دوره‌های ثبت‌نام شده"""
+    # بررسی اینکه کاربر دانش‌آموز است
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
+        messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.')
+        return redirect('account:login')
+    
+    # دریافت دوره
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    
+    # بررسی اینکه کاربر در این دوره ثبت‌نام کرده باشد
+    try:
+        from account.models import Student
+        from enrollment.models import Enrollment
+        student = Student.objects.get(user=request.user)
+        enrollment = Enrollment.objects.get(student=student, course=course, status='confirmed')
+    except (Student.DoesNotExist, Enrollment.DoesNotExist):
+        messages.error(request, 'شما در این دوره ثبت‌نام نکرده‌اید یا ثبت‌نام شما هنوز تأیید نشده است.')
+        return redirect('dashboard:student_dashboard')
+    
+    # دریافت تکالیف دوره
+    assignments = Assignment.objects.filter(
+        course=course,
+        is_active=True
+    ).order_by('-created_at')
+    
+    # بررسی وضعیت ارسال تکالیف برای دانش‌آموز
+    assignment_submissions = {}
+    for assignment in assignments:
+        try:
+            submission = AssignmentSubmission.objects.get(
+                assignment=assignment,
+                student=student
+            )
+            assignment_submissions[assignment.id] = submission
+        except AssignmentSubmission.DoesNotExist:
+            assignment_submissions[assignment.id] = None
+    
+    # اضافه کردن اطلاعات ارسال به هر تکلیف
+    for assignment in assignments:
+        submission = assignment_submissions[assignment.id]
+        if submission:
+            assignment.submission_status = submission.status
+            assignment.submission_score = submission.score
+            assignment.submission_feedback = submission.feedback
+        else:
+            assignment.submission_status = None
+            assignment.submission_score = None
+            assignment.submission_feedback = None
+        
+        # بررسی امکان ارسال تکلیف
+        can_submit, message = assignment.can_submit(student)
+        assignment.can_submit = can_submit
+        assignment.submit_message = message
+    
+    # اطلاعات دوره و مدرس
+    teacher = course.teacher
+    
+    context = {
+        'course': course,
+        'enrollment': enrollment,
+        'teacher': teacher,
+        'student': student,
+        'assignments': assignments,
+        'assignment_submissions': assignment_submissions,
+    }
+    
+    return render(request, 'course/student_course_detail.html', context)
+
+
+# Assignment Views
+class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """ایجاد تکلیف جدید توسط معلم"""
+    model = Assignment
+    form_class = AssignmentForm
+    template_name = 'course/assignment_create.html'
+    
+    def test_func(self):
+        """بررسی اینکه کاربر معلم است"""
+        return self.request.user.is_teacher
+    
+    def get_course(self):
+        """دریافت دوره از URL"""
+        course_id = self.kwargs.get('course_id')
+        return get_object_or_404(Course, id=course_id)
+    
+    def get_teacher(self):
+        """دریافت معلم از کاربر فعلی"""
+        return get_object_or_404(self.request.user.teacher_profile)
+    
+    def get_form_kwargs(self):
+        """تنظیم معلم و دوره در فرم"""
+        kwargs = super().get_form_kwargs()
+        kwargs['teacher'] = self.get_teacher()
+        kwargs['course'] = self.get_course()
+        return kwargs
+    
+    def get_success_url(self):
+        """URL پس از ایجاد موفق تکلیف"""
+        return reverse('course:assignment_list', kwargs={'course_id': self.get_course().id})
+    
+    def get_context_data(self, **kwargs):
+        """اضافه کردن اطلاعات اضافی به context"""
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.get_course()
+        context['teacher'] = self.get_teacher()
+        return context
+    
+    def form_valid(self, form):
+        """پس از اعتبارسنجی موفق فرم"""
+        messages.success(self.request, 'تکلیف با موفقیت ایجاد شد.')
+        return super().form_valid(form)
+
+
+class AssignmentListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    """لیست تکالیف یک دوره"""
+    model = Assignment
+    template_name = 'course/assignment_list.html'
+    context_object_name = 'assignments'
+    paginate_by = 10
+    
+    def test_func(self):
+        """بررسی دسترسی کاربر"""
+        course = get_object_or_404(Course, id=self.kwargs.get('course_id'))
+        
+        # معلم دوره یا دانش‌آموز ثبت‌نام شده
+        if self.request.user.is_teacher:
+            return course.teacher.user == self.request.user
+        elif self.request.user.is_student:
+            return course.students.filter(user=self.request.user).exists()
+        return False
+    
+    def get_queryset(self):
+        """دریافت تکالیف دوره"""
+        course = get_object_or_404(Course, id=self.kwargs.get('course_id'))
+        return Assignment.objects.filter(course=course).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        """اضافه کردن اطلاعات اضافی"""
+        context = super().get_context_data(**kwargs)
+        context['course'] = get_object_or_404(Course, id=self.kwargs.get('course_id'))
+        
+        # اگر کاربر دانش‌آموز است، وضعیت ارسال هر تکلیف را اضافه کن
+        if self.request.user.is_student:
+            student = get_object_or_404(self.request.user.student_profile)
+            assignments_with_status = []
+            
+            for assignment in context['assignments']:
+                can_submit, message = assignment.can_submit(student)
+                submission = AssignmentSubmission.objects.filter(
+                    assignment=assignment, student=student
+                ).first()
+                
+                assignments_with_status.append({
+                    'assignment': assignment,
+                    'can_submit': can_submit,
+                    'message': message,
+                    'submission': submission,
+                })
+            
+            context['assignments_with_status'] = assignments_with_status
+        
+        return context
+
+
+class AssignmentDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """جزئیات تکلیف"""
+    model = Assignment
+    template_name = 'course/assignment_detail.html'
+    context_object_name = 'assignment'
+    
+    def test_func(self):
+        """بررسی دسترسی کاربر"""
+        assignment = self.get_object()
+        
+        # معلم دوره یا دانش‌آموز ثبت‌نام شده
+        if self.request.user.is_teacher:
+            return assignment.course.teacher.user == self.request.user
+        elif self.request.user.is_student:
+            return assignment.course.students.filter(user=self.request.user).exists()
+        return False
+    
+    def get_context_data(self, **kwargs):
+        """اضافه کردن اطلاعات اضافی"""
+        context = super().get_context_data(**kwargs)
+        assignment = self.get_object()
+        
+        context['course'] = assignment.course
+        
+        # اگر کاربر دانش‌آموز است
+        if self.request.user.is_student:
+            student = get_object_or_404(self.request.user.student_profile)
+            can_submit, message = assignment.can_submit(student)
+            submission = AssignmentSubmission.objects.filter(
+                assignment=assignment, student=student
+            ).first()
+            
+            context['can_submit'] = can_submit
+            context['message'] = message
+            context['submission'] = submission
+            context['student'] = student
+        
+        # اگر کاربر معلم است
+        elif self.request.user.is_teacher:
+            submissions = AssignmentSubmission.objects.filter(
+                assignment=assignment
+            ).select_related('student__user').order_by('-submitted_at')
+            
+            context['submissions'] = submissions
+            context['submission_count'] = submissions.count()
+        
+        return context
+
+
+class AssignmentSubmissionView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """ارسال تکلیف توسط دانش‌آموز"""
+    model = AssignmentSubmission
+    form_class = AssignmentSubmissionForm
+    template_name = 'course/assignment_submit.html'
+    
+    def test_func(self):
+        """بررسی اینکه کاربر دانش‌آموز است"""
+        return self.request.user.is_student
+    
+    def get_assignment(self):
+        """دریافت تکلیف از URL"""
+        assignment_id = self.kwargs.get('assignment_id')
+        return get_object_or_404(Assignment, id=assignment_id)
+    
+    def get_student(self):
+        """دریافت دانش‌آموز از کاربر فعلی"""
+        return get_object_or_404(self.request.user.student_profile)
+    
+    def get_form_kwargs(self):
+        """تنظیم تکلیف و دانش‌آموز در فرم"""
+        kwargs = super().get_form_kwargs()
+        kwargs['assignment'] = self.get_assignment()
+        kwargs['student'] = self.get_student()
+        return kwargs
+    
+    def get_success_url(self):
+        """URL پس از ارسال موفق تکلیف"""
+        return reverse('course:assignment_detail', kwargs={'pk': self.get_assignment().id})
+    
+    def get_context_data(self, **kwargs):
+        """اضافه کردن اطلاعات اضافی"""
+        context = super().get_context_data(**kwargs)
+        assignment = self.get_assignment()
+        
+        context['assignment'] = assignment
+        context['course'] = assignment.course
+        context['student'] = self.get_student()
+        
+        # بررسی امکان ارسال
+        can_submit, message = assignment.can_submit(self.get_student())
+        context['can_submit'] = can_submit
+        context['message'] = message
+        
+        return context
+    
+    def form_valid(self, form):
+        """پس از اعتبارسنجی موفق فرم"""
+        # بررسی مجدد امکان ارسال
+        assignment = self.get_assignment()
+        student = self.get_student()
+        
+        can_submit, message = assignment.can_submit(student)
+        if not can_submit:
+            messages.error(self.request, message)
+            return self.form_invalid(form)
+        
+        messages.success(self.request, 'تکلیف شما با موفقیت ارسال شد.')
+        return super().form_valid(form)
+
+
+class AssignmentSubmissionGradingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """نمره‌دهی تکلیف توسط معلم"""
+    model = AssignmentSubmission
+    form_class = AssignmentGradingForm
+    template_name = 'course/assignment_grade.html'
+    
+    def test_func(self):
+        """بررسی اینکه کاربر معلم دوره است"""
+        submission = self.get_object()
+        return submission.assignment.course.teacher.user == self.request.user
+    
+    def get_success_url(self):
+        """URL پس از نمره‌دهی موفق"""
+        return reverse('course:assignment_detail', kwargs={'pk': self.get_object().assignment.id})
+    
+    def get_context_data(self, **kwargs):
+        """اضافه کردن اطلاعات اضافی"""
+        context = super().get_context_data(**kwargs)
+        submission = self.get_object()
+        
+        context['assignment'] = submission.assignment
+        context['course'] = submission.assignment.course
+        context['student'] = submission.student
+        
+        return context
+    
+    def form_valid(self, form):
+        """پس از اعتبارسنجی موفق فرم"""
+        submission = form.save(commit=False)
+        submission.graded_by = get_object_or_404(self.request.user.teacher_profile)
+        submission.graded_at = timezone.now()
+        submission.save()
+        
+        messages.success(self.request, 'نمره‌دهی تکلیف با موفقیت انجام شد.')
+        return super().form_valid(form)
+
+
+@login_required
+def download_assignment_file(request, assignment_id):
+    """دانلود فایل دستورالعمل تکلیف"""
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    
+    # بررسی دسترسی
+    if request.user.is_teacher:
+        if assignment.course.teacher.user != request.user:
+            return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    elif request.user.is_student:
+        if not assignment.course.students.filter(user=request.user).exists():
+            return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    else:
+        return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    
+    if not assignment.instruction_file:
+        messages.error(request, "فایل دستورالعمل موجود نیست.")
+        return redirect('course:assignment_detail', pk=assignment_id)
+    
+    response = HttpResponse(assignment.instruction_file.read(), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{assignment.instruction_file.name}"'
+    return response
+
+
+@login_required
+def download_submission_file(request, submission_id):
+    """دانلود فایل ارسالی دانش‌آموز"""
+    submission = get_object_or_404(AssignmentSubmission, id=submission_id)
+    
+    # بررسی دسترسی
+    if request.user.is_teacher:
+        if submission.assignment.course.teacher.user != request.user:
+            return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    elif request.user.is_student:
+        if submission.student.user != request.user:
+            return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    else:
+        return HttpResponseForbidden("شما دسترسی لازم ندارید.")
+    
+    if not submission.submission_file:
+        messages.error(request, "فایل ارسالی موجود نیست.")
+        return redirect('course:assignment_detail', pk=submission.assignment.id)
+    
+    response = HttpResponse(submission.submission_file.read(), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{submission.submission_file.name}"'
+    return response
 
 

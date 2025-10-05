@@ -92,3 +92,50 @@ class RequestCourse(models.Model):
     def __str__(self):
         return f"{self.course_title} - {self.name}"
 
+
+class ContactMessage(models.Model):
+    """مدل برای ذخیره پیام‌های تماس با ما"""
+    STATUS_CHOICES = [
+        ('new', 'جدید'),
+        ('read', 'خوانده شده'),
+        ('replied', 'پاسخ داده شده'),
+        ('archived', 'بایگانی شده'),
+    ]
+    
+    name = models.CharField(max_length=100, verbose_name="نام و نام خانوادگی")
+    email = models.EmailField(verbose_name="ایمیل")
+    phone = models.CharField(max_length=20, verbose_name="شماره تماس", blank=True)
+    subject = models.CharField(max_length=200, verbose_name="موضوع پیام")
+    message = models.TextField(verbose_name="متن پیام")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new',
+        verbose_name="وضعیت"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ارسال")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+    admin_note = models.TextField(
+        verbose_name="یادداشت ادمین",
+        blank=True,
+        help_text="یادداشت داخلی برای پیگیری"
+    )
+    
+    class Meta:
+        verbose_name = "پیام تماس"
+        verbose_name_plural = "پیام‌های تماس"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.subject}"
+    
+    def mark_as_read(self):
+        """علامت‌گذاری به عنوان خوانده شده"""
+        if self.status == 'new':
+            self.status = 'read'
+            self.save()
+

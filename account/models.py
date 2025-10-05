@@ -140,6 +140,10 @@ class Student(models.Model):
     enrollment_date = models.DateTimeField("تاریخ ثبت‌نام", default=timezone.now)
     last_activity = models.DateTimeField("آخرین فعالیت", auto_now=True)
     
+    # Profile edit limitations
+    daily_profile_edits = models.IntegerField("تعداد ویرایش پروفایل امروز", default=0)
+    last_profile_edit_date = models.DateField("آخرین تاریخ ویرایش پروفایل", null=True, blank=True)
+    
     class Meta:
         verbose_name = "دانش‌آموز"
         verbose_name_plural = "دانش‌آموزان"
@@ -184,6 +188,49 @@ class Student(models.Model):
             completed_fields += 1
             
         return int((completed_fields / total_fields) * 100)
+    
+    def can_edit_profile_today(self):
+        """Check if student can edit profile today (max 5 edits per day)"""
+        from django.utils import timezone
+        
+        today = timezone.now().date()
+        
+        # If it's a new day, reset the counter
+        if self.last_profile_edit_date != today:
+            self.daily_profile_edits = 0
+            self.last_profile_edit_date = today
+            self.save(update_fields=['daily_profile_edits', 'last_profile_edit_date'])
+        
+        return self.daily_profile_edits < 5
+    
+    def get_remaining_edits_today(self):
+        """Get remaining profile edits allowed today"""
+        from django.utils import timezone
+        
+        today = timezone.now().date()
+        
+        # If it's a new day, reset the counter
+        if self.last_profile_edit_date != today:
+            self.daily_profile_edits = 0
+            self.last_profile_edit_date = today
+            self.save(update_fields=['daily_profile_edits', 'last_profile_edit_date'])
+        
+        return max(0, 5 - self.daily_profile_edits)
+    
+    def increment_profile_edit_count(self):
+        """Increment the daily profile edit count"""
+        from django.utils import timezone
+        
+        today = timezone.now().date()
+        
+        # If it's a new day, reset the counter
+        if self.last_profile_edit_date != today:
+            self.daily_profile_edits = 1
+            self.last_profile_edit_date = today
+        else:
+            self.daily_profile_edits += 1
+        
+        self.save(update_fields=['daily_profile_edits', 'last_profile_edit_date'])
 
 
 class TeacherApplicationManager(models.Manager):
@@ -270,6 +317,9 @@ class Teacher(models.Model):
     # Status
     is_active = models.BooleanField('فعال', default=True)
     is_verified = models.BooleanField('تایید شده', default=False)
+    
+    # Personal Information
+    date_of_birth = models.DateField("تاریخ تولد", null=True, blank=True)
     
     # Tracking
     joined_at = models.DateTimeField('تاریخ پیوستن', default=timezone.now)

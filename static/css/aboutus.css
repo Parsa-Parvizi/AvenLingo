@@ -1,0 +1,309 @@
+.about-page .about-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 50px;
+}
+
+.about-page .page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.about-page .hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.about-page .stats-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+}
+
+.about-page .stat-item {
+    text-align: center;
+    min-width: 100px;
+}
+
+.about-page .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffd700;
+    transition: transform 0.3s ease;
+}
+
+.about-page .stat-item:hover .stat-number {
+    transform: scale(1.1);
+}
+
+.about-page .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    display: block;
+    margin-top: 8px;
+}
+
+.about-page .hero-image {
+    text-align: center;
+}
+
+.about-page .placeholder-image {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 60px;
+    text-align: center;
+}
+
+.about-page .placeholder-image i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.about-page .about-content {
+    padding-bottom: 30px;
+}
+
+.about-page .content-main h2 {
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.about-page .text-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+.about-page .mvv-section {
+    margin-top: 50px;
+}
+
+.about-page .mvv-item {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-right: 4px solid #667eea;
+}
+
+.about-page .mvv-item h3 {
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.about-page .mvv-item h3 i {
+    margin-left: 10px;
+    color: #667eea;
+}
+
+.about-page .about-sidebar {
+    padding-right: 30px;
+}
+
+.about-page .stats-card, 
+.about-page .team-card, 
+.about-page .contact-cta {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.about-page .stats-card h3, 
+.about-page .team-card h4, 
+.about-page .contact-cta h4 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.about-page .stat-row {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.about-page .stat-row:last-child {
+    border-bottom: none;
+}
+
+.about-page .stat-icon {
+    width: 40px;
+    color: #667eea;
+}
+
+.about-page .stat-text {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.about-page .stat-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.about-page .team-card img {
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.about-page .contact-cta p {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.about-page .btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 5px;
+}
+
+.about-page .btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.about-page .btn-primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.about-page .btn-outline {
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.about-page .btn-outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.about-page .about-testimonials {
+    background: #f8f9fa;
+    padding: 80px 0;
+}
+
+.about-page .section-title {
+    text-align: center;
+    margin-bottom: 50px;
+    color: #333;
+    font-weight: 600;
+}
+
+.about-page .testimonial-card {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.about-page .rating {
+    margin-bottom: 15px;
+}
+
+.about-page .rating i {
+    color: #ffd700;
+    margin-left: 2px;
+}
+
+.about-page .testimonial-content p {
+    font-style: italic;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.about-page .testimonial-author {
+    display: flex;
+    align-items: center;
+}
+
+.about-page .testimonial-author img,
+.about-page .avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 15px;
+}
+
+.about-page .avatar-placeholder {
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.about-page .author-info h5 {
+    margin: 0;
+    color: #333;
+}
+
+.about-page .author-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.about-page .about-cta {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+}
+
+.about-page .cta-content h2 {
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.about-page .cta-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.about-page .cta-buttons .btn {
+    background: white;
+    color: #667eea;
+    margin: 10px;
+}
+
+.about-page .cta-buttons .btn:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .about-page .page-title {
+        font-size: 2rem;
+    }
+    
+    .about-page .stats-preview {
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .about-page .about-sidebar {
+        padding-right: 15px;
+        margin-top: 40px;
+    }
+    
+    .about-page .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}

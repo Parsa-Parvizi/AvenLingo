@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect
 from django.db.models import Q, Prefetch, Count
 from django.core.cache import cache
 from django.conf import settings
+from django.contrib import messages
 from course.models import Course
 from account.models import Teacher
 from course.models import Category
-from .forms import AdviceRequestForm, DeterminationRequestForm, RequestCourseForm, CollabrateRequestForm
+from .forms import AdviceRequestForm, DeterminationRequestForm, RequestCourseForm, CollabrateRequestForm, ContactMessageForm
 from account.forms import TeacherApplicationForm
 
 
@@ -113,16 +114,6 @@ def advice(request):
     return render(request, 'core/advice.html', {'form': form})
 
 
-def collabrate(request):
-    # درخواست همکاری
-    if request.method == 'POST':
-        form = CollabrateRequestForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return render(request, 'core/application_success.html', {'message': 'درخواست همکاری با موفقیت ثبت شد.'})
-    else:
-        form = CollabrateRequestForm()
-    return render(request, 'core/collabrate.html', {'form': form})
 
 
 def request_course(request):
@@ -158,6 +149,33 @@ def aboutus_view(request):
 
 
 def contactus_view(request):
+    """صفحه تماس با ما با فرم ارسال پیام"""
+    if request.method == 'POST':
+        form = ContactMessageForm(request.POST)
+        if form.is_valid():
+            # ذخیره پیام
+            contact_message = form.save()
+            
+            # نمایش پیام موفقیت
+            messages.success(
+                request,
+                'پیام شما با موفقیت ارسال شد! در اسرع وقت با شما تماس خواهیم گرفت.'
+            )
+            
+            # Redirect برای جلوگیری از ارسال مجدد فرم
+            return redirect('contactus')
+        else:
+            # نمایش پیام خطا
+            messages.error(
+                request,
+                'خطا در ارسال پیام. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+            )
+    else:
+        form = ContactMessageForm()
     
-    return render(request, 'contact/contactus.html')
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'contact/contactus.html', context)
 

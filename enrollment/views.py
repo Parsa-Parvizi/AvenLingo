@@ -79,7 +79,7 @@ class EnrollmentDetailView(StudentRequiredMixin, DetailView):
 class CourseEnrollmentView(LoginRequiredMixin, CreateView):
     """Enroll a student in a course - with strict student-only check"""
     model = Enrollment
-    fields = ['note']
+    fields = ['note', 'payment_receipt']
     template_name = 'enrollment/course_enrollment.html'
     
     def dispatch(self, request, *args, **kwargs):
@@ -145,14 +145,23 @@ class CourseEnrollmentView(LoginRequiredMixin, CreateView):
                 # Log the enrollment
                 logger.info(f"New enrollment created: {enrollment} by user {self.request.user.email}")
                 
-                messages.success(
-                    self.request, 
-                    f'ثبت‌نام شما در دوره "{self.course.title}" با موفقیت ثبت شد. '
-                    'لطفاً فیش واریزی خود را آپلود کنید.',
-                    extra_tags='enrollment'
-                )
-                
-                return redirect('enrollment:upload-receipt', enrollment_id=enrollment.id)
+                # Determine next step based on course type
+                if self.course.is_free:
+                    messages.success(
+                        self.request, 
+                        f'ثبت‌نام شما در دوره رایگان "{self.course.title}" با موفقیت ثبت شد. '
+                        'در انتظار تأیید مدیریت هستید.',
+                        extra_tags='enrollment'
+                    )
+                    return redirect('dashboard:student_dashboard')
+                else:
+                    messages.success(
+                        self.request, 
+                        f'ثبت‌نام شما در دوره "{self.course.title}" با موفقیت ثبت شد. '
+                        'لطفاً فیش واریزی خود را آپلود کنید.',
+                        extra_tags='enrollment'
+                    )
+                    return redirect('enrollment:upload-receipt', enrollment_id=enrollment.id)
                 
         except ValidationError as e:
             messages.error(self.request, str(e))

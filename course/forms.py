@@ -2,6 +2,83 @@ from django import forms
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .models import Course, Assignment, AssignmentSubmission
+from datetime import datetime
+import re
+
+# Try to import jdatetime, with fallback
+try:
+    import jdatetime
+    JDATETIME_AVAILABLE = True
+except ImportError:
+    JDATETIME_AVAILABLE = False
+    print("⚠️  Warning: jdatetime not available. Persian date conversion disabled.")
+
+
+def persian_to_gregorian_date(persian_date_str):
+    """تبدیل تاریخ شمسی به میلادی"""
+    if not persian_date_str or not JDATETIME_AVAILABLE:
+        return None
+    
+    try:
+        # فرمت: 1403/07/15 یا ۱۴۰۳/۰۷/۱۵
+        # ابتدا اعداد فارسی را به انگلیسی تبدیل می‌کنیم
+        persian_nums = '۰۱۲۳۴۵۶۷۸۹'
+        english_nums = '0123456789'
+        trans_table = str.maketrans(persian_nums, english_nums)
+        date_str = persian_date_str.translate(trans_table)
+        
+        # حذف کاراکترهای اضافی
+        date_str = re.sub(r'[^\d/]', '', date_str)
+        
+        # تبدیل به تاریخ میلادی
+        parts = date_str.split('/')
+        if len(parts) == 3:
+            year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+            j_date = jdatetime.date(year, month, day)
+            return j_date.togregorian()
+    except:
+        pass
+    
+    return None
+
+
+def persian_to_gregorian_datetime(persian_datetime_str):
+    """تبدیل تاریخ و ساعت شمسی به میلادی"""
+    if not persian_datetime_str or not JDATETIME_AVAILABLE:
+        return None
+    
+    try:
+        # فرمت: 1403/07/15 14:30 یا ۱۴۰۳/۰۷/۱۵ ۱۴:۳۰
+        persian_nums = '۰۱۲۳۴۵۶۷۸۹'
+        english_nums = '0123456789'
+        trans_table = str.maketrans(persian_nums, english_nums)
+        datetime_str = persian_datetime_str.translate(trans_table).strip()
+        
+        # جدا کردن تاریخ و ساعت
+        parts = datetime_str.split(' ')
+        
+        if len(parts) >= 1:
+            # پردازش تاریخ
+            date_parts = parts[0].split('/')
+            if len(date_parts) == 3:
+                year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+                
+                # پردازش ساعت (اگر وجود داشته باشد)
+                hour, minute = 0, 0
+                if len(parts) >= 2:
+                    time_parts = parts[1].split(':')
+                    if len(time_parts) >= 2:
+                        hour = int(time_parts[0])
+                        minute = int(time_parts[1])
+                
+                # تبدیل به datetime میلادی
+                j_datetime = jdatetime.datetime(year, month, day, hour, minute)
+                return timezone.make_aware(j_datetime.togregorian())
+    except:
+        pass
+    
+    return None
+
 
 class CourseForm(forms.ModelForm):
     class Meta:
@@ -9,12 +86,71 @@ class CourseForm(forms.ModelForm):
         exclude = [
             'teacher', 'students', 'enrolled_count', 'slug', 'is_active', 'is_featured', 'created_at', 'updated_at', 'status'
         ]
-        # فقط فیلدهای مورد نیاز معلم برای ثبت کلاس را نمایش بده
+        widgets = {
+            'start_date': forms.TextInput(attrs={
+                'class': 'form-control persian-date',
+                'placeholder': 'روز/ماه/سال (مثال: ۱۴۰۳/۰۷/۱۵)',
+                'autocomplete': 'off'
+            }),
+            'end_date': forms.TextInput(attrs={
+                'class': 'form-control persian-date',
+                'placeholder': 'روز/ماه/سال (مثال: ۱۴۰۳/۱۰/۱۵)',
+                'autocomplete': 'off'
+            }),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control'
+        for field_name, field in self.fields.items():
+            if field_name not in ['start_date', 'end_date']:
+                field.widget.attrs['class'] = 'form-control'
+        
+        # اگر در حال ویرایش است، تاریخ‌ها را به شمسی تبدیل کن
+        if JDATETIME_AVAILABLE and self.instance and self.instance.pk:
+            if self.instance.start_date:
+                try:
+                    j_date = jdatetime.date.fromgregorian(date=self.instance.start_date)
+                    self.initial['start_date'] = j_date.strftime('%Y/%m/%d')
+                except:
+                    pass
+            
+            if self.instance.end_date:
+                try:
+                    j_date = jdatetime.date.fromgregorian(date=self.instance.end_date)
+                    self.initial['end_date'] = j_date.strftime('%Y/%m/%d')
+                except:
+                    pass
+    
+    def clean_start_date(self):
+        """تبدیل تاریخ شمسی به میلادی"""
+        start_date_str = self.cleaned_data.get('start_date')
+        
+        # اگر string است، تبدیل کن
+        if isinstance(start_date_str, str):
+            gregorian_date = persian_to_gregorian_date(start_date_str)
+            if gregorian_date:
+                return gregorian_date
+            else:
+                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید.')
+        
+        return start_date_str
+    
+    def clean_end_date(self):
+        """تبدیل تاریخ شمسی به میلادی"""
+        end_date_str = self.cleaned_data.get('end_date')
+        
+        if not end_date_str:
+            return None
+        
+        # اگر string است، تبدیل کن
+        if isinstance(end_date_str, str):
+            gregorian_date = persian_to_gregorian_date(end_date_str)
+            if gregorian_date:
+                return gregorian_date
+            else:
+                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید.')
+        
+        return end_date_str
 
 
 class AssignmentForm(forms.ModelForm):
@@ -42,9 +178,10 @@ class AssignmentForm(forms.ModelForm):
             'assignment_type': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'due_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
+            'due_date': forms.TextInput(attrs={
+                'class': 'form-control persian-datetime',
+                'placeholder': 'روز/ماه/سال ساعت:دقیقه',
+                'autocomplete': 'off'
             }),
             'late_submission_penalty': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -97,14 +234,25 @@ class AssignmentForm(forms.ModelForm):
         self.course = kwargs.pop('course', None)
         super().__init__(*args, **kwargs)
         
-        # تنظیم مهلت ارسال حداقل 1 ساعت از الان
-        if not self.instance.pk:  # فقط برای تکالیف جدید
-            min_datetime = timezone.now() + timezone.timedelta(hours=1)
-            self.fields['due_date'].widget.attrs['min'] = min_datetime.strftime('%Y-%m-%dT%H:%M')
+        # اگر در حال ویرایش است، due_date را به شمسی تبدیل کن
+        if JDATETIME_AVAILABLE and self.instance and self.instance.pk and self.instance.due_date:
+            try:
+                j_datetime = jdatetime.datetime.fromgregorian(datetime=self.instance.due_date)
+                self.initial['due_date'] = j_datetime.strftime('%Y/%m/%d %H:%M')
+            except:
+                pass
     
     def clean_due_date(self):
-        """اعتبارسنجی مهلت ارسال"""
+        """اعتبارسنجی و تبدیل تاریخ شمسی به میلادی"""
         due_date = self.cleaned_data.get('due_date')
+        
+        # اگر string است، تبدیل به datetime میلادی
+        if isinstance(due_date, str):
+            gregorian_datetime = persian_to_gregorian_datetime(due_date)
+            if gregorian_datetime:
+                due_date = gregorian_datetime
+            else:
+                raise ValidationError('فرمت تاریخ و ساعت صحیح نیست. مثال: 1403/07/15 14:30')
         
         if due_date:
             # مهلت ارسال باید حداقل 1 ساعت از الان باشد

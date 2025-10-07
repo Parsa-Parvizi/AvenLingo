@@ -33,6 +33,10 @@ urlpatterns = [
     path('admin/contact-messages/', views.AdminContactMessagesView.as_view(), name='admin_contact_messages'),
     path('admin/contact-messages/<int:message_id>/', views.AdminContactMessageDetailView.as_view(), name='admin_contact_message_detail'),
     
+    # Calendar
+    path('admin/calendar/', views.AdminCalendarView.as_view(), name='admin_calendar'),
+    path('student/calendar/', views.StudentCalendarView.as_view(), name='student_calendar'),
+    
     # Security & Settings
     path('admin/login-history/', views.AdminLoginHistoryView.as_view(), name='admin_login_history'),
     path('admin/sessions/', views.AdminSessionsView.as_view(), name='admin_sessions'),

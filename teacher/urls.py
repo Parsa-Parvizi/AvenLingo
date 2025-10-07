@@ -29,7 +29,8 @@ urlpatterns = [
     path('activities/', TeacherActivitiesView.as_view(), name='activities'),
     path('notifications/', TeacherNotificationsView.as_view(), name='notifications'),
     
-    path('schedule/', TeacherScheduleView.as_view(), name='schedule'), # Placeholder
+    path('calendar/', TeacherScheduleView.as_view(), name='calendar'), # Integrated with schedule
+    path('schedule/', TeacherScheduleView.as_view(), name='schedule'), # Alias for calendar
     path('performance/', TeacherPerformanceView.as_view(), name='performance'), # Placeholder
     path('messages/', TeacherMessagesView.as_view(), name='messages'), # Placeholder
 ]

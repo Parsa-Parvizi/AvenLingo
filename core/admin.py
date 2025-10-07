@@ -8,7 +8,7 @@ from account.models import Teacher
 from django.core.mail import send_mail
 from django.utils.safestring import mark_safe
 from .models import (
-    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage, PrivateClassRequest
+    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage, PrivateClassRequest, CalendarEvent
 )
 
 User = get_user_model()
@@ -395,3 +395,75 @@ class PrivateClassRequestAdmin(admin.ModelAdmin):
 admin.site.site_header = "🎓 پنل مدیریت آکادمی زبان انگلیسی"
 admin.site.site_title = "مدیریت آکادمی"
 admin.site.index_title = "خوش آمدید به پنل مدیریت"
+
+@admin.register(CalendarEvent)
+class CalendarEventAdmin(admin.ModelAdmin):
+    """مدیریت رویدادهای تقویم"""
+    list_display = ['title_display', 'event_type_badge', 'start_datetime_display', 'status_badge', 'created_by_display']
+    list_filter = ['event_type', 'status', 'all_day', 'start_datetime']
+    search_fields = ['title', 'description', 'location', 'notes']
+    ordering = ['-start_datetime']
+    filter_horizontal = ['participants']
+    
+    fieldsets = (
+        ('📋 اطلاعات اصلی', {
+            'fields': ('title', 'description', 'event_type', 'color')
+        }),
+        ('🕒 زمان‌بندی', {
+            'fields': ('start_datetime', 'end_datetime', 'all_day', 'reminder_minutes')
+        }),
+        ('🔗 ارتباطات', {
+            'fields': ('course', 'assignment', 'participants'),
+            'classes': ('collapse',)
+        }),
+        ('📊 وضعیت', {
+            'fields': ('status', 'location', 'notes', 'is_recurring')
+        }),
+    )
+    
+    readonly_fields = []
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+    
+    def title_display(self, obj):
+        return format_html('<strong>{}</strong>', obj.title)
+    title_display.short_description = 'عنوان'
+    
+    def event_type_badge(self, obj):
+        icons = {
+            'class': '🎓',
+            'assignment': '📝',
+            'exam': '📊',
+            'meeting': '👥',
+            'holiday': '🏖️',
+            'reminder': '⏰',
+            'other': '📌',
+        }
+        icon = icons.get(obj.event_type, '📌')
+        return format_html('{} {}', icon, obj.get_event_type_display())
+    event_type_badge.short_description = 'نوع'
+    
+    def status_badge(self, obj):
+        styles = {
+            'scheduled': '<span style="background: #2196F3; color: #fff; padding: 4px 12px; border-radius: 12px;">📅 برنامه‌ریزی شده</span>',
+            'in_progress': '<span style="background: #FF9800; color: #fff; padding: 4px 12px; border-radius: 12px;">⏳ در حال انجام</span>',
+            'completed': '<span style="background: #4CAF50; color: #fff; padding: 4px 12px; border-radius: 12px;">✅ تکمیل شده</span>',
+            'cancelled': '<span style="background: #F44336; color: #fff; padding: 4px 12px; border-radius: 12px;">❌ لغو شده</span>',
+        }
+        return mark_safe(styles.get(obj.status, obj.status))
+    status_badge.short_description = 'وضعیت'
+    
+    def start_datetime_display(self, obj):
+        from core.templatetags.persian_filters import jalali_datetime
+        try:
+            return jalali_datetime(obj.start_datetime)
+        except:
+            return obj.start_datetime.strftime('%Y/%m/%d %H:%M')
+    start_datetime_display.short_description = 'زمان شروع'
+    
+    def created_by_display(self, obj):
+        return format_html('👤 {}', obj.created_by.get_full_name() or obj.created_by.username)
+    created_by_display.short_description = 'ایجاد کننده'

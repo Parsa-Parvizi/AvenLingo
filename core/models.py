@@ -224,3 +224,134 @@ class PrivateClassRequest(models.Model):
     def __str__(self):
         return f"{self.name} - {self.get_current_level_display()}"
 
+
+
+class CalendarEvent(models.Model):
+    """مدل برای رویدادهای تقویم"""
+    EVENT_TYPE_CHOICES = [
+        ('class', 'کلاس'),
+        ('assignment', 'تکلیف'),
+        ('exam', 'امتحان'),
+        ('meeting', 'جلسه'),
+        ('holiday', 'تعطیلی'),
+        ('reminder', 'یادآوری'),
+        ('other', 'سایر'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('scheduled', 'برنامه‌ریزی شده'),
+        ('in_progress', 'در حال انجام'),
+        ('completed', 'تکمیل شده'),
+        ('cancelled', 'لغو شده'),
+    ]
+    
+    COLOR_CHOICES = [
+        ('#4CAF50', 'سبز'),
+        ('#2196F3', 'آبی'),
+        ('#FF9800', 'نارنجی'),
+        ('#F44336', 'قرمز'),
+        ('#9C27B0', 'بنفش'),
+        ('#00BCD4', 'فیروزه‌ای'),
+        ('#FFC107', 'زرد'),
+    ]
+    
+    title = models.CharField(max_length=200, verbose_name="عنوان رویداد")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+    event_type = models.CharField(
+        max_length=20,
+        choices=EVENT_TYPE_CHOICES,
+        default='other',
+        verbose_name="نوع رویداد"
+    )
+    
+    # زمان‌بندی
+    start_datetime = models.DateTimeField(verbose_name="تاریخ و ساعت شروع")
+    end_datetime = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ و ساعت پایان")
+    all_day = models.BooleanField(default=False, verbose_name="تمام روز")
+    
+    # ارتباطات
+    course = models.ForeignKey(
+        'course.Course',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='calendar_events',
+        verbose_name="دوره مرتبط"
+    )
+    assignment = models.ForeignKey(
+        'course.Assignment',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='calendar_events',
+        verbose_name="تکلیف مرتبط"
+    )
+    
+    # کاربران مرتبط
+    created_by = models.ForeignKey(
+        'account.User',
+        on_delete=models.CASCADE,
+        related_name='created_events',
+        verbose_name="ایجاد کننده"
+    )
+    participants = models.ManyToManyField(
+        'account.User',
+        blank=True,
+        related_name='calendar_events',
+        verbose_name="شرکت‌کنندگان"
+    )
+    
+    # تنظیمات ظاهری
+    color = models.CharField(
+        max_length=7,
+        choices=COLOR_CHOICES,
+        default='#2196F3',
+        verbose_name="رنگ"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='scheduled',
+        verbose_name="وضعیت"
+    )
+    
+    # یادآوری
+    reminder_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="یادآوری (دقیقه قبل)",
+        help_text="چند دقیقه قبل از شروع یادآوری فعال شود"
+    )
+    
+    # سایر
+    location = models.CharField(max_length=200, blank=True, verbose_name="محل برگزاری")
+    notes = models.TextField(blank=True, verbose_name="یادداشت‌ها")
+    is_recurring = models.BooleanField(default=False, verbose_name="تکرارشونده")
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    
+    class Meta:
+        verbose_name = "رویداد تقویم"
+        verbose_name_plural = "رویدادهای تقویم"
+        ordering = ['start_datetime']
+        indexes = [
+            models.Index(fields=['start_datetime']),
+            models.Index(fields=['event_type']),
+            models.Index(fields=['created_by']),
+        ]
+    
+    def __str__(self):
+        return f"{self.title} - {self.get_event_type_display()}"
+    
+    def is_past(self):
+        """آیا رویداد گذشته است"""
+        from django.utils import timezone
+        return timezone.now() > (self.end_datetime or self.start_datetime)
+    
+    def duration_minutes(self):
+        """مدت زمان رویداد به دقیقه"""
+        if self.end_datetime:
+            delta = self.end_datetime - self.start_datetime
+            return int(delta.total_seconds() / 60)
+        return 0

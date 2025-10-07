@@ -42,6 +42,9 @@
     <link rel="stylesheet" href="{% static 'css/aboutus.css' %}" />
     <link rel="stylesheet" href="{% static 'css/contactus.css' %}" />
     <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
+    
+    <!-- Persian DatePicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
 
     {% block extra_meta %}{% endblock %} {% block extra_css %}{% endblock %}
 
@@ -56,6 +59,13 @@
     <script src="{% static 'js/charts.js' %}" defer></script>
     <script src="{% static 'js/icon-replacer.js' %}" defer></script>
     <script src="{% static 'js/main.js' %}" defer></script>
+    
+    <!-- jQuery (required for Persian DatePicker) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Persian DatePicker -->
+    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    <script src="{% static 'js/persian-datepicker-init.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
   </body>

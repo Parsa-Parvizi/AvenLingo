@@ -110,7 +110,6 @@
     border-radius: 12px;
     padding: 25px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    border-right: 4px solid var(--color-primary);
 }
 
 .stat-number {
@@ -525,13 +524,6 @@
                 <div class="stat-label">مجموع دانش‌آموزان</div>
                 <div class="stat-detail">{{ course_stats.active_students }} فعال</div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-number">{{ course_stats.total_revenue|default:0|floatformat:0 }}</div>
-                <div class="stat-label">درآمد کل (تومان)</div>
-                <div class="stat-detail">{{ monthly_earnings.new_enrollments|default:0 }} ثبت‌نام جدید</div>
-            </div>
-            
             <div class="stat-card">
                 <div class="stat-number">{{ assignment_stats.total_assignments }}</div>
                 <div class="stat-label">مجموع تکالیف</div>

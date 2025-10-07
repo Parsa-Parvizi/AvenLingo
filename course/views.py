@@ -6,9 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponse, Http404
 from django.utils import timezone
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Course, Category, Assignment, AssignmentSubmission, LANGUAGE_CHOICES, CLASS_TYPE_CHOICES, ONLINE_CHOICES
+from account.models import Teacher
 from .forms import AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm
 import re
 
@@ -134,8 +136,21 @@ def all_courses_view(request):
     total_courses = Course.objects.filter(is_active=True).count()
     filtered_count = courses.count()
     
+    # پیاده‌سازی pagination
+    paginator = Paginator(courses, 21)  # 21 کلاس در هر صفحه
+    page = request.GET.get('page')
+    
+    try:
+        paginated_courses = paginator.page(page)
+    except PageNotAnInteger:
+        # اگر صفحه عدد نباشد، صفحه اول را نشان بده
+        paginated_courses = paginator.page(1)
+    except EmptyPage:
+        # اگر صفحه خالی باشد، آخرین صفحه را نشان بده
+        paginated_courses = paginator.page(paginator.num_pages)
+    
     context = {
-        'courses': courses,
+        'courses': paginated_courses,
         'categories': categories,
         'current_level': level,
         'current_age_group': age_group,
@@ -156,18 +171,41 @@ def all_courses_view(request):
 
 def featured_courses_view(request):
     """نمایش کلاس‌های ویژه"""
-    featured_courses = Course.objects.filter(is_active=True, is_featured=True)  # type: ignore
-    return render(request, 'course/featured_courses.html', {'courses': featured_courses})
+    featured_courses = Course.objects.filter(is_active=True, is_featured=True).order_by('-created_at')  # type: ignore
+    
+    # پیاده‌سازی pagination
+    paginator = Paginator(featured_courses, 20)  # 20 کلاس در هر صفحه
+    page = request.GET.get('page')
+    
+    try:
+        paginated_courses = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_courses = paginator.page(1)
+    except EmptyPage:
+        paginated_courses = paginator.page(paginator.num_pages)
+    
+    return render(request, 'course/featured_courses.html', {'courses': paginated_courses})
 
 
 def category_courses_view(request, category_slug):
     """نمایش کلاس‌های یک دسته‌بندی خاص"""
     category = get_object_or_404(Category, slug=category_slug, is_active=True)
-    courses = Course.objects.filter(category=category, is_active=True)  # type: ignore
+    courses = Course.objects.filter(category=category, is_active=True).order_by('-is_featured', '-created_at')  # type: ignore
+    
+    # پیاده‌سازی pagination
+    paginator = Paginator(courses, 21)  # 21 کلاس در هر صفحه
+    page = request.GET.get('page')
+    
+    try:
+        paginated_courses = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_courses = paginator.page(1)
+    except EmptyPage:
+        paginated_courses = paginator.page(paginator.num_pages)
     
     context = {
         'category': category,
-        'courses': courses,
+        'courses': paginated_courses,
     }
     
     return render(request, 'course/category_courses.html', context)
@@ -317,7 +355,10 @@ class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def get_teacher(self):
         """دریافت معلم از کاربر فعلی"""
-        return get_object_or_404(self.request.user.teacher_profile)
+        try:
+            return self.request.user.teacher_profile
+        except Teacher.DoesNotExist:
+            raise Http404("معلم یافت نشد")
     
     def get_form_kwargs(self):
         """تنظیم معلم و دوره در فرم"""

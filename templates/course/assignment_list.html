@@ -1,0 +1,621 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} | تکالیف دوره {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.assignment-list-page {
+  padding: 2rem 0;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.breadcrumb {
+  background: white;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.breadcrumb-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: #1e3c72;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.breadcrumb a:hover {
+  color: #2a5298;
+}
+
+.breadcrumb-separator {
+  color: #6c757d;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.assignment-actions {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.assignment-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.stat-item i {
+  color: #1e3c72;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-create:hover {
+  background: linear-gradient(135deg, #218838, #1ea085);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.assignment-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.assignment-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: all 0.3s;
+  border: 1px solid #e9ecef;
+}
+
+.assignment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.assignment-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.assignment-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.assignment-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.assignment-type {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.assignment-type.homework { background: #e8f5e8; color: #2e7d32; }
+.assignment-type.quiz { background: #fff3e0; color: #f57c00; }
+.assignment-type.project { background: #f3e5f5; color: #7b1fa2; }
+.assignment-type.exam { background: #ffebee; color: #c62828; }
+
+.assignment-date {
+  color: #6c757d;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.assignment-date i {
+  color: #1e3c72;
+}
+
+.assignment-content {
+  padding: 1.5rem;
+}
+
+.assignment-description {
+  color: #495057;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.assignment-files {
+  margin-bottom: 1.5rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.file-item i {
+  color: #1e3c72;
+}
+
+.file-item a {
+  color: #495057;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.file-item a:hover {
+  color: #1e3c72;
+}
+
+.assignment-footer {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.assignment-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.closed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.assignment-actions-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-view {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.btn-view:hover {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+
+.btn-submit {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.btn-submit:hover {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.btn-edit {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.btn-edit:hover {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.no-assignments {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.no-assignments i {
+  font-size: 4rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.no-assignments h3 {
+  color: #495057;
+  margin-bottom: 1rem;
+}
+
+.no-assignments p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination a,
+.pagination span {
+  padding: 0.75rem 1rem;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.pagination a:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.pagination .current {
+  background: #1e3c72;
+  color: white;
+  border-color: #1e3c72;
+}
+
+.pagination .disabled {
+  color: #6c757d;
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .assignment-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .assignment-stats {
+    justify-content: center;
+  }
+  
+  .assignment-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .assignment-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .assignment-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .assignment-actions-buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .assignment-header,
+  .assignment-content,
+  .assignment-footer {
+    padding: 1rem;
+  }
+  
+  .btn-action {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="assignment-list-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <h1>تکالیف دوره</h1>
+      <p>مدیریت و مشاهده تکالیف دوره {{ course.title }}</p>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="breadcrumb-content">
+      <a href="{% url 'dashboard:dashboard_home' %}">داشبورد</a>
+      <span class="breadcrumb-separator">/</span>
+      <a href="{% url 'course:detail' course.slug %}">{{ course.title }}</a>
+      <span class="breadcrumb-separator">/</span>
+      <span>تکالیف</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Assignment Actions -->
+    <div class="assignment-actions">
+      <div class="assignment-stats">
+        <div class="stat-item">
+          <i class="fas fa-tasks"></i>
+          <span>{{ assignments|length }} تکلیف</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-calendar-alt"></i>
+          <span>{{ course.start_date|date:"Y/m/d" }}</span>
+        </div>
+        {% if user.is_teacher and course.teacher.user == user %}
+        <div class="stat-item">
+          <i class="fas fa-chalkboard-teacher"></i>
+          <span>مدرس</span>
+        </div>
+        {% else %}
+        <div class="stat-item">
+          <i class="fas fa-user-graduate"></i>
+          <span>دانش‌آموز</span>
+        </div>
+        {% endif %}
+      </div>
+      
+      {% if user.is_teacher and course.teacher.user == user %}
+      <a href="{% url 'course:assignment_create' course.id %}" class="btn-create">
+        <i class="fas fa-plus"></i>
+        تکلیف جدید
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Assignments Grid -->
+    {% if assignments %}
+      <div class="assignment-grid">
+        {% for assignment in assignments %}
+          <div class="assignment-card">
+            <div class="assignment-header">
+              <h3 class="assignment-title">{{ assignment.title }}</h3>
+              <div class="assignment-meta">
+                <span class="assignment-type {{ assignment.assignment_type }}">
+                  {{ assignment.get_assignment_type_display }}
+                </span>
+                <div class="assignment-date">
+                  <i class="fas fa-clock"></i>
+                  <span>{{ assignment.created_at|date:"Y/m/d H:i" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="assignment-content">
+              {% if assignment.description %}
+                <div class="assignment-description">
+                  {{ assignment.description|truncatewords:30 }}
+                </div>
+              {% endif %}
+
+              {% if assignment.assignment_file %}
+                <div class="assignment-files">
+                  <div class="file-item">
+                    <i class="fas fa-file-alt"></i>
+                    <a href="{{ assignment.assignment_file.url }}" target="_blank">
+                      {{ assignment.assignment_file.name|slice:"18:" }}
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="assignment-footer">
+              <div class="assignment-status">
+                <i class="fas fa-info-circle"></i>
+                {% if assignment.is_active %}
+                  <span class="status-badge active">فعال</span>
+                {% else %}
+                  <span class="status-badge closed">بسته شده</span>
+                {% endif %}
+              </div>
+
+              <div class="assignment-actions-buttons">
+                <a href="{% url 'course:assignment_detail' course.id assignment.id %}" class="btn-action btn-view">
+                  <i class="fas fa-eye"></i>
+                  مشاهده
+                </a>
+                
+                {% if user.is_student %}
+                  {% if assignment.is_active %}
+                    <a href="{% url 'course:assignment_submission' course.id assignment.id %}" class="btn-action btn-submit">
+                      <i class="fas fa-upload"></i>
+                      ارسال
+                    </a>
+                  {% endif %}
+                {% elif user.is_teacher and course.teacher.user == user %}
+                  <a href="{% url 'course:assignment_edit' course.id assignment.id %}" class="btn-action btn-edit">
+                    <i class="fas fa-edit"></i>
+                    ویرایش
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <div class="pagination-wrapper">
+          <div class="pagination">
+            {% if page_obj.has_previous %}
+              <a href="?page=1">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+              <a href="?page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-angle-right"></i>
+              </a>
+            {% else %}
+              <span class="disabled">
+                <i class="fas fa-angle-double-right"></i>
+              </span>
+              <span class="disabled">
+                <i class="fas fa-angle-right"></i>
+              </span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}">
+                <i class="fas fa-angle-left"></i>
+              </a>
+              <a href="?page={{ page_obj.paginator.num_pages }}">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            {% else %}
+              <span class="disabled">
+                <i class="fas fa-angle-left"></i>
+              </span>
+              <span class="disabled">
+                <i class="fas fa-angle-double-left"></i>
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <!-- No Assignments -->
+      <div class="no-assignments">
+        <i class="fas fa-clipboard-list"></i>
+        <h3>هنوز تکلیفی ایجاد نشده است</h3>
+        <p>برای شروع، اولین تکلیف خود را ایجاد کنید</p>
+        
+        {% if user.is_teacher and course.teacher.user == user %}
+          <a href="{% url 'course:assignment_create' course.id %}" class="btn-create">
+            <i class="fas fa-plus"></i>
+            ایجاد تکلیف جدید
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

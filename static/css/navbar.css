@@ -46,92 +46,7 @@ header {
   top: 50%;
   transform: translateY(-50%);
 }
-@media (max-width: 768px) {
-  .navbar > .container {
-    padding: 0 15px;
-  }
-  
-  .nav-center {
-    flex: 1;
-  }
-  
-  .nav-right {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    gap: 10px;
-  }
-  
-  .brand-text {
-    font-size: 1.2rem;
-  }
-  
-  .logo {
-    width: 35px;
-    height: 35px;
-  }
-  
-  .brand-link {
-    gap: 8px;
-  }
-  
-  .search-icon {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .search-dropdown {
-    width: 250px;
-    right: 15px;
-    padding: 10px;
-  }
-}
 
-@media (max-width: 480px) {
-  .nav-right {
-    left: 10px;
-    gap: 8px;
-  }
-  
-  .hamburger {
-    right: 10px;
-  }
-  
-  .brand-text {
-    font-size: 1rem;
-  }
-  
-  .logo {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .brand-link {
-    gap: 6px;
-  }
-  
-  .search-icon {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .search-dropdown {
-    width: 220px;
-    right: 10px;
-    padding: 8px;
-  }
-  
-  .search-input {
-    padding: 6px 35px 6px 10px;
-    font-size: 0.85rem;
-  }
-  
-  .search-submit {
-    padding: 5px 8px;
-    font-size: 0.75rem;
-  }
-}
 
 .brand-link {
   display: flex;
@@ -169,7 +84,7 @@ header {
 .hamburger {
   display: none;
   flex-direction: column;
-  background: none;
+  background: #f0f0f0;
   border: none;
   cursor: pointer;
   padding: 8px;
@@ -197,95 +112,6 @@ header {
 }
 .hamburger.active span:nth-child(3) {
   transform: rotate(-45deg) translate(8px, -8px);
-}
-@media (max-width: 900px) {
-  .hamburger {
-    display: flex !important;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(30,60,114,0.13);
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 3001;
-  }
-  .navbar {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-  .navbar > .container {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-  }
-  .navbar-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    /* width: 100vw; */
-    min-width: 100vw;
-    background: rgba(255,255,255,0.97) !important;
-    color: #222 !important;
-    box-shadow: 0 12px 32px rgba(30,60,114,0.15);
-    border-radius: 0 0 18px 18px;
-    margin: 0 auto;
-    padding: 0 0 18px 0;
-    text-align: center;
-    z-index: 3000;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-40px) scaleY(0.95);
-    transition: opacity 0.38s cubic-bezier(.4,2,.6,1), transform 0.38s cubic-bezier(.4,2,.6,1);
-    display: block;
-  }
-  .navbar-menu.active {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0) scaleY(1);
-    transition: opacity 0.38s cubic-bezier(.4,2,.6,1), transform 0.38s cubic-bezier(.4,2,.6,1);
-  }
-  .nav-link {
-    color: #222 !important;
-    font-size: 1.18rem;
-    justify-content: center;
-    text-align: center;
-    padding: 22px 0;
-    border-bottom: 1px solid #f0f0f0;
-    width: 100%;
-    margin: 0 auto;
-    transition: background 0.2s, color 0.2s;
-    background: transparent;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-  .nav-link:hover {
-    background: #f1f1f1;
-    color: #1e3c72 !important;
-  }
-  .nav-links {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    text-align: center;
-    gap: 0;
-    margin: 0;
-    padding: 0;
-  }
-  .nav-left, .nav-right {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    width: 100%;
-  }
-  .auth-buttons {
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    text-align: center;
-    margin-top: 10px;
-  }
 }
 
 /* Navigation Menu */
@@ -537,6 +363,8 @@ header {
   margin: 0;
   text-align: center;
   box-shadow: 0 1px 4px rgba(30,60,114,0.06);
+  min-width: 80px;
+  display: inline-block;
 }
 .auth-buttons .nav-link:hover {
   background: #e9ecef;
@@ -547,6 +375,8 @@ header {
   background: #1e3c72;
   color: #fff;
   border-color: #1e3c72;
+  min-width: 80px;
+  padding: 10px 22px;
 }
 .auth-buttons .login-btn:hover {
   background: #2a5298;
@@ -567,6 +397,8 @@ header {
   background: #28a745;
   color: #fff;
   border-color: #28a745;
+  min-width: 80px;
+  padding: 10px 22px;
 }
 .auth-buttons .register-btn:hover {
   background: #218838;
@@ -593,6 +425,12 @@ header {
   color: #fff;
   border-color: #5a32a3;
 }
+
+/* Hide mobile auth links on desktop */
+.mobile-auth-links {
+  display: none;
+}
+
 
 
 .google-btn {

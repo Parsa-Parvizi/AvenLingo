@@ -301,6 +301,85 @@
     font-size: 0.8rem;
 }
 
+/* Assignment Styles */
+.assignment-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.assignment-item:last-child {
+    border-bottom: none;
+}
+
+.assignment-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.assignment-icon.homework { background: #28a745; }
+.assignment-icon.quiz { background: #ffc107; color: #000; }
+.assignment-icon.project { background: #17a2b8; }
+.assignment-icon.exam { background: #dc3545; }
+
+.assignment-content {
+    flex: 1;
+}
+
+.assignment-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 3px;
+    text-decoration: none;
+}
+
+.assignment-title:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.assignment-meta {
+    font-size: 0.8rem;
+    color: #999;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.assignment-type-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.assignment-status {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.assignment-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.assignment-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 .view-all-btn {
     display: block;
     width: 100%;
@@ -451,6 +530,12 @@
                 <div class="stat-label">درآمد کل (تومان)</div>
                 <div class="stat-detail">{{ monthly_earnings.new_enrollments|default:0 }} ثبت‌نام جدید</div>
             </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ assignment_stats.total_assignments }}</div>
+                <div class="stat-label">مجموع تکالیف</div>
+                <div class="stat-detail">{{ assignment_stats.active_assignments }} فعال</div>
+            </div>
         </div>
 
         <!-- Course Management - Full Width -->
@@ -574,10 +659,10 @@
             {% endif %}
         </div>
 
-        <!-- Recent Activities & Notifications - Below Course Management -->
+        <!-- Recent Activities, Assignments & Notifications - Below Course Management -->
         <div class="row">
             <!-- Recent Activities -->
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="recent-activities-section">
                     <div class="section-header">
                         <h5 class="section-title">
@@ -610,8 +695,63 @@
                 </div>
             </div>
 
+            <!-- Recent Assignments -->
+            <div class="col-lg-4">
+                <div class="recent-activities-section">
+                    <div class="section-header">
+                        <h5 class="section-title">
+                            <i class="fas fa-tasks me-2"></i>
+                            تکالیف اخیر
+                            {% if assignment_stats.total_assignments %}
+                                <span class="badge bg-primary ms-2">{{ assignment_stats.total_assignments }}</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    
+                    {% if recent_assignments %}
+                        {% for assignment in recent_assignments|slice:":4" %}
+                        <div class="assignment-item">
+                            <div class="assignment-icon {{ assignment.assignment_type }}">
+                                {% if assignment.assignment_type == 'homework' %}
+                                    <i class="fas fa-home"></i>
+                                {% elif assignment.assignment_type == 'quiz' %}
+                                    <i class="fas fa-question-circle"></i>
+                                {% elif assignment.assignment_type == 'project' %}
+                                    <i class="fas fa-project-diagram"></i>
+                                {% elif assignment.assignment_type == 'exam' %}
+                                    <i class="fas fa-clipboard-check"></i>
+                                {% else %}
+                                    <i class="fas fa-tasks"></i>
+                                {% endif %}
+                            </div>
+                            <div class="assignment-content">
+                                <a href="{% url 'course:assignment_detail' assignment.course.id assignment.id %}" class="assignment-title">
+                                    {{ assignment.title }}
+                                </a>
+                                <div class="assignment-meta">
+                                    <span class="assignment-type-badge">{{ assignment.get_assignment_type_display }}</span>
+                                    <span class="assignment-status {% if assignment.is_active %}active{% else %}inactive{% endif %}">
+                                        {% if assignment.is_active %}فعال{% else %}غیرفعال{% endif %}
+                                    </span>
+                                    <span class="activity-time">{{ assignment.created_at|date:"Y/m/d" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'teacher:assignments' %}" class="view-all-btn">
+                            <i class="fas fa-eye me-2"></i>مشاهده همه تکالیف
+                        </a>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-tasks text-muted mb-3" style="font-size: 2rem;"></i>
+                            <p class="text-muted mb-0">تکلیفی ایجاد نکرده‌اید</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Notifications -->
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="recent-activities-section">
                     <div class="section-header">
                         <h5 class="section-title">

@@ -1,3 +1,9 @@
+function toggleMenu() {
+  const menu = document.getElementById('navbarMenu');
+  const hamburger = document.querySelector('.hamburger');
+  menu.classList.toggle('active');
+  hamburger.classList.toggle('active');
+}
 
 // Font Awesome fallback
 function checkFontAwesomeLoaded() {
@@ -66,13 +72,6 @@ if (typeof Worker !== 'undefined') {
             }
         }
     });
-}
-
-function toggleMenu() {
-    const menu = document.getElementById('navbarMenu');
-    const hamburger = document.querySelector('.hamburger');
-    menu.classList.toggle('active');
-    hamburger.classList.toggle('active');
 }
 
 function toggleSearch() {

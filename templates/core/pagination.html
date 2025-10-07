@@ -1,0 +1,295 @@
+{% comment %}
+کامپوننت pagination قابل استفاده مجدد
+استفاده: {% include 'core/pagination.html' with paginated_object=courses %}
+{% endcomment %}
+
+{% if paginated_object.has_other_pages %}
+<div class="pagination-wrapper">
+  <div class="pagination-info">
+    <span class="pagination-text">
+      نمایش {{ paginated_object.start_index }} تا {{ paginated_object.end_index }} از {{ paginated_object.paginator.count }} نتیجه
+    </span>
+  </div>
+  
+  <nav class="pagination-nav" aria-label="صفحه‌بندی">
+    <ul class="pagination">
+      <!-- دکمه صفحه قبل -->
+      {% if paginated_object.has_previous %}
+        <li class="pagination-item">
+          <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ paginated_object.previous_page_number }}" 
+             class="pagination-link pagination-prev" 
+             aria-label="صفحه قبل">
+            <i class="fas fa-chevron-right"></i>
+            <span>قبلی</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="pagination-item disabled">
+          <span class="pagination-link pagination-prev disabled" aria-label="صفحه قبل">
+            <i class="fas fa-chevron-right"></i>
+            <span>قبلی</span>
+          </span>
+        </li>
+      {% endif %}
+
+      <!-- شماره صفحات -->
+      {% for page_num in paginated_object.paginator.page_range %}
+        {% if page_num == paginated_object.number %}
+          <li class="pagination-item active">
+            <span class="pagination-link pagination-number active" aria-current="page">
+              {{ page_num }}
+            </span>
+          </li>
+        {% elif page_num == 1 %}
+          <li class="pagination-item">
+            <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}" 
+               class="pagination-link pagination-number" 
+               aria-label="صفحه {{ page_num }}">
+              {{ page_num }}
+            </a>
+          </li>
+        {% elif page_num == paginated_object.paginator.num_pages %}
+          <li class="pagination-item">
+            <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_num }}" 
+               class="pagination-link pagination-number" 
+               aria-label="صفحه {{ page_num }}">
+              {{ page_num }}
+            </a>
+          </li>
+        {% elif page_num >= paginated_object.number|add:"-2" and page_num <= paginated_object.number|add:"2" %}
+          <li class="pagination-item">
+            <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_num }}" 
+               class="pagination-link pagination-number" 
+               aria-label="صفحه {{ page_num }}">
+              {{ page_num }}
+            </a>
+          </li>
+        {% elif page_num == paginated_object.number|add:"-3" or page_num == paginated_object.number|add:"3" %}
+          <li class="pagination-item">
+            <span class="pagination-ellipsis">...</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      <!-- دکمه صفحه بعد -->
+      {% if paginated_object.has_next %}
+        <li class="pagination-item">
+          <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ paginated_object.next_page_number }}" 
+             class="pagination-link pagination-next" 
+             aria-label="صفحه بعد">
+            <span>بعدی</span>
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        </li>
+      {% else %}
+        <li class="pagination-item disabled">
+          <span class="pagination-link pagination-next disabled" aria-label="صفحه بعد">
+            <span>بعدی</span>
+            <i class="fas fa-chevron-left"></i>
+          </span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+
+<!-- استایل‌های pagination -->
+<style>
+.pagination-wrapper {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-info {
+  text-align: center;
+}
+
+.pagination-text {
+  color: #666;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.pagination-nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  align-items: center;
+  background: white;
+  border-radius: 15px;
+  padding: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.pagination-item {
+  margin: 0;
+}
+
+.pagination-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 1rem;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  color: #495057;
+  background: transparent;
+}
+
+.pagination-link:hover:not(.disabled):not(.active) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.pagination-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.pagination-link.disabled {
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-prev,
+.pagination-next {
+  gap: 0.5rem;
+  min-width: 80px;
+  font-weight: 600;
+}
+
+.pagination-number {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  color: #6c757d;
+  font-weight: bold;
+}
+
+/* انیمیشن‌ها */
+.pagination-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.pagination-link:hover::before {
+  left: 100%;
+}
+
+/* طراحی ریسپانسیو */
+@media (max-width: 768px) {
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+  
+  .pagination-link {
+    min-width: 35px;
+    height: 35px;
+    padding: 0 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .pagination-prev,
+  .pagination-next {
+    min-width: 70px;
+    font-size: 0.9rem;
+  }
+  
+  .pagination-text {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 0.1rem;
+  }
+  
+  .pagination-link {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .pagination-prev,
+  .pagination-next {
+    min-width: 60px;
+    font-size: 0.8rem;
+  }
+  
+  .pagination-prev span,
+  .pagination-next span {
+    display: none;
+  }
+}
+
+/* حالت تاریک (اختیاری) */
+@media (prefers-color-scheme: dark) {
+  .pagination {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .pagination-link {
+    color: #e2e8f0;
+  }
+  
+  .pagination-text {
+    background: #4a5568;
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+  
+  .pagination-ellipsis {
+    color: #a0aec0;
+  }
+}
+</style>
+{% endif %}

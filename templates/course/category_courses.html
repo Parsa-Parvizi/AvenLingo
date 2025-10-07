@@ -15,7 +15,7 @@
       <div class="category-stats">
         <span class="stat-item">
           <i class="fas fa-graduation-cap"></i>
-          {{ courses.count }} دوره
+          {{ courses.paginator.count }} دوره
         </span>
         <span class="stat-item">
           <i class="fas fa-users"></i>
@@ -93,6 +93,9 @@
         </div>
       {% endfor %}
     </div>
+
+    <!-- Pagination Component -->
+    {% include 'core/pagination.html' with paginated_object=courses %}
   {% else %}
     <div class="no-results">
       <div class="no-results-content">

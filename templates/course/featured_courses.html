@@ -78,6 +78,9 @@
         </div>
       {% endfor %}
     </div>
+
+    <!-- Pagination Component -->
+    {% include 'core/pagination.html' with paginated_object=courses %}
   {% else %}
     <div class="no-results">
       <div class="no-results-content">

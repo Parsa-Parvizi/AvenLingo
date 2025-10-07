@@ -1,0 +1,692 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} | ایجاد تکلیف جدید - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.assignment-create-page {
+  padding: 2rem 0;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.breadcrumb {
+  background: white;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.breadcrumb-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: #1e3c72;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.breadcrumb a:hover {
+  color: #2a5298;
+}
+
+.breadcrumb-separator {
+  color: #6c757d;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.form-header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.form-header h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.form-header p {
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
+.form-body {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.form-group label.required::after {
+  content: " *";
+  color: #dc3545;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background: #fff;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #1e3c72;
+  box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.form-control.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+}
+
+/* Time input specific styling for 24-hour format */
+input[type="time"] {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+input[type="time"]:focus {
+  font-family: 'Courier New', monospace;
+}
+
+.file-input-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.file-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.file-input-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+  color: #6c757d;
+  min-height: 80px;
+  position: relative;
+}
+
+.file-input-label:hover {
+  border-color: #1e3c72;
+  background: #e3f2fd;
+  color: #1e3c72;
+}
+
+.file-input-label i {
+  margin-left: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.file-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.selected-file {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #e8f5e8;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #218838, #1ea085);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  color: white;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  color: white;
+}
+
+.form-help {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+}
+
+.course-info {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-right: 4px solid #1e3c72;
+}
+
+.course-info h3 {
+  color: #1e3c72;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.course-info p {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .form-header,
+  .form-body {
+    padding: 1.5rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-row .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .form-header,
+  .form-body {
+    padding: 1rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="assignment-create-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <h1>ایجاد تکلیف جدید</h1>
+      <p>تکلیف جدید برای دوره {{ course.title }} ایجاد کنید</p>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="breadcrumb-content">
+      <a href="{% url 'dashboard:dashboard_home' %}">داشبورد</a>
+      <span class="breadcrumb-separator">/</span>
+      <a href="{% url 'course:detail' course.slug %}">{{ course.title }}</a>
+      <span class="breadcrumb-separator">/</span>
+      <a href="{% url 'course:assignment_list' course.id %}">تکالیف</a>
+      <span class="breadcrumb-separator">/</span>
+      <span>ایجاد جدید</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Course Info -->
+    <div class="course-info">
+      <h3>اطلاعات دوره</h3>
+      <p><strong>عنوان دوره:</strong> {{ course.title }}</p>
+      <p><strong>معلم:</strong> {{ course.teacher.user.get_full_name }}</p>
+      <p><strong>تاریخ ایجاد:</strong> {{ course.created_at|date:"Y/m/d" }}</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+      <div class="form-header">
+        <h2>فرم ایجاد تکلیف</h2>
+        <p>لطفاً اطلاعات تکلیف را با دقت وارد کنید</p>
+      </div>
+
+      <div class="form-body">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          
+          <!-- Title -->
+          <div class="form-group">
+            <label for="{{ form.title.id_for_label }}" class="required">
+              {{ form.title.label }}
+            </label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.title.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="form-help">
+              عنوان کوتاه و واضح برای تکلیف وارد کنید
+            </div>
+          </div>
+
+          <!-- Assignment Type -->
+          <div class="form-group">
+            <label for="{{ form.assignment_type.id_for_label }}" class="required">
+              {{ form.assignment_type.label }}
+            </label>
+            {{ form.assignment_type }}
+            {% if form.assignment_type.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.assignment_type.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">
+              {{ form.description.label }}
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.description.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="form-help">
+              توضیحات کامل تکلیف، نحوه انجام، نکات مهم و سایر اطلاعات لازم
+            </div>
+          </div>
+
+          <!-- Assignment File -->
+          <div class="form-group">
+            <label for="{{ form.assignment_file.id_for_label }}">
+              {{ form.assignment_file.label }}
+            </label>
+            <div class="file-input-wrapper">
+              <input type="file" 
+                     id="{{ form.assignment_file.id_for_label }}" 
+                     name="{{ form.assignment_file.name }}" 
+                     class="form-control file-input"
+                     accept=".pdf,.doc,.docx,.txt,.rtf,.zip,.rar">
+              <label for="{{ form.assignment_file.id_for_label }}" class="file-input-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span class="file-text">فایل تکلیف را انتخاب کنید</span>
+              </label>
+            </div>
+            {% if form.assignment_file.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.assignment_file.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="form-help">
+              فرمت‌های مجاز: PDF, DOC, DOCX, TXT, RTF, ZIP, RAR
+            </div>
+          </div>
+
+          <!-- Due Date and Time -->
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="due_date">
+                تاریخ تحویل تکلیف
+              </label>
+              <input type="date" 
+                     id="due_date" 
+                     name="due_date" 
+                     class="form-control"
+                     value="{{ form.due_date.value|date:'Y-m-d' }}">
+              {% if form.due_date.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.due_date.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-help">
+                تاریخ تحویل تکلیف (اختیاری)
+              </div>
+            </div>
+            
+            <div class="form-group col-md-6">
+              <label for="due_time">
+                ساعت تحویل تکلیف
+              </label>
+              <input type="time" 
+                     id="due_time" 
+                     name="due_time" 
+                     class="form-control"
+                     value="{{ form.due_date.value|time:'H:i' }}"
+                     step="60">
+              <div class="form-help">
+                ساعت تحویل تکلیف (24 ساعته - اختیاری)
+              </div>
+            </div>
+          </div>
+
+          <!-- Max Score -->
+          <div class="form-group">
+            <label for="{{ form.max_score.id_for_label }}">
+              {{ form.max_score.label }}
+            </label>
+            {{ form.max_score }}
+            {% if form.max_score.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.max_score.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="form-help">
+              حداکثر نمره قابل کسب (اختیاری)
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <a href="{% url 'course:assignment_list' course.id %}" class="btn btn-secondary">
+              <i class="fas fa-times"></i>
+              انصراف
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              ایجاد تکلیف
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // File input change handler
+  const fileInput = document.querySelector('input[type="file"]');
+  const fileLabel = document.querySelector('.file-input-label');
+  const fileText = document.querySelector('.file-text');
+  
+  if (fileInput && fileLabel && fileText) {
+    fileInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        const fileName = this.files[0].name;
+        const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2); // MB
+        
+        fileText.textContent = `فایل انتخاب شده: ${fileName} (${fileSize} MB)`;
+        fileLabel.style.borderColor = '#28a745';
+        fileLabel.style.background = '#e8f5e8';
+        fileLabel.style.color = '#28a745';
+        
+        // Add success icon
+        const icon = fileLabel.querySelector('i');
+        icon.className = 'fas fa-check-circle';
+        icon.style.color = '#28a745';
+      } else {
+        // Reset to original state
+        fileText.textContent = 'فایل تکلیف را انتخاب کنید';
+        fileLabel.style.borderColor = '#dee2e6';
+        fileLabel.style.background = '#f8f9fa';
+        fileLabel.style.color = '#6c757d';
+        
+        const icon = fileLabel.querySelector('i');
+        icon.className = 'fas fa-cloud-upload-alt';
+        icon.style.color = '';
+      }
+    });
+    
+    // Make sure the label is clickable
+    fileLabel.addEventListener('click', function(e) {
+      e.preventDefault();
+      fileInput.click();
+    });
+  }
+  
+  // Form validation
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          field.classList.remove('is-invalid');
+        }
+      });
+      
+      if (!isValid) {
+        e.preventDefault();
+        alert('لطفاً تمام فیلدهای ضروری را پر کنید.');
+      }
+    });
+  }
+  
+  // Date and time combination (24-hour format)
+  const dateInput = document.getElementById('due_date');
+  const timeInput = document.getElementById('due_time');
+  
+  if (dateInput && timeInput) {
+    // Set default time to 23:59 if date is selected but time is not
+    dateInput.addEventListener('change', function() {
+      if (this.value && !timeInput.value) {
+        timeInput.value = '23:59';
+      }
+    });
+    
+    // Clear date if time is cleared
+    timeInput.addEventListener('change', function() {
+      if (!this.value && dateInput.value) {
+        if (confirm('آیا می‌خواهید تاریخ تحویل را نیز پاک کنید؟')) {
+          dateInput.value = '';
+        } else {
+          this.value = '23:59';
+        }
+      }
+    });
+    
+    // Format time input to 24-hour format
+    timeInput.addEventListener('input', function() {
+      // Ensure the time is in 24-hour format
+      if (this.value) {
+        const [hours, minutes] = this.value.split(':');
+        const hour24 = parseInt(hours);
+        
+        // Validate hour range (0-23)
+        if (hour24 < 0 || hour24 > 23) {
+          this.setCustomValidity('ساعت باید بین 00 تا 23 باشد');
+        } else {
+          this.setCustomValidity('');
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

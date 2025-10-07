@@ -140,7 +140,7 @@
   <!-- Results Section -->
   <div class="results-section">
     <div class="results-header">
-      <div class="results-info">
+      <div class="results-title">
         <h2>
           {% if search %}
             نتایج جستجو برای "{{ search }}"
@@ -150,6 +150,8 @@
             همه دوره‌ها
           {% endif %}
         </h2>
+      </div>
+      <div class="results-info">
         <div class="results-stats">
           <span class="results-count">
             <i class="fas fa-graduation-cap"></i>
@@ -278,6 +280,9 @@
           </div>
         {% endfor %}
       </div>
+
+      <!-- Pagination Component -->
+      {% include 'core/pagination.html' with paginated_object=courses %}
     {% else %}
       <div class="no-results">
         <div class="no-results-content">
@@ -432,7 +437,7 @@
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -474,11 +479,27 @@
   border-radius: 10px;
   margin-bottom: 1.5rem;
   box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
 }
 
-.results-info h2 {
+.results-title {
+  flex-shrink: 0;
+}
+
+.results-title h2 {
   color: #333;
-  margin-bottom: 0.5rem;
+  margin: 0;
+  text-align: right;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.results-info {
+  flex: 1;
+  text-align: right;
 }
 
 .results-stats {
@@ -486,6 +507,7 @@
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .results-count, .search-time {
@@ -560,9 +582,20 @@
     flex-direction: column;
   }
   
+  .results-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .results-title h2 {
+    text-align: center;
+    font-size: 1.3rem;
+  }
+  
   .results-stats {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 }
 </style>

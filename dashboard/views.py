@@ -13,7 +13,7 @@ import json
 import logging
 
 from account.models import Student, Teacher, User, TeacherApplication
-from course.models import Course, Category
+from course.models import Course, Category, Assignment
 from enrollment.models import Enrollment
 from core.models import DeterminationRequest
 
@@ -47,6 +47,11 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         return is_student(self.request.user)
 
     def dispatch(self, request, *args, **kwargs):
+        # اگر کاربر superuser است، اجازه دسترسی به student dashboard را نده
+        if request.user.is_superuser:
+            messages.error(request, 'کاربران ادمین باید از داشبورد مدیریت استفاده کنند.')
+            return redirect('dashboard:admin_dashboard')
+            
         try:
             _ = Student.objects.get(user=request.user)
         except Student.DoesNotExist:
@@ -140,9 +145,14 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
     def handle_no_permission(self):
         messages.error(self.request, 'دسترسی غیرمجاز به داشبورد مدرس.')
-        return redirect('dashboard:index')
+        return redirect('core:home')
 
     def dispatch(self, request, *args, **kwargs):
+        # اگر کاربر superuser است، اجازه دسترسی به teacher dashboard را نده
+        if request.user.is_superuser:
+            messages.error(request, 'کاربران ادمین باید از داشبورد مدیریت استفاده کنند.')
+            return redirect('dashboard:admin_dashboard')
+            
         try:
             _ = Teacher.objects.get(user=request.user)
         except Teacher.DoesNotExist:
@@ -229,6 +239,23 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
         context['recent_activities'] = self.get_recent_activities(teacher)
 
+        # Get recent assignments for the teacher
+        recent_assignments = Assignment.objects.filter(
+            teacher=teacher
+        ).select_related('course').order_by('-created_at')[:5]
+        context['recent_assignments'] = recent_assignments
+
+        # Assignment statistics
+        all_assignments = Assignment.objects.filter(teacher=teacher)
+        context['assignment_stats'] = {
+            'total_assignments': all_assignments.count(),
+            'active_assignments': all_assignments.filter(is_active=True).count(),
+            'homework_count': all_assignments.filter(assignment_type='homework').count(),
+            'quiz_count': all_assignments.filter(assignment_type='quiz').count(),
+            'project_count': all_assignments.filter(assignment_type='project').count(),
+            'exam_count': all_assignments.filter(assignment_type='exam').count(),
+        }
+
         return context
 
     def get_recent_activities(self, teacher):
@@ -277,7 +304,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
     def handle_no_permission(self):
         messages.error(self.request, 'دسترسی غیرمجاز به داشبورد مدیریت.')
-        return redirect('dashboard:dashboard_home')
+        return redirect('core:home')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

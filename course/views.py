@@ -215,11 +215,34 @@ def course_detail_view(request, course_slug):
     """نمایش جزئیات کلاس"""
     course = get_object_or_404(Course, slug=course_slug, is_active=True)
     
-    # کلاس‌های مشابه
-    similar_courses = Course.objects.filter( # type: ignore
+    # کلاس‌های مشابه (همیشه 3 تا)
+    similar_courses = []
+    
+    # اول از همان دسته‌بندی بگیریم
+    category_courses = Course.objects.filter( # type: ignore
         is_active=True,
         category=course.category
-    ).exclude(id=course.id)[:3]  # type: ignore
+    ).exclude(id=course.id).order_by('-is_featured', '-created_at')[:3]  # type: ignore
+    similar_courses.extend(list(category_courses))
+    
+    # اگر کمتر از 3 تا بود، از همان سطح بگیریم
+    if len(similar_courses) < 3:
+        level_courses = Course.objects.filter( # type: ignore
+            is_active=True,
+            level=course.level
+        ).exclude(
+            id__in=[course.id] + [c.id for c in similar_courses]
+        ).order_by('-is_featured', '-created_at')[:(3 - len(similar_courses))]  # type: ignore
+        similar_courses.extend(list(level_courses))
+    
+    # اگر هنوز کمتر از 3 تا است، از همه دوره‌های فعال بگیریم
+    if len(similar_courses) < 3:
+        other_courses = Course.objects.filter( # type: ignore
+            is_active=True
+        ).exclude(
+            id__in=[course.id] + [c.id for c in similar_courses]
+        ).order_by('-is_featured', '-created_at')[:(3 - len(similar_courses))]  # type: ignore
+        similar_courses.extend(list(other_courses))
     
     # دیگر دوره‌های استاد (بهترین دوره‌ها)
     teacher_other_courses = Course.objects.filter( # type: ignore

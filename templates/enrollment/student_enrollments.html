@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}ثبت‌نام‌های من{% endblock %}
+{% block title %} | My Enrollments{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -31,7 +32,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="stats-widget primary">
                 <div class="stats-content">
-                    <div class="stats-number">{{ total_enrollments }}</div>
+                    <div class="stats-number">{{ total_enrollments|persian_numbers }}</div>
                     <div class="stats-label">مجموع دوره‌ها</div>
                 </div>
                 <div class="stats-icon">
@@ -43,7 +44,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="stats-widget success">
                 <div class="stats-content">
-                    <div class="stats-number">{{ confirmed_enrollments }}</div>
+                    <div class="stats-number">{{ confirmed_enrollments|persian_numbers }}</div>
                     <div class="stats-label">تأیید شده</div>
                 </div>
                 <div class="stats-icon">
@@ -55,7 +56,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="stats-widget warning">
                 <div class="stats-content">
-                    <div class="stats-number">{{ pending_enrollments }}</div>
+                    <div class="stats-number">{{ pending_enrollments|persian_numbers }}</div>
                     <div class="stats-label">در انتظار تأیید</div>
                 </div>
                 <div class="stats-icon">
@@ -67,7 +68,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="stats-widget info">
                 <div class="stats-content">
-                    <div class="stats-number">{{ cancelled_enrollments }}</div>
+                    <div class="stats-number">{{ cancelled_enrollments|persian_numbers }}</div>
                     <div class="stats-label">لغو شده</div>
                 </div>
                 <div class="stats-icon">
@@ -152,12 +153,12 @@
                                         <div class="enrollment-dates">
                                             <small class="text-muted">
                                                 <i class="fas fa-calendar-plus me-1"></i>
-                                                ثبت‌نام: {{ enrollment.enrolled_at|date:"Y/m/d H:i" }}
+                                                ثبت‌نام: {{ enrollment.enrolled_at|jalali_datetime }}
                                             </small>
                                             {% if enrollment.confirmed_at %}
                                             <small class="text-muted d-block">
                                                 <i class="fas fa-calendar-check me-1"></i>
-                                                تأیید: {{ enrollment.confirmed_at|date:"Y/m/d H:i" }}
+                                                تأیید: {{ enrollment.confirmed_at|jalali_datetime }}
                                             </small>
                                             {% endif %}
                                         </div>
@@ -183,20 +184,14 @@
                                                 </span>
                                             {% endif %}
                                             
-                                            {% if enrollment.course.is_online %}
-                                                <span class="feature-tag">
-                                                    <i class="fas fa-globe me-1"></i>آنلاین
-                                                </span>
-                                            {% else %}
-                                                <span class="feature-tag">
-                                                    <i class="fas fa-building me-1"></i>حضوری
-                                                </span>
-                                            {% endif %}
+                                            <span class="feature-tag">
+                                                <i class="fas fa-video me-1"></i>آنلاین
+                                            </span>
                                             
                                             {% if enrollment.course.duration %}
                                                 <span class="feature-tag">
                                                     <i class="fas fa-clock me-1"></i>
-                                                    {{ enrollment.course.duration }}
+                                                    {{ enrollment.course.duration|persian_numbers }}
                                                 </span>
                                             {% endif %}
                                         </div>
@@ -214,17 +209,17 @@
                                 
                                 <div class="col-md-4">
                                     <!-- Progress & Payment Info -->
-                                    {% if enrollment.completion_percentage > 0 %}
-                                    <div class="progress-section mb-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <small class="text-muted">پیشرفت</small>
-                                            <small class="text-muted">{{ enrollment.completion_percentage }}%</small>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-success" style="width: {{ enrollment.completion_percentage }}%"></div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
+                    {% if enrollment.completion_percentage > 0 %}
+                    <div class="progress-section mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">پیشرفت</small>
+                            <small class="text-muted">{{ enrollment.completion_percentage|persian_numbers }}٪</small>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: {{ enrollment.completion_percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
                                     
                                     <!-- Payment Information -->
                                     <div class="payment-info">
@@ -232,15 +227,15 @@
                                             {% if enrollment.course.is_free %}
                                                 <span class="amount free">رایگان</span>
                                             {% else %}
-                                                <span class="amount">{{ enrollment.course.price|floatformat:0 }} تومان</span>
+                                                <span class="amount">{{ enrollment.course.price|floatformat:0|persian_numbers }} تومان</span>
                                                 {% if enrollment.discount_applied > 0 %}
                                                     <small class="discount d-block text-success">
-                                                        تخفیف: {{ enrollment.discount_applied|floatformat:0 }} تومان
+                                                        تخفیف: {{ enrollment.discount_applied|floatformat:0|persian_numbers }} تومان
                                                     </small>
                                                 {% endif %}
                                                 {% if enrollment.amount_paid > 0 %}
                                                     <small class="paid-amount d-block text-info">
-                                                        پرداخت شده: {{ enrollment.amount_paid|floatformat:0 }} تومان
+                                                        پرداخت شده: {{ enrollment.amount_paid|floatformat:0|persian_numbers }} تومان
                                                     </small>
                                                 {% endif %}
                                             {% endif %}

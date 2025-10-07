@@ -41,7 +41,6 @@ LEVEL_CHOICES = [
 ONLINE_CHOICES = [
     ('online', 'آنلاین'),
     ('offline', 'آفلاین'),
-    ('in_person', 'حضوری'),
     ('hybrid', 'ترکیبی'),
 ]
 
@@ -148,9 +147,21 @@ class Course(models.Model):
         return f"{self.title} ({self.teacher})"
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = generate_slug(self.title or str(self.id or "course"))
-        super().save(*args, **kwargs)
+        # ذخیره اولیه برای دریافت ID
+        is_new = self.pk is None
+        if is_new:
+            super().save(*args, **kwargs)
+        
+        # ساخت slug با ID برای یکتا بودن
+        if not self.slug or is_new:
+            from core.templatetags.persian_filters import persian_numbers
+            # تبدیل اعداد به فارسی در عنوان
+            title_persian = persian_numbers(self.title) if self.title else f"دوره-{self.id}"
+            base_slug = generate_slug(title_persian)
+            self.slug = f"{base_slug}-{self.id}"
+        
+        if not is_new:
+            super().save(*args, **kwargs)
 
     @property
     def available_seats(self):

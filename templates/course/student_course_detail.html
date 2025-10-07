@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}| {{ course.title }}{% endblock %}
+{% block title %} | Course Details{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -288,7 +289,7 @@
                             <strong><i class="fas fa-calendar me-2"></i>تاریخ شروع:</strong>
                             <span class="text-muted">
                                 {% if course.start_date %}
-                                    {{ course.start_date|date:"Y/m/d" }}
+                                    {{ course.start_date|jalali_short }}
                                 {% else %}
                                     تعیین نشده
                                 {% endif %}
@@ -298,7 +299,7 @@
                             <strong><i class="fas fa-clock me-2"></i>زمان کلاس:</strong>
                             <span class="text-muted">
                                 {% if course.class_time %}
-                                    {{ course.class_time }}
+                                    {{ course.class_time|persian_numbers }}
                                 {% else %}
                                     تعیین نشده
                                 {% endif %}
@@ -396,7 +397,7 @@
                                             <div class="col-md-6">
                                                 <div class="info-item">
                                                     <i class="fas fa-calendar-alt"></i>
-                                                    <span>مهلت ارسال: {{ assignment.due_date|date:"Y/m/d H:i" }}</span>
+                                                    <span>مهلت ارسال: {{ assignment.due_date|jalali_datetime }}</span>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -492,7 +493,7 @@
                         <strong>شروع دوره</strong>
                         <p class="mb-0 text-muted">
                             {% if course.start_date %}
-                                {{ course.start_date|date:"Y/m/d" }}
+                                {{ course.start_date|jalali_short }}
                             {% else %}
                                 تعیین نشده
                             {% endif %}
@@ -508,7 +509,7 @@
                         <strong>زمان کلاس</strong>
                         <p class="mb-0 text-muted">
                             {% if course.class_time %}
-                                {{ course.class_time }}
+                                {{ course.class_time|persian_numbers }}
                             {% else %}
                                 تعیین نشده
                             {% endif %}
@@ -524,7 +525,7 @@
                         <strong>پایان دوره</strong>
                         <p class="mb-0 text-muted">
                             {% if course.end_date %}
-                                {{ course.end_date|date:"Y/m/d" }}
+                                {{ course.end_date|jalali_short }}
                             {% else %}
                                 تعیین نشده
                             {% endif %}
@@ -562,7 +563,7 @@
                     <div>
                         <strong>لینک کلاس</strong>
                         <p class="mb-0 text-muted">
-                            این دوره حضوری است - لینک کلاس فقط برای جلسات آنلاین استفاده می‌شود
+                            همه کلاس‌ها به صورت آنلاین برگزار می‌شوند
                         </p>
                     </div>
                 </div>

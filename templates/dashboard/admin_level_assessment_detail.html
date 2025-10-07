@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - جزئیات درخواست تعیین سطح{% endblock %}
+{% block title %} | Admin - Level Assessment Details{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -186,7 +187,7 @@
         </div>
         <div class="info-row">
             <span class="info-label">تاریخ ارسال درخواست:</span>
-            <span class="info-value">{{ assessment_request.submitted_at|date:"Y/m/d - H:i" }}</span>
+            <span class="info-value">{{ assessment_request.submitted_at|jalali_datetime }}</span>
         </div>
 
         <!-- Message Section -->

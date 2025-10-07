@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - مدیریت کاربران{% endblock %}
+{% block title %} | Admin - Users{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -124,8 +125,8 @@
                                             <span class="text-danger"><i class="fas fa-times-circle"></i></span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.date_joined|date:"Y/m/d" }}</td>
-                                    <td>{{ user.last_login|date:"Y/m/d H:i"|default:"—" }}</td>
+                                    <td>{{ user.date_joined|jalali_short }}</td>
+                                    <td>{{ user.last_login|jalali_datetime|default:"—" }}</td>
                                     <td>
                                         <a href="{% url 'dashboard:admin_user_detail' user.id %}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-edit"></i>

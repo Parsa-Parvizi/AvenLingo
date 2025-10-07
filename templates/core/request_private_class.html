@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Private Class Request{% endblock %}
+
+{% block content %}
+<style>
+  * {
+    font-family: 'Vazir', sans-serif !important;
+  }
+  
+  .private-class-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    direction: rtl;
+  }
+  
+  .page-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .page-header p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    margin: 0;
+  }
+  
+  .form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+  }
+  
+  .form-section {
+    margin-bottom: 30px;
+  }
+  
+  .form-section-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+  
+  .form-group label .required {
+    color: #dc3545;
+    margin-right: 3px;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fafafa;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .help-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+  }
+  
+  .submit-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 30px auto 0;
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  }
+  
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+  }
+  
+  .alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  .alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    color: #dc3545;
+    font-size: 0.9rem;
+  }
+  
+  .errorlist li {
+    margin-bottom: 3px;
+  }
+  
+  .info-box {
+    background: #e7f3ff;
+    border-right: 4px solid #2196F3;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .info-box p {
+    margin: 0;
+    color: #0d47a1;
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 768px) {
+    .private-class-page {
+      padding: 10px;
+    }
+    
+    .form-container {
+      padding: 20px;
+    }
+    
+    .page-header h1 {
+      font-size: 1.5rem;
+    }
+    
+    .page-header p {
+      font-size: 0.95rem;
+    }
+  }
+</style>
+
+<div class="private-class-page">
+  <div class="page-header">
+    <h1>🎯 درخواست کلاس خصوصی</h1>
+    <p>با اساتید مجرب، آموزش اختصاصی و سفارشی‌شده برای شما</p>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'success' %}success{% else %}error{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="form-container">
+    <div class="info-box">
+      <p>
+        <strong>💡 توجه:</strong> 
+        کلاس‌های خصوصی با توجه به نیاز و سطح شما طراحی می‌شوند. 
+        لطفاً اطلاعات خود را با دقت وارد کنید تا بتوانیم بهترین برنامه آموزشی را برای شما تنظیم کنیم.
+      </p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <div class="form-section">
+        <div class="form-section-title">
+          <i class="fas fa-user"></i>
+          اطلاعات فردی
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}">
+            {{ form.name.label }}
+            <span class="required">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <ul class="errorlist">
+              {% for error in form.name.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">
+            {{ form.email.label }}
+            <span class="required">*</span>
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <ul class="errorlist">
+              {% for error in form.email.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.phone.id_for_label }}">
+            {{ form.phone.label }}
+            <span class="required">*</span>
+          </label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <ul class="errorlist">
+              {% for error in form.phone.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">
+          <i class="fas fa-graduation-cap"></i>
+          اطلاعات آموزشی
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.current_level.id_for_label }}">
+            {{ form.current_level.label }}
+            <span class="required">*</span>
+          </label>
+          {{ form.current_level }}
+          {% if form.current_level.errors %}
+            <ul class="errorlist">
+              {% for error in form.current_level.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.preferred_time.id_for_label }}">
+            {{ form.preferred_time.label }}
+          </label>
+          {{ form.preferred_time }}
+          <div class="help-text">مثال: عصرها، آخر هفته‌ها، صبح‌ها</div>
+          {% if form.preferred_time.errors %}
+            <ul class="errorlist">
+              {% for error in form.preferred_time.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.goals.id_for_label }}">
+            {{ form.goals.label }}
+            <span class="required">*</span>
+          </label>
+          {{ form.goals }}
+          <div class="help-text">مثال: آمادگی برای آیلتس، تقویت مکالمه، پیشرفت شغلی</div>
+          {% if form.goals.errors %}
+            <ul class="errorlist">
+              {% for error in form.goals.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.additional_info.id_for_label }}">
+            {{ form.additional_info.label }}
+          </label>
+          {{ form.additional_info }}
+          <div class="help-text">هر اطلاعات اضافی که فکر می‌کنید برای ما مفید است</div>
+          {% if form.additional_info.errors %}
+            <ul class="errorlist">
+              {% for error in form.additional_info.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-paper-plane"></i>
+        ارسال درخواست کلاس خصوصی
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Add animation on scroll
+  document.addEventListener('DOMContentLoaded', function() {
+    const formContainer = document.querySelector('.form-container');
+    formContainer.style.opacity = '0';
+    formContainer.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      formContainer.style.transition = 'all 0.5s ease';
+      formContainer.style.opacity = '1';
+      formContainer.style.transform = 'translateY(0)';
+    }, 100);
+  });
+</script>
+{% endblock %}
+

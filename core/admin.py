@@ -8,7 +8,7 @@ from account.models import Teacher
 from django.core.mail import send_mail
 from django.utils.safestring import mark_safe
 from .models import (
-    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage
+    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage, PrivateClassRequest
 )
 
 User = get_user_model()
@@ -32,8 +32,6 @@ def get_named_url_choices():
             continue
     return sorted(choices, key=lambda x: x[1])
 
-
-# Hero slider admin removed as requested
 
 
 @admin.register(AdviceRequest)
@@ -210,6 +208,10 @@ class ContactMessageAdmin(admin.ModelAdmin):
         ('💬 محتوای پیام', {
             'fields': ('subject', 'message')
         }),
+        ('✍️ پاسخ ادمین', {
+            'fields': ('reply', 'replied_by', 'replied_at'),
+            'classes': ('wide',)
+        }),
         ('📊 وضعیت و پیگیری', {
             'fields': ('status', 'admin_note'),
             'classes': ('wide',)
@@ -220,7 +222,17 @@ class ContactMessageAdmin(admin.ModelAdmin):
         }),
     )
     
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'replied_by', 'replied_at']
+    
+    def save_model(self, request, obj, form, change):
+        """ذخیره اطلاعات پاسخ‌دهنده"""
+        if change and 'reply' in form.changed_data and obj.reply:
+            # اگر پاسخ وارد شده، ذخیره اطلاعات پاسخ‌دهنده
+            from django.utils import timezone
+            obj.replied_by = request.user
+            obj.replied_at = timezone.now()
+            obj.status = 'replied'
+        super().save_model(request, obj, form, change)
     
     def name_display(self, obj):
         """نمایش نام با آیکون"""
@@ -281,29 +293,103 @@ class ContactMessageAdmin(admin.ModelAdmin):
         return ['created_at', 'updated_at']
 
 
-# @admin.register(Log)
-# class LogAdmin(admin.ModelAdmin):
-#     """لاگ‌های سیستم - فقط خواندنی"""
+
+@admin.register(PrivateClassRequest)
+class PrivateClassRequestAdmin(admin.ModelAdmin):
+    """مدیریت درخواست‌های کلاس خصوصی"""
     
-#     list_display = ['level', 'message_short', 'user', 'created_at']
-#     list_filter = ['level', 'user', 'created_at']
-#     search_fields = ['message', 'user__username']
-#     ordering = ['-created_at']
-#     date_hierarchy = 'created_at'
-#     readonly_fields = ['level', 'message', 'user', 'created_at']
+    list_display = ['name_display', 'email', 'phone_display', 'current_level_display', 'status_badge', 'created_at_display']
+    list_filter = ['status', 'current_level', 'created_at']
+    search_fields = ['name', 'email', 'phone', 'goals', 'preferred_time']
+    ordering = ['-created_at']
+    actions = ['mark_as_contacted', 'mark_as_approved', 'mark_as_rejected']
+    list_per_page = 20
     
-#     def message_short(self, obj):
-#         return obj.message[:50] + "..." if len(obj.message) > 50 else obj.message
-#     message_short.short_description = 'پیام'
+    fieldsets = (
+        ('👤 اطلاعات درخواست‌دهنده', {
+            'fields': ('name', 'email', 'phone')
+        }),
+        ('📚 اطلاعات آموزشی', {
+            'fields': ('current_level', 'preferred_time', 'goals', 'additional_info')
+        }),
+        ('📊 وضعیت و پیگیری', {
+            'fields': ('status', 'admin_note'),
+            'classes': ('wide',)
+        }),
+        ('🕒 اطلاعات زمانی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
     
-#     def has_add_permission(self, request):
-#         return False
+    readonly_fields = ['created_at', 'updated_at']
     
-#     def has_change_permission(self, request, obj=None):
-#         return False
+    def name_display(self, obj):
+        """نمایش نام با آیکون"""
+        return format_html('<strong>👤 {}</strong>', obj.name)
+    name_display.short_description = 'نام'
     
-#     def has_delete_permission(self, request, obj=None):
-#         return False
+    def phone_display(self, obj):
+        """نمایش شماره تلفن با آیکون"""
+        return format_html('📱 {}', obj.phone)
+    phone_display.short_description = 'شماره تماس'
+    
+    def current_level_display(self, obj):
+        """نمایش سطح با آیکون"""
+        level_icons = {
+            'beginner': '🌱',
+            'intermediate': '📈',
+            'advanced': '🎓',
+            'unknown': '❓',
+        }
+        icon = level_icons.get(obj.current_level, '📚')
+        return format_html('{} {}', icon, obj.get_current_level_display())
+    current_level_display.short_description = 'سطح زبان'
+    
+    def status_badge(self, obj):
+        """نمایش وضعیت با badge رنگی"""
+        status_styles = {
+            'pending': '<span style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 12px; font-weight: bold;">⏳ در انتظار بررسی</span>',
+            'contacted': '<span style="background: #17a2b8; color: #fff; padding: 4px 12px; border-radius: 12px;">📞 تماس گرفته شده</span>',
+            'approved': '<span style="background: #28a745; color: #fff; padding: 4px 12px; border-radius: 12px;">✅ تایید شده</span>',
+            'rejected': '<span style="background: #dc3545; color: #fff; padding: 4px 12px; border-radius: 12px;">❌ رد شده</span>',
+        }
+        return mark_safe(status_styles.get(obj.status, obj.status))
+    status_badge.short_description = 'وضعیت'
+    
+    def created_at_display(self, obj):
+        """نمایش تاریخ فارسی"""
+        return obj.created_at.strftime('%Y/%m/%d - %H:%M')
+    created_at_display.short_description = 'تاریخ ارسال'
+    
+    # Actions
+    def mark_as_contacted(self, request, queryset):
+        """علامت‌گذاری به عنوان تماس گرفته شده"""
+        updated = queryset.update(status='contacted')
+        self.message_user(request, f'{updated} درخواست به عنوان تماس گرفته شده علامت‌گذاری شد.')
+    mark_as_contacted.short_description = '📞 علامت‌گذاری به عنوان تماس گرفته شده'
+    
+    def mark_as_approved(self, request, queryset):
+        """علامت‌گذاری به عنوان تایید شده"""
+        updated = queryset.update(status='approved')
+        self.message_user(request, f'{updated} درخواست تایید شد.')
+    mark_as_approved.short_description = '✅ تایید درخواست‌های انتخاب‌شده'
+    
+    def mark_as_rejected(self, request, queryset):
+        """علامت‌گذاری به عنوان رد شده"""
+        updated = queryset.update(status='rejected')
+        self.message_user(request, f'{updated} درخواست رد شد.')
+    mark_as_rejected.short_description = '❌ رد درخواست‌های انتخاب‌شده'
+    
+    def get_readonly_fields(self, request, obj=None):
+        """فیلدهای فقط خواندنی"""
+        if obj:  # در حالت ویرایش
+            return ['name', 'email', 'phone', 'current_level', 'preferred_time', 'goals', 'additional_info', 'created_at', 'updated_at']
+        return ['created_at', 'updated_at']
+    
+    def has_add_permission(self, request):
+        """غیرفعال کردن امکان افزودن دستی"""
+        return False
 
 
 admin.site.site_header = "🎓 پنل مدیریت آکادمی زبان انگلیسی"

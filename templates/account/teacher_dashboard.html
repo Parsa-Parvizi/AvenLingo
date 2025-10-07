@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}داشبورد مدرس{% endblock %}
+{% block title %} | Teacher Dashboard{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -465,11 +466,11 @@
                     <div class="text-white-50">
                         <div class="mb-2">
                             <small>آخرین فعالیت</small>
-                            <div class="fw-bold">{{ teacher.last_activity|date:"Y/m/d H:i" }}</div>
+                            <div class="fw-bold">{{ teacher.last_activity|jalali_datetime }}</div>
                         </div>
                         <div>
                             <small>عضویت از</small>
-                            <div class="fw-bold">{{ teacher.joined_at|date:"Y/m/d" }}</div>
+                            <div class="fw-bold">{{ teacher.joined_at|jalali_short }}</div>
                         </div>
                     </div>
                 </div>
@@ -613,7 +614,7 @@
                                     <small class="text-muted">/ {{ course.capacity }}</small>
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ course.created_at|date:"Y/m/d" }}</span>
+                                    <span class="text-muted">{{ course.created_at|jalali_short }}</span>
                                 </td>
                                         <td class="text-center">
                                             <div class="actions-group">
@@ -679,7 +680,7 @@
                             </div>
                             <div class="activity-content">
                                 <div class="activity-title">{{ activity.title }}</div>
-                                <div class="activity-time">{{ activity.created_at|date:"Y/m/d H:i" }}</div>
+                                <div class="activity-time">{{ activity.created_at|jalali_datetime }}</div>
                             </div>
                         </div>
                         {% endfor %}
@@ -733,7 +734,7 @@
                                     <span class="assignment-status {% if assignment.is_active %}active{% else %}inactive{% endif %}">
                                         {% if assignment.is_active %}فعال{% else %}غیرفعال{% endif %}
                                     </span>
-                                    <span class="activity-time">{{ assignment.created_at|date:"Y/m/d" }}</span>
+                                    <span class="activity-time">{{ assignment.created_at|jalali_short }}</span>
                                 </div>
                             </div>
                         </div>
@@ -771,7 +772,7 @@
                             </div>
                             <div class="activity-content">
                                 <div class="activity-title">{{ notification.title }}</div>
-                                <div class="activity-time">{{ notification.created_at|date:"Y/m/d H:i" }}</div>
+                                <div class="activity-time">{{ notification.created_at|jalali_datetime }}</div>
                             </div>
                         </div>
                         {% endfor %}

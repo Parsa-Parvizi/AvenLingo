@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - داشبورد مدیریت{% endblock %}
+{% block title %} | Admin Dashboard{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -331,7 +332,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="course-title mb-1">{{ enrollment.student.user.get_full_name }}</h6>
                                 <p class="course-meta mb-1">{{ enrollment.course.title }}</p>
-                                <small class="text-muted">{{ enrollment.enrolled_at|date:"Y/m/d H:i" }}</small>
+                                <small class="text-muted">{{ enrollment.enrolled_at|jalali_datetime }}</small>
                             </div>
                             <div>
                                 {% if enrollment.status == 'pending' %}
@@ -368,7 +369,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="course-title mb-1">{{ app.first_name }} {{ app.last_name }}</h6>
                                 <p class="course-meta mb-1">{{ app.email }}</p>
-                                <small class="text-muted">{{ app.submitted_at|date:"Y/m/d H:i" }}</small>
+                                <small class="text-muted">{{ app.submitted_at|jalali_datetime }}</small>
                             </div>
                             <div>
                                 <span class="badge badge-warning">در انتظار بررسی</span>

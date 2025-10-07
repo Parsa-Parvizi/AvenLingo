@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Admin - Private Class Requests{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    {% include 'dashboard/admin_navbar.html' %}
+    
+    <main class="admin-main-content">
+        <div class="admin-header">
+            <h1>📚 درخواست‌های کلاس خصوصی</h1>
+            <div class="admin-header-actions">
+                <span class="badge bg-warning">{{ pending_count|persian_numbers }} در انتظار</span>
+                <span class="badge bg-info">{{ contacted_count|persian_numbers }} تماس گرفته شده</span>
+                <span class="badge bg-success">{{ approved_count|persian_numbers }} تایید شده</span>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section mb-4">
+            <div class="btn-group" role="group">
+                <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    همه
+                </a>
+                <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                    در انتظار
+                </a>
+                <a href="?status=contacted" class="btn btn-sm {% if status_filter == 'contacted' %}btn-info{% else %}btn-outline-info{% endif %}">
+                    تماس گرفته شده
+                </a>
+                <a href="?status=approved" class="btn btn-sm {% if status_filter == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    تایید شده
+                </a>
+                <a href="?status=rejected" class="btn btn-sm {% if status_filter == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    رد شده
+                </a>
+            </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>نام</th>
+                                <th>ایمیل</th>
+                                <th>تلفن</th>
+                                <th>سطح</th>
+                                <th>زمان ترجیحی</th>
+                                <th>وضعیت</th>
+                                <th>تاریخ ارسال</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests %}
+                            <tr>
+                                <td><strong>{{ request.name }}</strong></td>
+                                <td>{{ request.email }}</td>
+                                <td>{{ request.phone|persian_numbers }}</td>
+                                <td>
+                                    {% if request.current_level == 'beginner' %}
+                                        <span class="badge bg-success">🌱 مبتدی</span>
+                                    {% elif request.current_level == 'intermediate' %}
+                                        <span class="badge bg-info">📈 متوسط</span>
+                                    {% elif request.current_level == 'advanced' %}
+                                        <span class="badge bg-primary">🎓 پیشرفته</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">❓ نمی‌دانم</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.preferred_time|default:"ذکر نشده" }}</td>
+                                <td>
+                                    {% if request.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">⏳ در انتظار</span>
+                                    {% elif request.status == 'contacted' %}
+                                        <span class="badge bg-info">📞 تماس گرفته شده</span>
+                                    {% elif request.status == 'approved' %}
+                                        <span class="badge bg-success">✅ تایید شده</span>
+                                    {% elif request.status == 'rejected' %}
+                                        <span class="badge bg-danger">❌ رد شده</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.created_at|jalali_short }}</td>
+                                <td>
+                                    <a href="{% url 'dashboard:admin_private_class_request_detail' request.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> مشاهده
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p>درخواستی یافت نشد</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - جزئیات کاربر{% endblock %}
+{% block title %} | Admin - User Details{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -199,11 +200,11 @@
         </div>
         <div class="info-row">
             <span class="info-label">تاریخ عضویت:</span>
-            <span class="info-value">{{ user_detail.date_joined|date:"Y/m/d - H:i" }}</span>
+            <span class="info-value">{{ user_detail.date_joined|jalali_datetime }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">آخرین ورود:</span>
-            <span class="info-value">{{ user_detail.last_login|date:"Y/m/d - H:i"|default:"—" }}</span>
+            <span class="info-value">{{ user_detail.last_login|jalali_datetime|default:"—" }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">سوپریوزر:</span>
@@ -228,7 +229,7 @@
         </div>
         <div class="info-row">
             <span class="info-label">تاریخ تولد:</span>
-            <span class="info-value">{{ student.date_of_birth|date:"Y/m/d"|default:"ثبت نشده" }}</span>
+            <span class="info-value">{{ student.date_of_birth|jalali_short|default:"ثبت نشده" }}</span>
         </div>
 
         {% if enrollments %}

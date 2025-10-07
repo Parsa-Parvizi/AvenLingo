@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}آپلود فیش واریزی - {{ course.title }}{% endblock %}
+{% block title %} | Upload Receipt{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -389,7 +390,7 @@
             </div>
             <div class="info-item">
                 <span class="info-label">تاریخ ثبت‌نام:</span>
-                <span class="info-value">{{ enrollment.enrolled_at|date:"Y/m/d - H:i" }}</span>
+                <span class="info-value">{{ enrollment.enrolled_at|jalali_datetime }}</span>
             </div>
         </div>
 

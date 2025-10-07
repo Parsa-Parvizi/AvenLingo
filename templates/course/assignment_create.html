@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} | ایجاد تکلیف جدید - {{ course.title }}{% endblock %}
+{% block title %} | Create Assignment{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -406,7 +406,7 @@ input[type="time"]:focus {
       <h3>اطلاعات دوره</h3>
       <p><strong>عنوان دوره:</strong> {{ course.title }}</p>
       <p><strong>معلم:</strong> {{ course.teacher.user.get_full_name }}</p>
-      <p><strong>تاریخ ایجاد:</strong> {{ course.created_at|date:"Y/m/d" }}</p>
+      <p><strong>تاریخ ایجاد:</strong> {{ course.created_at|jalali_short }}</p>
     </div>
 
     <!-- Form Card -->
@@ -517,7 +517,7 @@ input[type="time"]:focus {
                      id="due_date" 
                      name="due_date" 
                      class="form-control"
-                     value="{{ form.due_date.value|date:'Y-m-d' }}">
+                     value="{{ form.due_date.value|jalali_short }}">
               {% if form.due_date.errors %}
                 <div class="invalid-feedback">
                   {% for error in form.due_date.errors %}

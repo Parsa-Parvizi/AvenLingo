@@ -193,11 +193,12 @@ class UploadReceiptView(StudentRequiredMixin, UpdateView):
         enrollment = form.save()
         
         # Create history record
+        user_name = self.request.user.get_full_name() or self.request.user.username
         EnrollmentHistory.objects.create(
             enrollment=enrollment,
             old_status=enrollment.status,
             new_status=enrollment.status,
-            changed_by=self.request.user.email,
+            changed_by=user_name,
             reason='فیش واریزی آپلود شد'
         )
         
@@ -235,14 +236,15 @@ def cancel_enrollment(request, enrollment_id):
         reason = data.get('reason', 'لغو توسط دانش‌آموز')
         
         # Cancel enrollment
-        if enrollment.cancel_enrollment(reason=reason, cancelled_by=request.user.username):
+        user_name = request.user.get_full_name() or request.user.username
+        if enrollment.cancel_enrollment(reason=reason, cancelled_by=user_name):
             
             # Create history record
             EnrollmentHistory.objects.create(
                 enrollment=enrollment,
                 old_status='confirmed',
                 new_status='cancelled',
-                changed_by=request.user.username,
+                changed_by=user_name,
                 reason=reason
             )
             

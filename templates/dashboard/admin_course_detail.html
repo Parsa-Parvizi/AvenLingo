@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - جزئیات دوره{% endblock %}
+{% block title %} | Admin - Course Details{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -230,19 +231,19 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">تاریخ شروع:</span>
-                    <span class="info-value">{{ course.start_date|date:"Y/m/d" }}</span>
+                    <span class="info-value">{{ course.start_date|jalali_short }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">تاریخ پایان:</span>
-                    <span class="info-value">{{ course.end_date|date:"Y/m/d"|default:"—" }}</span>
+                    <span class="info-value">{{ course.end_date|jalali_short|default:"—" }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">ساعت برگزاری:</span>
-                    <span class="info-value">{{ course.duration|default:"—" }}</span>
+                    <span class="info-value">{{ course.duration|default:"—"|persian_numbers }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">محل برگزاری:</span>
-                    <span class="info-value">{% if course.is_online %}آنلاین{% else %}{{ course.location|default:"—" }}{% endif %}</span>
+                    <span class="info-value">آنلاین</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">ظرفیت:</span>
@@ -324,7 +325,7 @@
                 <div class="enrollment-item">
                     <div>
                         <div style="font-weight: 600; color: #1e293b;">{{ enrollment.student.user.get_full_name }}</div>
-                        <div style="font-size: 13px; color: #64748b;">{{ enrollment.enrolled_at|date:"Y/m/d" }}</div>
+                        <div style="font-size: 13px; color: #64748b;">{{ enrollment.enrolled_at|jalali_short }}</div>
                     </div>
                     <span class="status-badge status-{{ enrollment.status }}">{{ enrollment.get_status_display }}</span>
                 </div>

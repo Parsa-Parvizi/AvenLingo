@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Admin - Contact Message Details{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    {% include 'dashboard/admin_navbar.html' %}
+    
+    <main class="admin-main-content">
+        <div class="admin-header">
+            <h1>💌 جزئیات پیام پشتیبانی</h1>
+            <a href="{% url 'dashboard:admin_contact_messages' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Message Details -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-envelope"></i> پیام کاربر</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>نام:</strong>
+                                <p class="mb-0">{{ message.name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>ایمیل:</strong>
+                                <p class="mb-0">{{ message.email }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>شماره تماس:</strong>
+                                <p class="mb-0">{{ message.phone|persian_numbers|default:"ذکر نشده" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>تاریخ ارسال:</strong>
+                                <p class="mb-0">{{ message.created_at|jalali_datetime }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <strong>موضوع:</strong>
+                                <p class="mb-0">{{ message.subject }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <strong>متن پیام:</strong>
+                                <div class="p-3 bg-light rounded">
+                                    {{ message.message|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reply Section -->
+                {% if message.status == 'replied' and message.reply %}
+                <div class="card mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-check-circle"></i> پاسخ ارسال شده</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="p-3 bg-light rounded">
+                            {{ message.reply|linebreaks }}
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">پاسخ دهنده:</small>
+                                <p class="mb-0"><strong>{{ message.replied_by.get_full_name|default:message.replied_by.username }}</strong></p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">تاریخ پاسخ:</small>
+                                <p class="mb-0">{{ message.replied_at|jalali_datetime }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-reply"></i> ارسال پاسخ</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="reply" class="form-label"><strong>پاسخ شما:</strong></label>
+                                <textarea class="form-control" name="reply" id="reply" rows="8" placeholder="پاسخ خود را اینجا بنویسید..." required>{{ message.reply }}</textarea>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> پاسخ شما به ایمیل کاربر ارسال خواهد شد.
+                                </small>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane"></i> ارسال پاسخ
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+                <!-- Status Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> وضعیت</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if message.status == 'new' %}
+                            <span class="badge bg-warning text-dark p-3 fs-5">🆕 جدید</span>
+                        {% elif message.status == 'read' %}
+                            <span class="badge bg-info p-3 fs-5">👁️ خوانده شده</span>
+                        {% elif message.status == 'replied' %}
+                            <span class="badge bg-success p-3 fs-5">✅ پاسخ داده شده</span>
+                        {% elif message.status == 'archived' %}
+                            <span class="badge bg-secondary p-3 fs-5">📦 بایگانی شده</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Admin Note -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="fas fa-sticky-note"></i> یادداشت داخلی</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if message.admin_note %}
+                            <p>{{ message.admin_note }}</p>
+                        {% else %}
+                            <p class="text-muted mb-0">یادداشتی ثبت نشده</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

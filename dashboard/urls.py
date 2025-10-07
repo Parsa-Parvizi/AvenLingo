@@ -28,6 +28,10 @@ urlpatterns = [
     path('admin/consultation-requests/', views.AdminConsultationRequestsView.as_view(), name='admin_consultation_requests'),
     path('admin/level-assessment-requests/', views.AdminLevelAssessmentRequestsView.as_view(), name='admin_level_assessment_requests'),
     path('admin/level-assessment-requests/<int:request_id>/', views.AdminLevelAssessmentDetailView.as_view(), name='admin_level_assessment_detail'),
+    path('admin/private-class-requests/', views.AdminPrivateClassRequestsView.as_view(), name='admin_private_class_requests'),
+    path('admin/private-class-requests/<int:request_id>/', views.AdminPrivateClassRequestDetailView.as_view(), name='admin_private_class_request_detail'),
+    path('admin/contact-messages/', views.AdminContactMessagesView.as_view(), name='admin_contact_messages'),
+    path('admin/contact-messages/<int:message_id>/', views.AdminContactMessageDetailView.as_view(), name='admin_contact_message_detail'),
     
     # Security & Settings
     path('admin/login-history/', views.AdminLoginHistoryView.as_view(), name='admin_login_history'),

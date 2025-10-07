@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} | تکالیف دوره {{ course.title }}{% endblock %}
+{% block title %} | Assignments{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -459,7 +459,7 @@
         </div>
         <div class="stat-item">
           <i class="fas fa-calendar-alt"></i>
-          <span>{{ course.start_date|date:"Y/m/d" }}</span>
+          <span>{{ course.start_date|jalali_short }}</span>
         </div>
         {% if user.is_teacher and course.teacher.user == user %}
         <div class="stat-item">
@@ -495,7 +495,7 @@
                 </span>
                 <div class="assignment-date">
                   <i class="fas fa-clock"></i>
-                  <span>{{ assignment.created_at|date:"Y/m/d H:i" }}</span>
+                  <span>{{ assignment.created_at|jalali_datetime }}</span>
                 </div>
               </div>
             </div>

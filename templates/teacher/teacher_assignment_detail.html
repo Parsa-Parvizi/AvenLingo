@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}جزئیات تکلیف{% endblock %}
+{% block title %} | Assignment Details{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -371,7 +371,7 @@
                                 <i class="fas fa-calendar-plus"></i>
                                 <div>
                                     <div class="info-label">تاریخ ایجاد</div>
-                                    <div class="info-value">{{ assignment.created_at|date:"Y/m/d H:i" }}</div>
+                                    <div class="info-value">{{ assignment.created_at|jalali_datetime }}</div>
                                 </div>
                             </div>
                             <div class="info-item">
@@ -385,7 +385,7 @@
 
                         <div class="due-date-card {% if assignment.is_overdue %}overdue{% endif %}">
                             <i class="fas fa-clock me-2"></i>
-                            <strong>مهلت ارسال:</strong> {{ assignment.due_date|date:"Y/m/d H:i" }}
+                            <strong>مهلت ارسال:</strong> {{ assignment.due_date|jalali_datetime }}
                             {% if assignment.is_overdue %}
                                 <span class="text-danger">(گذشته)</span>
                             {% endif %}
@@ -447,7 +447,7 @@
                                         {{ submission.student.user.get_full_name }}
                                     </div>
                                     <div class="submission-time">
-                                        ارسال: {{ submission.submitted_at|date:"Y/m/d H:i" }}
+                                        ارسال: {{ submission.submitted_at|jalali_datetime }}
                                         {% if submission.is_late %}
                                             <span class="text-danger">(دیر هنگام)</span>
                                         {% endif %}

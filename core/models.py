@@ -107,6 +107,24 @@ class ContactMessage(models.Model):
     phone = models.CharField(max_length=20, verbose_name="شماره تماس", blank=True)
     subject = models.CharField(max_length=200, verbose_name="موضوع پیام")
     message = models.TextField(verbose_name="متن پیام")
+    reply = models.TextField(
+        verbose_name="پاسخ ادمین",
+        blank=True,
+        help_text="پاسخ به پیام کاربر"
+    )
+    replied_by = models.ForeignKey(
+        'account.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='contact_replies',
+        verbose_name="پاسخ دهنده"
+    )
+    replied_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="تاریخ پاسخ"
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -138,4 +156,71 @@ class ContactMessage(models.Model):
         if self.status == 'new':
             self.status = 'read'
             self.save()
+
+
+class PrivateClassRequest(models.Model):
+    """مدل برای ذخیره درخواست‌های کلاس خصوصی"""
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار بررسی'),
+        ('contacted', 'تماس گرفته شده'),
+        ('approved', 'تایید شده'),
+        ('rejected', 'رد شده'),
+    ]
+    
+    LEVEL_CHOICES = [
+        ('beginner', 'مبتدی'),
+        ('intermediate', 'متوسط'),
+        ('advanced', 'پیشرفته'),
+        ('unknown', 'نمی‌دانم'),
+    ]
+    
+    name = models.CharField(max_length=100, verbose_name="نام و نام خانوادگی")
+    email = models.EmailField(verbose_name="ایمیل")
+    phone = models.CharField(max_length=20, verbose_name="شماره تماس")
+    current_level = models.CharField(
+        max_length=20,
+        choices=LEVEL_CHOICES,
+        verbose_name="سطح فعلی زبان",
+        default='unknown'
+    )
+    preferred_time = models.CharField(
+        max_length=100,
+        verbose_name="زمان ترجیحی برگزاری کلاس",
+        blank=True,
+        help_text="مثال: عصرها، آخر هفته‌ها"
+    )
+    goals = models.TextField(
+        verbose_name="اهداف و نیازهای شما",
+        help_text="لطفاً اهداف خود از یادگیری زبان را توضیح دهید"
+    )
+    additional_info = models.TextField(
+        verbose_name="توضیحات تکمیلی",
+        blank=True,
+        help_text="هر اطلاعات اضافی که می‌خواهید با ما در میان بگذارید"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name="وضعیت"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ارسال")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+    admin_note = models.TextField(
+        verbose_name="یادداشت ادمین",
+        blank=True,
+        help_text="یادداشت داخلی برای پیگیری"
+    )
+    
+    class Meta:
+        verbose_name = "درخواست کلاس خصوصی"
+        verbose_name_plural = "درخواست‌های کلاس خصوصی"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.get_current_level_display()}"
 

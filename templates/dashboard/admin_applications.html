@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - مدیریت درخواست‌های معلمان{% endblock %}
+{% block title %} | Admin - Applications{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -33,7 +34,7 @@
 <div class="container-fluid py-4" dir="rtl">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="page-header mb-0">درخواست‌های همکاری معلمان</h2>
-        <a href="{% url 'account:register_teacher_by_admin' %}" class="btn btn-register-teacher">
+        <a href="{% url 'dashboard:admin_teacher_register' %}" class="btn btn-register-teacher">
             <i class="fas fa-user-plus"></i> ثبت معلم دستی
         </a>
     </div>
@@ -94,7 +95,7 @@
                                     <td>{{ app.phone }}</td>
                                     <td>{{ app.specialization|default:"—" }}</td>
                                     <td>{{ app.experience_years|default:"—" }} سال</td>
-                                    <td>{{ app.submitted_at|date:"Y/m/d H:i" }}</td>
+                                    <td>{{ app.submitted_at|jalali_datetime }}</td>
                                     <td>
                                         {% if app.status == 'pending' %}
                                             <span class="badge badge-warning">در انتظار</span>

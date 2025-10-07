@@ -62,7 +62,6 @@ class Enrollment(models.Model):
         choices=[
             ('website', 'وب‌سایت'),
             ('phone', 'تماس تلفنی'),
-            ('in_person', 'حضوری'),
             ('referral', 'معرفی'),
             ('social_media', 'شبکه‌های اجتماعی'),
             ('other', 'سایر'),

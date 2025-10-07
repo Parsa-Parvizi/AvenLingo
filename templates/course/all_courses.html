@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% load static %}
-{% block title %} | Courses{% endblock %}
+{% load persian_filters %}
+{% block title %} | All Courses{% endblock %}
 
 {% block content %}
 <section class="courses-page">
@@ -155,8 +156,8 @@
         <div class="results-stats">
           <span class="results-count">
             <i class="fas fa-graduation-cap"></i>
-            {{ filtered_count }} دوره یافت شد
-            {% if has_filters %}از {{ total_courses }} دوره{% endif %}
+            {{ filtered_count|persian_numbers }} دوره یافت شد
+            {% if has_filters %}از {{ total_courses|persian_numbers }} دوره{% endif %}
           </span>
           {% if search %}
             <span class="search-time">
@@ -249,15 +250,15 @@
                 </div>
                 <div class="meta-item">
                   <i class="fas fa-clock"></i>
-                  <span>{{ course.total_hours }} جلسه</span>
+                  <span>{{ course.total_hours|persian_numbers }} جلسه</span>
                 </div>
                 <div class="meta-item">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>{% if course.is_online %}آنلاین{% else %}حضوری{% endif %}</span>
+                  <i class="fas fa-video"></i>
+                  <span>آنلاین</span>
                 </div>
                 <div class="meta-item">
                   <i class="fas fa-calendar"></i>
-                  <span>شروع: {{ course.start_date }}</span>
+                  <span>شروع: {{ course.start_date|jalali_short }}</span>
                 </div>
               </div>
               
@@ -267,11 +268,11 @@
                     {% if course.is_free %}
                       رایگان
                     {% else %}
-                      {{ course.price|floatformat:0 }} تومان
+                      {{ course.price|floatformat:0|persian_numbers }} تومان
                     {% endif %}
                   </span>
                   <span class="seats">
-                    {{ course.available_seats }} صندلی خالی
+                    {{ course.available_seats|persian_numbers }} صندلی خالی
                   </span>
                 </div>
                 {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
@@ -295,6 +296,34 @@
     {% endif %}
   </div>
 </section>
+
+<section class="private-class-section" style="margin: 60px 0; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: white; font-size: 2rem; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+      <i class="fas fa-user-graduate"></i>
+      دوره مورد نظر خود را پیدا نکردید؟
+    </h2>
+    <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin-bottom: 30px; line-height: 1.8;">
+      کلاس خصوصی با استاد مجرب، برنامه آموزشی اختصاصی و سفارشی‌شده متناسب با نیازها و اهداف شما
+    </p>
+    <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 30px;">
+      <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 25px; color: white; font-weight: bold;">
+        <i class="fas fa-check-circle"></i> زمان‌بندی انعطاف‌پذیر
+      </div>
+      <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 25px; color: white; font-weight: bold;">
+        <i class="fas fa-check-circle"></i> برنامه شخصی‌سازی شده
+      </div>
+      <div style="background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 25px; color: white; font-weight: bold;">
+        <i class="fas fa-check-circle"></i> تمرکز روی نیازهای شما
+      </div>
+    </div>
+    <a href="{% url 'core:request-private-class' %}" class="btn btn-outline" style="background: white; color: #667eea; border: none; padding: 15px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: bold; text-decoration: none; display: inline-block; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
+      <i class="fas fa-calendar-plus"></i>
+      درخواست کلاس خصوصی
+    </a>
+  </div>
+</section>
+
 <section class="request-course-section" style="margin: 40px 0; text-align: center;">
   <h2>دوره مورد نظر خود را پیدا نکردید؟</h2>
   <p>اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود.</p>

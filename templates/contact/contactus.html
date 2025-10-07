@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}
-    | Contact Us
-{% endblock %}
+{% block title %} | Contact Us{% endblock %}
 
 {% block meta_description %}
     تماس با آکادمی زبان انگلیسی - اطلاعات تماس، آدرس و راه‌های ارتباطی
@@ -39,7 +38,7 @@
                             <i class="fas fa-phone"></i>
                         </div>
                         <h4>تلفن ثابت</h4>
-                        <p>{{ contact_info.phone|default:"021-12345678" }}</p>
+                        <p>{{ contact_info.phone|default:"021-12345678"|persian_numbers }}</p>
                         <a href="tel:{{ contact_info.phone|default:'02112345678' }}" class="contact-link">تماس بگیرید</a>
                     </div>
                 </div>
@@ -50,7 +49,7 @@
                             <i class="fas fa-mobile-alt"></i>
                         </div>
                         <h4>تلفن همراه</h4>
-                        <p>{{ contact_info.mobile|default:"09123456789" }}</p>
+                        <p>{{ contact_info.mobile|default:"09123456789"|persian_numbers }}</p>
                         <a href="tel:{{ contact_info.mobile|default:'09123456789' }}" class="contact-link">تماس بگیرید</a>
                     </div>
                 </div>
@@ -69,91 +68,491 @@
         </div>
     </section>
 
-    <!-- Main Content Section -->
+    <!-- Main Content Section - Support System -->
     <section class="contact-main">
         <div class="container">
             <div class="row">
                 
-                <!-- Contact Form -->
+                <!-- Support Form -->
                 <div class="col-lg-8">
-                    <div class="contact-form-section">
-                        <h2>پیام خود را برای ما ارسال کنید</h2>
-                        <p class="form-description">سؤال، نظر یا پیشنهادی دارید؟ از طریق فرم زیر با ما در ارتباط باشید.</p>
+                    <div class="support-form-section">
+                        <!-- Support Header -->
+                        <div class="support-header">
+                            <div class="support-icon-wrapper">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h2>سیستم پشتیبانی و ارتباط با ما</h2>
+                            <p class="form-description">
+                                <i class="fas fa-info-circle"></i>
+                                تیم پشتیبانی ما آماده پاسخگویی به سوالات و درخواست‌های شماست. 
+                                پیام خود را ثبت کنید تا در اسرع وقت پاسخ دهیم.
+                            </p>
+                        </div>
+
+                        <!-- Response Time Info -->
+                        <div class="response-info">
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>زمان پاسخگویی: حداکثر {{ "24"|persian_numbers }} ساعت</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>پشتیبانی {{ "6"|persian_numbers }} روز هفته</span>
+                            </div>
+                        </div>
                         
                         <!-- Display Messages -->
                         {% if messages %}
                             {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }}" role="alert">
+                                <div class="alert alert-{{ message.tags }} support-alert" role="alert">
+                                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
                                     {{ message }}
                                 </div>
                             {% endfor %}
                         {% endif %}
 
-                        <form method="post" class="contact-form" id="contactForm">
+                        <form method="post" class="support-form" id="contactForm">
                             {% csrf_token %}
                             
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                                        {{ form.name }}
-                                        {% if form.name.errors %}
-                                            <div class="form-error">{{ form.name.errors.0 }}</div>
-                                        {% endif %}
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-user"></i>
+                                    اطلاعات تماس
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.name.id_for_label }}">
+                                                <i class="fas fa-user-circle"></i>
+                                                {{ form.name.label }}
+                                                <span class="required">*</span>
+                                            </label>
+                                            {{ form.name }}
+                                            {% if form.name.errors %}
+                                                <div class="form-error">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    {{ form.name.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.email.id_for_label }}">
+                                                <i class="fas fa-envelope"></i>
+                                                {{ form.email.label }}
+                                                <span class="required">*</span>
+                                            </label>
+                                            {{ form.email }}
+                                            {% if form.email.errors %}
+                                                <div class="form-error">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    {{ form.email.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                                        {{ form.email }}
-                                        {% if form.email.errors %}
-                                            <div class="form-error">{{ form.email.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                                <div class="form-group">
+                                    <label for="{{ form.phone.id_for_label }}">
+                                        <i class="fas fa-phone"></i>
+                                        {{ form.phone.label }}
+                                        <span class="optional">(اختیاری)</span>
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="form-error">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            {{ form.phone.errors.0 }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
-                                        {{ form.phone }}
-                                        {% if form.phone.errors %}
-                                            <div class="form-error">{{ form.phone.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-file-alt"></i>
+                                    جزئیات پیام
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label for="{{ form.subject.id_for_label }}">
+                                        <i class="fas fa-tag"></i>
+                                        {{ form.subject.label }}
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.subject }}
+                                    <small class="form-help">مثال: سوال درباره دوره، مشکل فنی، پیشنهاد</small>
+                                    {% if form.subject.errors %}
+                                        <div class="form-error">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            {{ form.subject.errors.0 }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
-                                        {{ form.subject }}
-                                        {% if form.subject.errors %}
-                                            <div class="form-error">{{ form.subject.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
+                                <div class="form-group">
+                                    <label for="{{ form.message.id_for_label }}">
+                                        <i class="fas fa-comment-dots"></i>
+                                        {{ form.message.label }}
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.message }}
+                                    <small class="form-help">لطفاً پیام خود را به صورت کامل و واضح بنویسید</small>
+                                    {% if form.message.errors %}
+                                        <div class="form-error">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            {{ form.message.errors.0 }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
-                                {{ form.message }}
-                                {% if form.message.errors %}
-                                    <div class="form-error">{{ form.message.errors.0 }}</div>
-                                {% endif %}
+                            <div class="form-actions">
+                                <button type="submit" class="btn-submit">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>ارسال پیام به پشتیبانی</span>
+                                </button>
+                                <p class="submit-note">
+                                    <i class="fas fa-shield-alt"></i>
+                                    اطلاعات شما محفوظ و محرمانه خواهد ماند
+                                </p>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane"></i>
-                                ارسال پیام
-                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Additional Support Styles -->
+    <style>
+        .support-form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+
+        .support-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .support-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .support-icon-wrapper i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .support-header h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .support-header .form-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .response-info {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .info-item i {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .support-alert {
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .support-alert i {
+            font-size: 1.3rem;
+        }
+
+        .form-section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-title {
+            color: #495057;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group label i {
+            color: #667eea;
+        }
+
+        .required {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .optional {
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: normal;
+        }
+
+        .form-help {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .form-actions {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .submit-note {
+            margin-top: 15px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-note i {
+            color: #28a745;
+        }
+
+        /* Sidebar Styles */
+        .support-sidebar {
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .sidebar-card h3 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .sidebar-card h3 i {
+            color: #667eea;
+        }
+
+        .help-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .help-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .help-list li:last-child {
+            border-bottom: none;
+        }
+
+        .help-list i {
+            color: #667eea;
+            margin-top: 3px;
+            font-size: 0.8rem;
+        }
+
+        .topic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .topic-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .topic-item i {
+            font-size: 1.1rem;
+        }
+
+        .contact-methods .method-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .contact-methods .method-item:last-child {
+            border-bottom: none;
+        }
+
+        .contact-methods .method-item i {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .contact-methods .method-item > div {
+            flex: 1;
+        }
+
+        .method-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+
+        .method-value {
+            display: block;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .support-form-section {
+                padding: 25px 20px;
+            }
+
+            .response-info {
+                flex-direction: column;
+                align-items: start;
+            }
+
+            .btn-submit {
+                padding: 12px 35px;
+                font-size: 1rem;
+            }
+
+            .sidebar-card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
 </div>
 <script>
 // Form validation and AJAX submission

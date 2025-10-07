@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}اعلانات{% endblock %}
+{% block title %} | Notifications{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -307,7 +307,7 @@
                         <p class="notification-description mb-0">{{ notification.description }}</p>
                         <div class="notification-time">
                             <i class="fas fa-clock"></i>
-                            {{ notification.created_at|date:"Y/m/d H:i" }}
+                            {{ notification.created_at|jalali_datetime }}
                             {% if notification.read %}
                                 <span class="text-success ms-2">
                                     <i class="fas fa-check-circle"></i> خوانده شده

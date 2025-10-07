@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}
-    About Us |
-{% endblock %}
+{% block title %} | About Us{% endblock %}
 
 {% block meta_description %}
     درباره ما 
@@ -132,6 +131,108 @@
             </div>
         </div>
     </section>
+
+    <section class="fraq">
+        <h2>سوالات متداول</h2>
+        <div class="fraq-list">
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              مدت زمان هر دوره چقدر است؟</button>
+            <div class="faq-answer">
+              <p>مدت زمان هر دوره بسته به نوع کلاس (کودکان، بزرگسالان، مکالمه، گرامر یا تخصصی) متغیر است و با توجه به سطح زبان و زمان‌بندی اساتید تعیین می‌شود.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا کلاس‌ها به‌صورت آنلاین برگزار می‌شوند؟
+            </button>
+            <div class="faq-answer">
+              <p>
+                بله، تمام کلاس‌ها به‌صورت کاملاً آنلاین برگزار می‌شوند تا بتوانید در هر زمان و مکان به راحتی شرکت کنید.
+              </p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا امکان بازپرداخت شهریه وجود دارد؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، در صورت انصراف یا عدم رضایت، بخشی از شهریه طبق قوانین آموزشی مجموعه بازگردانده می‌شود.
+      
+              </p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا قبل از ثبت‌نام آزمون تعیین سطح وجود دارد؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، آزمون تعیین سطح رایگان برگزار می‌شود و شامل سه سطح مبتدی، متوسط و حرفه‌ای است تا در مناسب‌ترین سطح قرار بگیرید.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا گواهی پایان دوره ارائه می‌شود؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، پس از اتمام موفق دوره، گواهی معتبر دریافت خواهید کرد که در صورت نیاز می‌توانید برای استفاده در موقعیت‌های رسمی از آن بهره ببرید.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              چگونه می‌توانم با مدرس یا پشتیبان آموزشی در ارتباط باشم؟
+            </button>
+            <div class="faq-answer">
+              <p>از طریق گروه‌های واتساپ، تلگرام، ایتا و سایر شبکه‌های اجتماعی فارسی، به‌صورت مستقیم با مدرس و پشتیبان خود در ارتباط خواهید بود.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              چگونه می‌توانم با مدرس یا پشتیبان آموزشی در ارتباط باشم؟
+            </button>
+            <div class="faq-answer">
+              <p>از طریق گروه‌های واتساپ، تلگرام، ایتا و سایر شبکه‌های اجتماعی فارسی، به‌صورت مستقیم با مدرس و پشتیبان خود در ارتباط خواهید بود.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا امکان انتخاب استاد یا تغییر زمان کلاس وجود دارد؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، در صورت هماهنگی با پشتیبانی، می‌توانید استاد مورد نظر خود را انتخاب کرده یا زمان کلاس را متناسب با برنامه‌تان تغییر دهید.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا کلاس‌های خصوصی هم برگزار می‌شود؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، علاوه بر کلاس‌های گروهی، امکان شرکت در کلاس‌های خصوصی با برنامه‌ریزی اختصاصی نیز وجود دارد.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              آیا منابع و جزوات آموزشی در اختیار زبان‌آموز قرار می‌گیرد؟
+            </button>
+            <div class="faq-answer">
+              <p>بله، تمام منابع، فایل‌ها و تمرین‌ها پس از هر جلسه از طریق پنل کاربری یا گروه آموزشی در اختیارتان قرار می‌گیرد.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleAnswer(this)">
+              سوال دیگری دارم، از چه طریقی می‌توانم بپرسم؟
+            </button>
+            <div class="faq-answer">
+              <p>می‌توانید سوالات خود را از طریق فرم تماس در سایت، ارسال ایمیل یا شماره‌های پشتیبانی برای ما ارسال کنید تا در کوتاه‌ترین زمان پاسخ داده شود.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
     <!-- Testimonials Section -->
     {% if featured_testimonials %}

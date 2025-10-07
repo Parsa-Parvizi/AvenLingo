@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 from django.db.models import Count, Sum, Q, Avg
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -1207,3 +1207,130 @@ class AdminCourseDetailView(LoginRequiredMixin, UserPassesTestMixin, TemplateVie
         context['pending_enrollments'] = enrollments.filter(status='pending').count()
         
         return context
+
+
+class AdminPrivateClassRequestsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست درخواست‌های کلاس خصوصی"""
+    template_name = 'dashboard/admin_private_class_requests.html'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from core.models import PrivateClassRequest
+        
+        status = self.request.GET.get('status', 'all')
+        
+        requests = PrivateClassRequest.objects.all()
+        
+        if status != 'all':
+            requests = requests.filter(status=status)
+        
+        context['requests'] = requests.order_by('-created_at')
+        context['status_filter'] = status
+        context['pending_count'] = PrivateClassRequest.objects.filter(status='pending').count()
+        context['contacted_count'] = PrivateClassRequest.objects.filter(status='contacted').count()
+        context['approved_count'] = PrivateClassRequest.objects.filter(status='approved').count()
+        
+        return context
+
+
+class AdminPrivateClassRequestDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """جزئیات درخواست کلاس خصوصی"""
+    template_name = 'dashboard/admin_private_class_request_detail.html'
+    context_object_name = 'request_obj'
+    pk_url_kwarg = 'request_id'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+    
+    def get_queryset(self):
+        from core.models import PrivateClassRequest
+        return PrivateClassRequest.objects.all()
+    
+    def post(self, request, *args, **kwargs):
+        """بروزرسانی وضعیت درخواست"""
+        self.object = self.get_object()
+        
+        action = request.POST.get('action')
+        admin_note = request.POST.get('admin_note', '')
+        
+        if action in ['contacted', 'approved', 'rejected']:
+            self.object.status = action
+            if admin_note:
+                self.object.admin_note = admin_note
+            self.object.save()
+            
+            messages.success(request, f'وضعیت درخواست به "{self.object.get_status_display()}" تغییر یافت.')
+        
+        return redirect('dashboard:admin_private_class_request_detail', request_id=self.object.id)
+
+
+class AdminContactMessagesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست پیام‌های پشتیبانی"""
+    template_name = 'dashboard/admin_contact_messages.html'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from core.models import ContactMessage
+        
+        status = self.request.GET.get('status', 'all')
+        
+        messages_qs = ContactMessage.objects.all()
+        
+        if status != 'all':
+            messages_qs = messages_qs.filter(status=status)
+        
+        context['messages'] = messages_qs.order_by('-created_at')
+        context['status_filter'] = status
+        context['new_count'] = ContactMessage.objects.filter(status='new').count()
+        context['read_count'] = ContactMessage.objects.filter(status='read').count()
+        context['replied_count'] = ContactMessage.objects.filter(status='replied').count()
+        
+        return context
+
+
+class AdminContactMessageDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """جزئیات و پاسخ به پیام پشتیبانی"""
+    template_name = 'dashboard/admin_contact_message_detail.html'
+    context_object_name = 'message'
+    pk_url_kwarg = 'message_id'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+    
+    def get_queryset(self):
+        from core.models import ContactMessage
+        return ContactMessage.objects.all()
+    
+    def get_object(self):
+        obj = super().get_object()
+        # علامت‌گذاری به عنوان خوانده شده
+        if obj.status == 'new':
+            obj.status = 'read'
+            obj.save()
+        return obj
+    
+    def post(self, request, *args, **kwargs):
+        """ارسال پاسخ به پیام"""
+        self.object = self.get_object()
+        
+        reply_text = request.POST.get('reply', '').strip()
+        
+        if reply_text:
+            from django.utils import timezone
+            self.object.reply = reply_text
+            self.object.replied_by = request.user
+            self.object.replied_at = timezone.now()
+            self.object.status = 'replied'
+            self.object.save()
+            
+            messages.success(request, 'پاسخ شما با موفقیت ثبت شد.')
+        else:
+            messages.error(request, 'لطفاً متن پاسخ را وارد کنید.')
+        
+        return redirect('dashboard:admin_contact_message_detail', message_id=self.object.id)

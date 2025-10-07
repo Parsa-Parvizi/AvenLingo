@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - درخواست‌های مشاوره{% endblock %}
+{% block title %} | Admin - Consultation Requests{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -95,7 +96,7 @@
                         <td>{{ request.phone|default:"-" }}</td>
                         <td>
                             {% if request.preferred_date %}
-                                {{ request.preferred_date|date:"Y/m/d" }}
+                                {{ request.preferred_date|jalali_short }}
                                 {% if request.preferred_time %}
                                     - {{ request.preferred_time|time:"H:i" }}
                                 {% endif %}
@@ -103,7 +104,7 @@
                                 -
                             {% endif %}
                         </td>
-                        <td>{{ request.scheduled_date|date:"Y/m/d H:i"|default:"-" }}</td>
+                        <td>{{ request.scheduled_date|jalali_datetime|default:"-" }}</td>
                         <td>{{ request.consultant.get_full_name|default:"-" }}</td>
                         <td>
                             {% if request.status == 'pending' %}

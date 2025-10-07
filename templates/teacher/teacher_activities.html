@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}فعالیت‌های اخیر{% endblock %}
+{% block title %} | Recent Activities{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -248,7 +248,7 @@
                         <p class="activity-description mb-0">{{ activity.description }}</p>
                         <div class="activity-time">
                             <i class="fas fa-clock"></i>
-                            {{ activity.created_at|date:"Y/m/d H:i" }}
+                            {{ activity.created_at|jalali_datetime }}
                         </div>
                     </div>
                 </div>

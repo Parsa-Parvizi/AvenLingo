@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% load static %}
+{% load persian_filters %}
 
 {% block title %} | Home{% endblock %}
 
@@ -13,7 +14,7 @@
       <a href="{% url 'course:all-courses' %}" class="btn btn-primary">مشاهده دوره‌ها</a>
     </div>
     <div class="slide">
-      <h1>کلاس‌های آنلاین و حضوری</h1>
+      <h1>کلاس‌های آنلاین</h1>
       <p>با انعطاف‌پذیری بالا، هرجا هستید آموزش ببینید.</p>
       <a href="{% url 'course:all-courses' %}" class="btn btn-secondary">ثبت‌نام دوره</a>
     </div>
@@ -71,7 +72,7 @@
             <span class="age-group">سن: {{ course.get_age_group_display }}</span>
           </div>
           <div class="course-footer">
-            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price }} تومان{% endif %}</span>
+            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
             {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
           </div>
         </div>
@@ -101,7 +102,7 @@
             <span class="age-group">سن: {{ course.get_age_group_display }}</span>
           </div>
           <div class="course-footer">
-            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price }} تومان{% endif %}</span>
+            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
             {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
           </div>
         </div>
@@ -125,7 +126,7 @@
         <div class="category-content">
           <h3>{{ category.name }}</h3>
           <p>{{ category.description|truncatewords:10 }}</p>
-          <span class="course-count">{{ category.courses.count }} دوره</span>
+          <span class="course-count">{{ category.courses.count|persian_numbers }} دوره</span>
         </div>
       </a>
     {% empty %}
@@ -134,7 +135,102 @@
   </div>
 </section>
 
+<section class="all-requests-section" style="margin: 80px 0; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 50px;">
+      <h2 style="color: white; font-size: 2.5rem; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <i class="fas fa-handshake"></i>
+        خدمات و درخواست‌ها
+      </h2>
+      <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin: 0; line-height: 1.8;">
+        ما همیشه آماده پاسخگویی به نیازهای آموزشی شما هستیم
+      </p>
+    </div>
 
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 20px;">
+      <!-- کارت کلاس خصوصی -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #667eea, #764ba2); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);">
+          <i class="fas fa-user-graduate" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">کلاس خصوصی</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          برنامه آموزشی اختصاصی با استاد مجرب، زمان‌بندی انعطاف‌پذیر و تمرکز روی نیازهای شما
+        </p>
+        <a href="{% url 'core:request-private-class' %}" style="display: inline-block; background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          درخواست کلاس خصوصی
+        </a>
+      </div>
+
+      <!-- کارت تعیین سطح -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #f093fb, #f5576c); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);">
+          <i class="fas fa-chart-line" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">تعیین سطح</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          آزمون رایگان تعیین سطح زبان برای قرارگیری در مناسب‌ترین کلاس آموزشی
+        </p>
+        <a href="{% url 'core:determination' %}" style="display: inline-block; background: linear-gradient(45deg, #f093fb, #f5576c); color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          تعیین سطح زبان
+        </a>
+      </div>
+
+      <!-- کارت مشاوره -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4);">
+          <i class="fas fa-comments" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">مشاوره آموزشی</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          دریافت مشاوره رایگان برای انتخاب بهترین مسیر یادگیری زبان انگلیسی
+        </p>
+        <a href="{% url 'core:advice' %}" style="display: inline-block; background: linear-gradient(45deg, #4facfe, #00f2fe); color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          دریافت مشاوره
+        </a>
+      </div>
+
+      <!-- کارت درخواست دوره -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(67, 233, 123, 0.4);">
+          <i class="fas fa-book-open" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">درخواست دوره</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          دوره مورد نظر خود را پیدا نکردید؟ درخواست دوره جدید ثبت کنید
+        </p>
+        <a href="{% url 'core:request-course' %}" style="display: inline-block; background: linear-gradient(45deg, #43e97b, #38f9d7); color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          درخواست دوره جدید
+        </a>
+      </div>
+
+      <!-- کارت همکاری -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #fa709a, #fee140); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(250, 112, 154, 0.4);">
+          <i class="fas fa-handshake" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">همکاری با ما</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          به تیم اساتید ما بپیوندید و تجربه تدریس حرفه‌ای را با ما داشته باشید
+        </p>
+        <a href="{% url 'core:collaborate' %}" style="display: inline-block; background: linear-gradient(45deg, #fa709a, #fee140); color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          ارسال درخواست همکاری
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @media (max-width: 768px) {
+    .all-requests-section h2 {
+      font-size: 1.8rem !important;
+    }
+    .all-requests-section p {
+      font-size: 1rem !important;
+    }
+  }
+</style>
 
 {% if course_guide %}
 <section class="course-guide">
@@ -187,65 +283,6 @@
     {% empty %}
     <p>فعلاً استادی فعال نیست.</p>
     {% endfor %}
-  </div>
-</section>
-
-<section class="fraq">
-  <h2>سوالات متداول</h2>
-  <div class="fraq-list">
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        آیا می‌توانم قبل از ثبت‌نام در دوره، سطح زبان انگلیسی خود را بسنجم؟
-      </button>
-      <div class="faq-answer">
-        <p>بله، ما آزمون تعیین سطح رایگان ارائه می‌دهیم تا بتوانید مناسب‌ترین دوره را انتخاب کنید.</p>
-      </div>
-    </div>
-    
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        آیا کلاس‌ها به صورت آنلاین و حضوری برگزار می‌شود؟
-      </button>
-      <div class="faq-answer">
-        <p>بله، ما هم کلاس‌های حضوری و هم آنلاین ارائه می‌دهیم. شما می‌توانید بر اساس شرایط خود انتخاب کنید.</p>
-      </div>
-    </div>
-    
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        مدت زمان هر دوره چقدر است؟
-      </button>
-      <div class="faq-answer">
-        <p>مدت زمان دوره‌ها بسته به سطح و نوع دوره متفاوت است، معمولاً بین 2 تا 6 ماه می‌باشد.</p>
-      </div>
-    </div>
-    
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        آیا گواهینامه معتبر دریافت خواهم کرد؟
-      </button>
-      <div class="faq-answer">
-        <p>بله، پس از اتمام موفقیت‌آمیز دوره، گواهینامه معتبر دریافت خواهید کرد.</p>
-      </div>
-    </div>
-    
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        آیا امکان بازپرداخت شهریه وجود دارد؟
-      </button>
-      <div class="faq-answer">
-        <p>بله، در صورت عدم رضایت در 7 روز اول، امکان بازپرداخت کامل شهریه وجود دارد.</p>
-      </div>
-    </div>
-    
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleAnswer(this)">
-        چگونه می‌توانم با مدرس ارتباط برقرار کنم؟
-      </button>
-      <div class="faq-answer">
-        <p>از طریق پنل کاربری خود می‌توانید با مدرس خود در ارتباط باشید و سوالات خود را مطرح کنید.</p>
-      </div>
-    </div>
   </div>
 </section>
 {% endblock %}

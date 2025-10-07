@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - مدیریت نشست‌ها{% endblock %}
+{% block title %} | Admin - Sessions{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -69,11 +70,11 @@
                             <strong>{{ session_item.user.get_full_name }}</strong><br>
                             <small class="text-muted">{{ session_item.user.email }}</small>
                         </td>
-                        <td>{{ session_item.login_time|date:"Y/m/d H:i" }}</td>
+                        <td>{{ session_item.login_time|jalali_datetime }}</td>
                         <td>{{ session_item.ip_address|default:"-" }}</td>
                         <td>{{ session_item.device_type|default:"-" }}</td>
                         <td>{{ session_item.browser|default:"-" }}</td>
-                        <td>{{ session_item.session.expire_date|date:"Y/m/d H:i" }}</td>
+                        <td>{{ session_item.session.expire_date|jalali_datetime }}</td>
                         <td>
                             <form method="post" action="{% url 'dashboard:delete_session' session_item.session.pk %}" style="display:inline;">
                                 {% csrf_token %}

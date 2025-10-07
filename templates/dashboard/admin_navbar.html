@@ -13,14 +13,16 @@
                 <li><a href="{% url 'dashboard:admin_enrollments' %}" class="{% if request.resolver_match.url_name == 'admin_enrollments' %}active{% endif %}">ثبت‌نام‌ها</a></li>
                 
                 <li class="dropdown-menu-item">
-                    <a href="#" class="{% if 'applications' in request.resolver_match.url_name or 'requests' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="#" class="{% if 'applications' in request.resolver_match.url_name or 'requests' in request.resolver_match.url_name or 'messages' in request.resolver_match.url_name %}active{% endif %}">
                         درخواست‌ها <span class="dropdown-arrow">▼</span>
                     </a>
                     <ul class="dropdown-submenu">
-                        <li><a href="{% url 'dashboard:admin_applications' %}">همکاری معلمان</a></li>
-                        <li><a href="{% url 'dashboard:admin_course_requests' %}">درخواست دوره</a></li>
-                        <li><a href="{% url 'dashboard:admin_consultation_requests' %}">درخواست مشاوره</a></li>
-                        <li><a href="{% url 'dashboard:admin_level_assessment_requests' %}">درخواست تعیین سطح</a></li>
+                        <li><a href="{% url 'dashboard:admin_applications' %}">📋 همکاری معلمان</a></li>
+                        <li><a href="{% url 'dashboard:admin_private_class_requests' %}">📚 کلاس خصوصی</a></li>
+                        <li><a href="{% url 'dashboard:admin_course_requests' %}">🎓 درخواست دوره</a></li>
+                        <li><a href="{% url 'dashboard:admin_consultation_requests' %}">💬 درخواست مشاوره</a></li>
+                        <li><a href="{% url 'dashboard:admin_level_assessment_requests' %}">📊 درخواست تعیین سطح</a></li>
+                        <li><a href="{% url 'dashboard:admin_contact_messages' %}">💌 پیام‌های پشتیبانی</a></li>
                     </ul>
                 </li>
                 

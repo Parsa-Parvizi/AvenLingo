@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Admin - Private Class Request Details{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    {% include 'dashboard/admin_navbar.html' %}
+    
+    <main class="admin-main-content">
+        <div class="admin-header">
+            <h1>📚 جزئیات درخواست کلاس خصوصی</h1>
+            <a href="{% url 'dashboard:admin_private_class_requests' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Request Details -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> اطلاعات درخواست‌دهنده</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>نام و نام خانوادگی:</strong>
+                                <p class="mb-0">{{ request_obj.name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>ایمیل:</strong>
+                                <p class="mb-0">{{ request_obj.email }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>شماره تماس:</strong>
+                                <p class="mb-0">{{ request_obj.phone|persian_numbers }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>سطح فعلی:</strong>
+                                <p class="mb-0">{{ request_obj.get_current_level_display }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <strong>زمان ترجیحی:</strong>
+                                <p class="mb-0">{{ request_obj.preferred_time|default:"ذکر نشده" }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <strong>اهداف و نیازها:</strong>
+                                <p class="mb-0">{{ request_obj.goals }}</p>
+                            </div>
+                        </div>
+                        {% if request_obj.additional_info %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <strong>توضیحات تکمیلی:</strong>
+                                <p class="mb-0">{{ request_obj.additional_info }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-edit"></i> اقدامات مدیریتی</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label"><strong>تغییر وضعیت:</strong></label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="submit" name="action" value="contacted" class="btn btn-info">
+                                        📞 تماس گرفته شده
+                                    </button>
+                                    <button type="submit" name="action" value="approved" class="btn btn-success">
+                                        ✅ تایید
+                                    </button>
+                                    <button type="submit" name="action" value="rejected" class="btn btn-danger">
+                                        ❌ رد
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="admin_note" class="form-label"><strong>یادداشت ادمین:</strong></label>
+                                <textarea class="form-control" name="admin_note" id="admin_note" rows="4" placeholder="یادداشت‌های داخلی...">{{ request_obj.admin_note }}</textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Status Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> وضعیت</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if request_obj.status == 'pending' %}
+                            <span class="badge bg-warning text-dark p-3 fs-5">⏳ در انتظار بررسی</span>
+                        {% elif request_obj.status == 'contacted' %}
+                            <span class="badge bg-info p-3 fs-5">📞 تماس گرفته شده</span>
+                        {% elif request_obj.status == 'approved' %}
+                            <span class="badge bg-success p-3 fs-5">✅ تایید شده</span>
+                        {% elif request_obj.status == 'rejected' %}
+                            <span class="badge bg-danger p-3 fs-5">❌ رد شده</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="fas fa-clock"></i> زمان‌بندی</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <small class="text-muted">تاریخ ارسال:</small>
+                            <p class="mb-0">{{ request_obj.created_at|jalali_datetime }}</p>
+                        </div>
+                        <div>
+                            <small class="text-muted">آخرین بروزرسانی:</small>
+                            <p class="mb-0">{{ request_obj.updated_at|jalali_datetime }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

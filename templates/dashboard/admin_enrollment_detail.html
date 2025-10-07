@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - جزئیات ثبت‌نام #{{ enrollment.id }}{% endblock %}
+{% block title %} | Admin - Enrollment Details{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -386,7 +387,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">تاریخ شروع:</span>
-                    <span class="info-value">{{ course.start_date|date:"Y/m/d" }}</span>
+                    <span class="info-value">{{ course.start_date|jalali_short }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">ظرفیت:</span>
@@ -476,18 +477,18 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">تاریخ ثبت‌نام:</span>
-                    <span class="info-value">{{ enrollment.enrolled_at|date:"Y/m/d - H:i" }}</span>
+                    <span class="info-value">{{ enrollment.enrolled_at|jalali_datetime }}</span>
                 </div>
                 {% if enrollment.confirmed_at %}
                 <div class="info-row">
                     <span class="info-label">تاریخ تأیید:</span>
-                    <span class="info-value">{{ enrollment.confirmed_at|date:"Y/m/d - H:i" }}</span>
+                    <span class="info-value">{{ enrollment.confirmed_at|jalali_datetime }}</span>
                 </div>
                 {% endif %}
                 {% if enrollment.cancelled_at %}
                 <div class="info-row">
                     <span class="info-label">تاریخ لغو:</span>
-                    <span class="info-value">{{ enrollment.cancelled_at|date:"Y/m/d - H:i" }}</span>
+                    <span class="info-value">{{ enrollment.cancelled_at|jalali_datetime }}</span>
                 </div>
                 {% endif %}
 
@@ -516,7 +517,7 @@
                 <div class="history-timeline">
                     {% for history in enrollment.history.all %}
                     <div class="history-item">
-                        <div class="history-date">{{ history.changed_at|date:"Y/m/d - H:i" }}</div>
+                        <div class="history-date">{{ history.changed_at|jalali_datetime }}</div>
                         <div class="history-event">{{ history.old_status }} → {{ history.new_status }}</div>
                         {% if history.reason %}
                         <div class="history-reason">{{ history.reason }}</div>

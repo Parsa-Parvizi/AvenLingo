@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - تاریخچه ورود{% endblock %}
+{% block title %} | Admin - Login History{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -96,8 +97,8 @@
                     {% for item in history %}
                     <tr>
                         <td><strong>{{ item.user.get_full_name }}</strong><br><small class="text-muted">{{ item.user.email }}</small></td>
-                        <td>{{ item.login_time|date:"Y/m/d H:i" }}</td>
-                        <td>{{ item.logout_time|date:"Y/m/d H:i"|default:"-" }}</td>
+                        <td>{{ item.login_time|jalali_datetime }}</td>
+                        <td>{{ item.logout_time|jalali_datetime|default:"-" }}</td>
                         <td>
                             {% if item.logout_time %}
                                 {{ item.duration|timesince }}

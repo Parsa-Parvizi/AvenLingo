@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} | {{ category.name }}{% endblock %}
+{% block title %} | Courses{% endblock %}
 
 {% block content %}
 <section class="category-courses-page">
@@ -62,15 +63,15 @@
               </div>
               <div class="meta-item">
                 <i class="fas fa-clock"></i>
-                <span>{{ course.total_hours }} جلسه</span>
+                <span>{{ course.total_hours|persian_numbers }} جلسه</span>
               </div>
               <div class="meta-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>{% if course.is_online %}آنلاین{% else %}حضوری{% endif %}</span>
+                <i class="fas fa-video"></i>
+                <span>آنلاین</span>
               </div>
               <div class="meta-item">
                 <i class="fas fa-calendar"></i>
-                <span>شروع: {{ course.start_date|date:"Y/m/d" }}</span>
+                <span>شروع: {{ course.start_date|jalali_short }}</span>
               </div>
             </div>
             
@@ -80,7 +81,7 @@
                   {% if course.is_free %}
                     رایگان
                   {% else %}
-                    {{ course.price|floatformat:0 }} تومان
+                    {{ course.price|floatformat:0|persian_numbers }} تومان
                   {% endif %}
                 </span>
                 <span class="seats">

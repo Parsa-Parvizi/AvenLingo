@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ویرایش دوره{% endblock %}
+{% block title %} | Edit Course{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -377,16 +377,18 @@ textarea.form-control {
                                 {% endif %}
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" style="display: none;">
                                 <div class="form-check">
-                                    {{ form.is_online }}
-                                    <label class="form-check-label" for="{{ form.is_online.id_for_label }}">
-                                        {{ form.is_online.label }}
+                                    <input type="checkbox" name="is_online" id="id_is_online" checked disabled>
+                                    <label class="form-check-label">
+                                        همه دوره‌ها آنلاین هستند
                                     </label>
                                 </div>
-                                {% if form.is_online.errors %}
-                                    <div class="invalid-feedback">{{ form.is_online.errors.0 }}</div>
-                                {% endif %}
+                                <input type="hidden" name="is_online" value="true">
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>توجه:</strong> تمام دوره‌ها به صورت آنلاین برگزار می‌شوند
                             </div>
                         </div>
                     </div>

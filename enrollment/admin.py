@@ -223,12 +223,13 @@ class EnrollmentAdmin(admin.ModelAdmin):
             if enrollment.confirm_enrollment():
                 updated += 1
                 # Create history record
+                admin_name = request.user.get_full_name() or 'ادمین'
                 EnrollmentHistory.objects.create(
                     enrollment=enrollment,
                     old_status='pending',
                     new_status='confirmed',
-                    changed_by=request.user.username,
-                    reason='تأیید گروهی توسط مدیر'
+                    changed_by=admin_name,
+                    reason='تأیید توسط مدیریت'
                 )
         
         self.message_user(request, f'{updated} ثبت‌نام تأیید شد.')

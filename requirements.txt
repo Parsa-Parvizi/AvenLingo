@@ -40,3 +40,6 @@ gunicorn==21.2.0
 
 # Static Files (Optional - can be disabled)
 # whitenoise==6.6.0
+
+# Calender
+jdatetime==5.2.0

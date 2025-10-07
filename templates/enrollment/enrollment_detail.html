@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %}جزئیات ثبت‌نام - {{ enrollment.course.title }}{% endblock %}
+{% block title %} | Enrollment Details{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -330,11 +331,11 @@
             </div>
             <div class="info-box">
                 <h3><i class="fas fa-calendar-alt me-1"></i>تاریخ شروع</h3>
-                <p>{{ enrollment.course.start_date|date:"Y/m/d" }}</p>
+                <p>{{ enrollment.course.start_date|jalali_short }}</p>
             </div>
             <div class="info-box">
                 <h3><i class="fas fa-clock me-1"></i>ساعت برگزاری</h3>
-                <p>{{ enrollment.course.duration|default:"تعیین نشده" }}</p>
+                <p>{{ enrollment.course.duration|default:"تعیین نشده"|persian_numbers }}</p>
             </div>
             <div class="info-box">
                 <h3><i class="fas fa-map-marker-alt me-1"></i>محل برگزاری</h3>
@@ -350,12 +351,12 @@
         <div class="info-grid">
             <div class="info-box">
                 <h3><i class="fas fa-calendar-plus me-1"></i>تاریخ ثبت‌نام</h3>
-                <p>{{ enrollment.enrolled_at|date:"Y/m/d - H:i" }}</p>
+                <p>{{ enrollment.enrolled_at|jalali_datetime }}</p>
             </div>
             {% if enrollment.confirmed_at %}
             <div class="info-box">
                 <h3><i class="fas fa-calendar-check me-1"></i>تاریخ تأیید</h3>
-                <p>{{ enrollment.confirmed_at|date:"Y/m/d - H:i" }}</p>
+                <p>{{ enrollment.confirmed_at|jalali_datetime }}</p>
             </div>
             {% endif %}
             <div class="info-box">
@@ -364,7 +365,7 @@
                     {% if enrollment.course.is_free %}
                         رایگان
                     {% else %}
-                        {{ enrollment.course.price|floatformat:0 }} تومان
+                        {{ enrollment.course.price|floatformat:0|persian_numbers }} تومان
                     {% endif %}
                 </p>
             </div>
@@ -431,14 +432,32 @@
         <div class="history-timeline">
             {% for history in enrollment.history.all %}
             <div class="history-item">
-                <div class="date">{{ history.changed_at|date:"Y/m/d - H:i" }}</div>
-                <div class="event">{{ history.old_status }} → {{ history.new_status }}</div>
+                <div class="date">{{ history.changed_at|jalali_datetime }}</div>
+                <div class="event">
+                    {% if history.old_status == 'pending' %}در انتظار{% elif history.old_status == 'confirmed' %}تأیید شده{% elif history.old_status == 'completed' %}تکمیل شده{% elif history.old_status == 'cancelled' %}لغو شده{% else %}{{ history.old_status }}{% endif %}
+                    →
+                    {% if history.new_status == 'pending' %}در انتظار{% elif history.new_status == 'confirmed' %}تأیید شده{% elif history.new_status == 'completed' %}تکمیل شده{% elif history.new_status == 'cancelled' %}لغو شده{% else %}{{ history.new_status }}{% endif %}
+                </div>
                 {% if history.reason %}
                 <div class="reason">{{ history.reason }}</div>
                 {% endif %}
-                {% if history.changed_by %}
-                <div class="reason">توسط: {{ history.changed_by }}</div>
-                {% endif %}
+                <div class="reason">
+                    {% if history.changed_by %}
+                        {% if '@' in history.changed_by %}
+                            توسط: کاربر
+                        {% elif 'admin' in history.changed_by or 'مدیر' in history.changed_by %}
+                            توسط: ادمین
+                        {% else %}
+                            توسط: {{ history.changed_by }}
+                        {% endif %}
+                    {% else %}
+                        {% if history.new_status == 'pending' and history.old_status == 'pending' %}
+                            توسط: خودتان (آپلود فیش)
+                        {% else %}
+                            تغییر سیستمی
+                        {% endif %}
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>

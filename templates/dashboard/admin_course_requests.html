@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} - درخواست‌های دوره{% endblock %}
+{% block title %} | Admin - Course Requests{% endblock %}
 
 {% block extra_meta %}
 <style>
@@ -95,7 +96,7 @@
                         <td>{{ request.category|default:"-" }}</td>
                         <td>{{ request.level|default:"-" }}</td>
                         <td>{{ request.estimated_students }}</td>
-                        <td>{{ request.created_at|date:"Y/m/d" }}</td>
+                        <td>{{ request.created_at|jalali_short }}</td>
                         <td>
                             {% if request.status == 'pending' %}
                                 <span class="badge badge-warning">در انتظار</span>
@@ -155,7 +156,7 @@
                                     <div class="mb-3">
                                         <strong>بررسی شده توسط:</strong> {{ request.reviewed_by.get_full_name }}
                                         <br>
-                                        <strong>تاریخ بررسی:</strong> {{ request.reviewed_at|date:"Y/m/d H:i" }}
+                                        <strong>تاریخ بررسی:</strong> {{ request.reviewed_at|jalali_datetime }}
                                     </div>
                                     {% endif %}
                                 </div>

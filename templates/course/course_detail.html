@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load persian_filters %}
 
-{% block title %} | {{ course.title }}{% endblock %}
+{% block title %} | Course Details{% endblock %}
 
 {% block content %}
 <section class="course-detail-page">
@@ -34,15 +35,15 @@
         <div class="course-info-grid">
           <div class="info-card">
             <h3>تاریخ شروع</h3>
-            <p>{{ course.start_date|date:"Y/m/d" }}</p>
+            <p>{{ course.start_date|jalali_short }}</p>
           </div>
           <div class="info-card">
             <h3>تاریخ پایان</h3>
-            <p>{{ course.end_date|date:"Y/m/d"|default:"تعیین نشده" }}</p>
+            <p>{{ course.end_date|jalali_short|default:"تعیین نشده" }}</p>
           </div>
           <div class="info-card">
             <h3>ساعت برگزاری</h3>
-            <p>{{ course.duration|default:"تعیین نشده" }}</p>
+            <p>{{ course.duration|default:"تعیین نشده"|persian_numbers }}</p>
           </div>
           <div class="info-card">
             <h3>محل برگزاری</h3>
@@ -54,7 +55,7 @@
               {% if course.is_featured %}ویژه{% endif %}
               {% if course.is_featured and course.is_free %} و {% endif %}
               {% if course.is_free %}رایگان{% endif %}
-              {% if course.is_featured and course.is_online %} و {% elif course.is_free and course.is_online %} و {% elif course.is_featured and not course.is_online %} و {% elif course.is_free and not course.is_online %} و {% endif %}{% if course.is_online %}آنلاین{% else %}حضوری{% endif %}
+              {% if course.is_featured or course.is_free %} و {% endif %}آنلاین
             </p>
           </div>
           <div class="info-card">
@@ -85,7 +86,7 @@
           {% if course.is_free %}
             <span class="price free">رایگان</span>
           {% else %}
-            <span class="price">{{ course.price|floatformat:0 }} تومان</span>
+            <span class="price">{{ course.price|floatformat:0|persian_numbers }} تومان</span>
           {% endif %}
         </div>
         
@@ -140,9 +141,22 @@
             </div>
           {% endif %}
         {% elif user.is_authenticated %}
-          <button class="btn btn-secondary btn-large" disabled>
-            فقط زبان‌آموزان می‌توانند ثبت‌نام کنند
+          <button class="btn btn-primary btn-large btn-disabled-enrollment" disabled>
+            <i class="fas fa-user-plus me-2"></i>ثبت‌نام در دوره
           </button>
+          <div class="enrollment-restriction-info mt-3">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>توجه:</strong> فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند.
+              {% if user.user_type == 'teacher' %}
+                شما به عنوان <strong>معلم</strong> وارد شده‌اید.
+              {% elif user.is_staff or user.is_superuser %}
+                شما به عنوان <strong>ادمین</strong> وارد شده‌اید.
+              {% else %}
+                لطفاً با حساب کاربری زبان‌آموز وارد شوید.
+              {% endif %}
+            </div>
+          </div>
         {% else %}
           <a href="{% url 'account:login' %}?next={{ request.path }}" class="btn btn-primary btn-large">
             <i class="fas fa-sign-in-alt me-2"></i>ورود برای ثبت‌نام
@@ -195,21 +209,6 @@
           </button>
         </div>
       </div>
-      {% elif course.class_room_link and not course.is_online %}
-      <div class="class-room-section">
-        <h3>کلاس آنلاین</h3>
-        <div class="class-room-card">
-          <div class="class-room-info">
-            <i class="fas fa-info-circle class-room-icon"></i>
-            <div>
-              <h4>لینک کلاس</h4>
-              <p class="class-room-description">
-                این دوره حضوری است - لینک کلاس فقط برای جلسات آنلاین استفاده می‌شود
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
       {% endif %}
 
       {% if course.teacher %}
@@ -256,7 +255,7 @@
             </div>
             <div class="course-footer">
               <span class="price">
-                {% if similar_course.is_free %}رایگان{% else %}{{ similar_course.price|floatformat:0 }} تومان{% endif %}
+                {% if similar_course.is_free %}رایگان{% else %}{{ similar_course.price|floatformat:0|persian_numbers }} تومان{% endif %}
               </span>
               {% if similar_course.slug %}<a href="{% url 'course:detail' similar_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
             </div>
@@ -288,7 +287,7 @@
             </div>
             <div class="course-footer">
               <span class="price">
-                {% if teacher_course.is_free %}رایگان{% else %}{{ teacher_course.price|floatformat:0 }} تومان{% endif %}
+                {% if teacher_course.is_free %}رایگان{% else %}{{ teacher_course.price|floatformat:0|persian_numbers }} تومان{% endif %}
               </span>
               {% if teacher_course.slug %}<a href="{% url 'course:detail' teacher_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
             </div>

@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q, Prefetch, Count
+from django.db import models
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib import messages
 from course.models import Course
 from account.models import Teacher
 from course.models import Category
-from .forms import AdviceRequestForm, DeterminationRequestForm, RequestCourseForm, CollabrateRequestForm, ContactMessageForm
+from .models import ContactMessage
+from .forms import AdviceRequestForm, DeterminationRequestForm, RequestCourseForm, CollabrateRequestForm, ContactMessageForm, PrivateClassRequestForm
 from account.forms import TeacherApplicationForm
 
 
@@ -150,32 +152,101 @@ def aboutus_view(request):
 
 def contactus_view(request):
     """صفحه تماس با ما با فرم ارسال پیام"""
+    from datetime import date, timedelta
+    from django.utils import timezone
+    
+    # بررسی محدودیت روزانه
+    can_submit = True
+    remaining_attempts = 3
+    
     if request.method == 'POST':
-        form = ContactMessageForm(request.POST)
+        # بررسی تعداد پیام‌های ارسال شده امروز
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # بررسی بر اساس IP
+        user_ip = request.META.get('REMOTE_ADDR')
+        today_messages_count = ContactMessage.objects.filter(
+            created_at__gte=today_start
+        ).filter(
+            models.Q(email=request.POST.get('email')) |
+            models.Q(phone=request.POST.get('phone'))
+        ).count()
+        
+        if today_messages_count >= 3:
+            can_submit = False
+            messages.error(
+                request,
+                'شما امروز 3 پیام ارسال کرده‌اید. لطفاً فردا دوباره تلاش کنید.'
+            )
+        else:
+            form = ContactMessageForm(request.POST)
+            if form.is_valid():
+                # ذخیره پیام
+                contact_message = form.save()
+                
+                # نمایش پیام موفقیت
+                remaining = 3 - today_messages_count - 1
+                messages.success(
+                    request,
+                    f'پیام شما با موفقیت ارسال شد! در اسرع وقت با شما تماس خواهیم گرفت. (امروز {remaining} پیام دیگر می‌توانید ارسال کنید)'
+                )
+                
+                # Redirect برای جلوگیری از ارسال مجدد فرم
+                return redirect('contactus')
+            else:
+                # نمایش پیام خطا
+                messages.error(
+                    request,
+                    'خطا در ارسال پیام. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+                )
+    else:
+        form = ContactMessageForm()
+        
+        # محاسبه پیام‌های باقی‌مانده برای نمایش
+        if request.user.is_authenticated:
+            today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            today_messages_count = ContactMessage.objects.filter(
+                email=request.user.email,
+                created_at__gte=today_start
+            ).count()
+            remaining_attempts = max(0, 3 - today_messages_count)
+    
+    context = {
+        'form': form,
+        'remaining_attempts': remaining_attempts,
+    }
+    
+    return render(request, 'contact/contactus.html', context)
+
+
+def request_private_class(request):
+    """صفحه درخواست کلاس خصوصی"""
+    if request.method == 'POST':
+        form = PrivateClassRequestForm(request.POST)
         if form.is_valid():
-            # ذخیره پیام
-            contact_message = form.save()
+            # ذخیره درخواست
+            private_class_request = form.save()
             
             # نمایش پیام موفقیت
             messages.success(
                 request,
-                'پیام شما با موفقیت ارسال شد! در اسرع وقت با شما تماس خواهیم گرفت.'
+                'درخواست کلاس خصوصی شما با موفقیت ثبت شد! کارشناسان ما در اسرع وقت با شما تماس خواهند گرفت.'
             )
             
             # Redirect برای جلوگیری از ارسال مجدد فرم
-            return redirect('contactus')
+            return redirect('core:request-private-class')
         else:
             # نمایش پیام خطا
             messages.error(
                 request,
-                'خطا در ارسال پیام. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+                'خطا در ثبت درخواست. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
             )
     else:
-        form = ContactMessageForm()
+        form = PrivateClassRequestForm()
     
     context = {
         'form': form,
     }
     
-    return render(request, 'contact/contactus.html', context)
+    return render(request, 'core/request_private_class.html', context)
 

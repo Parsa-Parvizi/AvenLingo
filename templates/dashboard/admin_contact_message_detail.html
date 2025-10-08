@@ -2,15 +2,17 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Admin - Contact Message Details{% endblock %}
-
+{% block title %} | Admin - Contact Message Details
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
     footer { display: none !important; }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block content %}
 <div class="admin-dashboard-container">
     {% include 'dashboard/admin_navbar.html' %}
@@ -153,4 +155,6 @@
         </div>
     </main>
 </div>
+
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %}

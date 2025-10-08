@@ -2,15 +2,17 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Admin - User Details{% endblock %}
-
+{% block title %} | Admin - User Details
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
     footer { display: none !important; }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_css %}
 <style>
     body { padding-top: 0 !important; }
@@ -152,8 +154,9 @@
         background: #f0f2ff;
     }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block content %}
 {% include 'dashboard/admin_navbar.html' %}
 
@@ -276,5 +279,6 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}

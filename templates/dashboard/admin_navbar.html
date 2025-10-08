@@ -7,17 +7,17 @@
             </div>
             
             <ul class="admin-nav-menu">
-                <li><a href="{% url 'dashboard:admin_calendar' %}" class="{% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">📅 تقویم</a></li>
-                <li><a href="{% url 'dashboard:admin_users' %}?user_type=teacher" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'teacher' %}active{% endif %}">👨‍🏫 معلمان</a></li>
-                <li><a href="{% url 'dashboard:admin_users' %}?user_type=student" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'student' %}active{% endif %}">👨‍🎓 زبان‌آموزان</a></li>
-                <li><a href="{% url 'dashboard:admin_courses' %}" class="{% if request.resolver_match.url_name == 'admin_courses' %}active{% endif %}">📚 دوره‌ها</a></li>
-                <li><a href="{% url 'dashboard:admin_enrollments' %}" class="{% if request.resolver_match.url_name == 'admin_enrollments' %}active{% endif %}">📝 ثبت‌نام‌ها</a></li>
-                <li><a href="{% url 'dashboard:admin_financial' %}" class="{% if request.resolver_match.url_name == 'admin_financial' %}active{% endif %}">💰 مدیریت مالی</a></li>
-                <li><a href="{% url 'dashboard:admin_contact_messages' %}" class="{% if request.resolver_match.url_name == 'admin_contact_messages' %}active{% endif %}">💌 پیام‌ها</a></li>
+                <li><a href="{% url 'dashboard:admin_calendar' %}" class="{% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}"> تقویم</a></li>
+                <li><a href="{% url 'dashboard:admin_users' %}?user_type=teacher" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'teacher' %}active{% endif %}"> معلمان</a></li>
+                <li><a href="{% url 'dashboard:admin_users' %}?user_type=student" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'student' %}active{% endif %}"> زبان‌آموزان</a></li>
+                <li><a href="{% url 'dashboard:admin_courses' %}" class="{% if request.resolver_match.url_name == 'admin_courses' %}active{% endif %}"> دوره‌ها</a></li>
+                <li><a href="{% url 'dashboard:admin_enrollments' %}" class="{% if request.resolver_match.url_name == 'admin_enrollments' %}active{% endif %}"> ثبت‌نام‌ها</a></li>
+                <li><a href="{% url 'dashboard:admin_financial' %}" class="{% if request.resolver_match.url_name == 'admin_financial' %}active{% endif %}"> مدیریت مالی</a></li>
+                <li><a href="{% url 'dashboard:admin_contact_messages' %}" class="{% if request.resolver_match.url_name == 'admin_contact_messages' %}active{% endif %}"> پیام‌ها</a></li>
                 
                 <li class="dropdown-menu-item">
                     <a href="#" class="{% if 'applications' in request.resolver_match.url_name or 'requests' in request.resolver_match.url_name %}active{% endif %}">
-                        📋 درخواست‌ها <span class="dropdown-arrow">▼</span>
+                         درخواست‌ها <span class="dropdown-arrow">▼</span>
                     </a>
                     <ul class="dropdown-submenu">
                         <li><a href="{% url 'dashboard:admin_applications' %}">درخواست همکاری معلمان</a></li>
@@ -30,7 +30,7 @@
                 
                 <li class="dropdown-menu-item">
                     <a href="#" class="{% if 'security' in request.resolver_match.url_name or 'settings' in request.resolver_match.url_name %}active{% endif %}">
-                        ⚙️ تنظیمات <span class="dropdown-arrow">▼</span>
+                         تنظیمات <span class="dropdown-arrow">▼</span>
                     </a>
                     <ul class="dropdown-submenu">
                         <li><a href="{% url 'dashboard:admin_login_history' %}">تاریخچه ورود</a></li>

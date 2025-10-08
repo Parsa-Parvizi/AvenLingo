@@ -2,15 +2,17 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Admin - Enrollment Details{% endblock %}
-
+{% block title %} | Admin - Enrollment Details
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
     footer { display: none !important; }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_css %}
 <style>
     body { padding-top: 0 !important; }
@@ -308,8 +310,9 @@
         }
     }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block content %}
 {% include 'dashboard/admin_navbar.html' %}
 
@@ -534,28 +537,9 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">رد ثبت‌نام</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label">دلیل رد ثبت‌نام:</label>
-                <textarea id="rejectReason" class="form-control" rows="4" placeholder="لطفاً دلیل رد را وارد کنید..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                <button type="button" class="btn btn-danger" onclick="rejectEnrollment()">تأیید رد</button>
-            </div>
-        </div>
-    </div>
-</div>
 
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %}
-
 {% block extra_js %}
 <script>
 const enrollmentId = {{ enrollment.id }};
@@ -628,5 +612,6 @@ function rejectEnrollment() {
     });
 }
 </script>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}

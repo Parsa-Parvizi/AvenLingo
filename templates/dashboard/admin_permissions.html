@@ -2,15 +2,17 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Admin - Permissions{% endblock %}
-
+{% block title %} | Admin - Permissions
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
     footer { display: none !important; }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block extra_css %}
 <style>
     .page-header {
@@ -22,8 +24,9 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 </style>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}
 {% block content %}
 {% include 'dashboard/admin_navbar.html' %}
 
@@ -154,4 +157,6 @@
         <strong>نکته:</strong> برای تغییر دسترسی‌های پیشرفته، از پنل مدیریت Django استفاده کنید.
     </div>
 </div>
-{% endblock %} 
+
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}

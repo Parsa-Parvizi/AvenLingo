@@ -166,22 +166,78 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         teacher = get_object_or_404(Teacher, user=self.request.user)
         context['teacher'] = teacher
 
-        from course.models import Course
+        from course.models import Course, Assignment, Exam
         from enrollment.models import Enrollment
         from django.utils import timezone
         from datetime import datetime, timedelta
         from django.db.models import Count, Sum, Avg
+        import json
 
         courses = Course.objects.filter(teacher=teacher.pk, is_active=True).select_related('category')
         context['courses'] = courses
+        context['total_courses'] = courses.count()
 
         total_students = sum(course.enrolled_count for course in courses)
         context['total_students'] = total_students
+
+        # تکالیف در انتظار بررسی
+        pending_assignments = Assignment.objects.filter(
+            course__teacher=teacher,
+            submissions__is_graded=False
+        ).distinct().count()
+        context['pending_assignments'] = pending_assignments
+
+        # کلاس‌های پیش رو این هفته
+        today = timezone.now().date()
+        week_end = today + timedelta(days=7)
+        upcoming_classes = courses.filter(
+            start_date__lte=week_end,
+            end_date__gte=today
+        ).count()
+        context['upcoming_classes'] = upcoming_classes
 
         recent_enrollments = Enrollment.objects.filter(
             course__teacher=teacher.pk
         ).select_related('student__user', 'course').order_by('-enrolled_at')[:5]
         context['recent_enrollments'] = recent_enrollments
+
+        # رویدادهای تقویم
+        events = []
+        
+        # کلاس‌ها
+        for course in courses:
+            if course.schedule_days:
+                events.append({
+                    'id': f'course-{course.id}',
+                    'title': f'📚 {course.title}',
+                    'start': course.start_date.isoformat() if course.start_date else None,
+                    'end': course.end_date.isoformat() if course.end_date else None,
+                    'color': '#4CAF50',
+                    'url': f'/teacher/courses/{course.id}/students/',
+                })
+        
+        # تکالیف
+        assignments = Assignment.objects.filter(course__teacher=teacher)
+        for assignment in assignments:
+            events.append({
+                'id': f'assignment-{assignment.id}',
+                'title': f'📝 {assignment.title}',
+                'start': assignment.due_date.isoformat(),
+                'color': '#2196F3',
+            })
+        
+        # امتحانات
+        exams = Exam.objects.filter(course__teacher=teacher)
+        for exam in exams:
+            color = '#F44336' if exam.exam_type == 'final' else '#FF5722' if exam.exam_type == 'midterm' else '#9C27B0'
+            events.append({
+                'id': f'exam-{exam.id}',
+                'title': f'📋 {exam.title}',
+                'start': exam.date.isoformat(),
+                'color': color,
+            })
+        
+        context['events_json'] = json.dumps(events, ensure_ascii=False)
 
         # Enhanced course statistics
         context['course_stats'] = {

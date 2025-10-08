@@ -141,6 +141,18 @@
         font-size: 1.2rem;
     }
     
+    .table a {
+        color: #1F3A93;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .table a:hover {
+        color: #162d6e;
+        text-decoration: none !important;
+    }
+    
     .pagination {
         display: flex !important;
         gap: 8px;
@@ -226,26 +238,6 @@
                 <div class="label">در انتظار پرداخت</div>
                 <div class="detail">
                     تعداد: <strong>{{ pending_count|persian_numbers }}</strong> ثبت‌نام
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="financial-card profit">
-                <h3>{{ teacher_share|floatformat:0|persian_numbers }}</h3>
-                <div class="label">سهم معلمان</div>
-                <div class="detail">
-                    ماه جاری: <strong>{{ monthly_teacher_share|floatformat:0|persian_numbers }}</strong> تومان
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="financial-card revenue">
-                <h3>{{ platform_profit|floatformat:0|persian_numbers }}</h3>
-                <div class="label">سود پلتفرم</div>
-                <div class="detail">
-                    ماه جاری: <strong>{{ monthly_platform_profit|floatformat:0|persian_numbers }}</strong> تومان
                 </div>
             </div>
         </div>
@@ -456,10 +448,11 @@
 
     <!-- گزارش‌های تفکیکی -->
     <div class="row mb-5">
+        <!-- برترین معلمان -->
         <div class="col-lg-6 mb-3">
             <div class="modern-card h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">برترین معلمان از نظر درآمد</h5>
+                    <h5 class="card-title mb-0">👨‍🏫 برترین معلمان از نظر درآمد</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -470,7 +463,7 @@
                                     <th>نام معلم</th>
                                     <th>کل درآمد</th>
                                     <th>تعداد دوره</th>
-                                    <th>ثبت‌نام‌های موفق</th>
+                                    <th>ثبت‌نام موفق</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -487,7 +480,11 @@
                                             {{ forloop.counter|persian_numbers }}
                                         {% endif %}
                                     </td>
-                                    <td><strong>{{ teacher.user.get_full_name }}</strong></td>
+                                    <td>
+                                        <a href="{% url 'teacher:detail' teacher.id %}" class="text-decoration-none">
+                                            <strong>{{ teacher.user.get_full_name }}</strong>
+                                        </a>
+                                    </td>
                                     <td><strong style="color: #28a745;">{{ teacher.total_revenue|floatformat:0|persian_numbers }}</strong> تومان</td>
                                     <td>{{ teacher.course_count|persian_numbers }}</td>
                                     <td><span class="badge badge-success">{{ teacher.successful_enrollments|persian_numbers }}</span></td>
@@ -504,10 +501,11 @@
             </div>
         </div>
 
+        <!-- پردرآمدترین دوره‌ها -->
         <div class="col-lg-6 mb-3">
             <div class="modern-card h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">پردرآمدترین دوره‌ها</h5>
+                    <h5 class="card-title mb-0">📚 پردرآمدترین دوره‌ها</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -516,7 +514,7 @@
                                 <tr>
                                     <th>رتبه</th>
                                     <th>نام دوره</th>
-                                    <th>نام معلم</th>
+                                    <th>معلم</th>
                                     <th>کل درآمد</th>
                                     <th>تعداد ثبت‌نام</th>
                                 </tr>
@@ -535,8 +533,16 @@
                                             {{ forloop.counter|persian_numbers }}
                                         {% endif %}
                                     </td>
-                                    <td><strong>{{ course.title }}</strong></td>
-                                    <td>{{ course.teacher.user.get_full_name }}</td>
+                                    <td>
+                                        <a href="{% url 'dashboard:admin_course_detail' course.id %}" class="text-decoration-none">
+                                            <strong>{{ course.title }}</strong>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'teacher:detail' course.teacher.id %}" class="text-decoration-none">
+                                            {{ course.teacher.user.get_full_name }}
+                                        </a>
+                                    </td>
                                     <td><strong style="color: #28a745;">{{ course.total_revenue|floatformat:0|persian_numbers }}</strong> تومان</td>
                                     <td>{{ course.enrollment_count|persian_numbers }}</td>
                                 </tr>

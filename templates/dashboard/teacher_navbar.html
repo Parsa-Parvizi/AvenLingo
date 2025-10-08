@@ -1,0 +1,157 @@
+{% load static %}
+
+<nav class="admin-navbar" dir="rtl">
+    <div class="container-fluid">
+        <div class="admin-nav-content">
+            <div class="admin-brand">
+                <h4 class="mb-0">پنل معلم</h4>
+                <small class="text-muted">{{ user.get_full_name }}</small>
+            </div>
+            
+            <ul class="admin-nav-menu">
+                <li><a href="{% url 'teacher:schedule' %}" class="{% if request.resolver_match.url_name == 'schedule' or request.resolver_match.url_name == 'calendar' %}active{% endif %}">📅 تقویم و برنامه</a></li>
+                <li><a href="{% url 'teacher:teacher_courses' %}" class="{% if request.resolver_match.url_name == 'teacher_courses' %}active{% endif %}">📚 دوره‌های من</a></li>
+                <li><a href="{% url 'teacher:assignments' %}" class="{% if 'assignment' in request.resolver_match.url_name %}active{% endif %}">📝 تکالیف</a></li>
+                <li><a href="{% url 'teacher:performance' %}" class="{% if request.resolver_match.url_name == 'performance' %}active{% endif %}">📊 عملکرد</a></li>
+                <li><a href="{% url 'teacher:messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">💬 پیام‌ها</a></li>
+                <li><a href="{% url 'teacher:notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">🔔 اعلان‌ها</a></li>
+            </ul>
+            
+            <div class="admin-nav-actions">
+                <a href="{% url 'core:home' %}" class="btn-outline">بازگشت به سایت</a>
+                <a href="{% url 'account:logout' %}" class="btn-logout">خروج</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+.admin-navbar {
+    background: linear-gradient(135deg, #1F3A93 0%, #2c5aa0 100%);
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.admin-nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.admin-brand {
+    color: white;
+}
+
+.admin-brand h4 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.admin-brand small {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+}
+
+.admin-nav-menu {
+    display: flex;
+    gap: 5px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+
+.admin-nav-menu li {
+    margin: 0;
+}
+
+.admin-nav-menu a {
+    display: block;
+    padding: 10px 16px;
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.admin-nav-menu a:hover {
+    background: rgba(255,255,255,0.15);
+    color: white;
+}
+
+.admin-nav-menu a.active {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-weight: 600;
+}
+
+.admin-nav-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-nav-actions .btn-outline {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.admin-nav-actions .btn-outline:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: white;
+}
+
+.admin-nav-actions .btn-logout {
+    padding: 8px 16px;
+    background: #dc3545;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.admin-nav-actions .btn-logout:hover {
+    background: #c82333;
+    color: white;
+}
+
+@media (max-width: 1200px) {
+    .admin-nav-menu {
+        gap: 3px;
+    }
+    
+    .admin-nav-menu a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-nav-content {
+        flex-wrap: wrap;
+    }
+    
+    .admin-nav-menu {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+        padding: 10px 0;
+    }
+}
+</style>
+

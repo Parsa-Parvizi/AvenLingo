@@ -147,7 +147,7 @@
       </p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 20px;">
+    <div class="requests-grid">
       <!-- کارت کلاس خصوصی -->
       <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
         <div style="background: linear-gradient(135deg, #667eea, #764ba2); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);">
@@ -222,7 +222,33 @@
 </section>
 
 <style>
+  /* Grid Layout: هر ردیف 3 div */
+  .requests-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+  }
+  
+  /* اگر تعداد کمتری باشد، کل ردیف را بگیرند */
+  @media (min-width: 769px) {
+    .requests-grid > div {
+      min-width: 0; /* جلوگیری از overflow */
+    }
+  }
+  
+  /* Tablet: 2 ستون */
+  @media (max-width: 992px) and (min-width: 769px) {
+    .requests-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* Mobile: 1 ستون */
   @media (max-width: 768px) {
+    .requests-grid {
+      grid-template-columns: 1fr;
+    }
+    
     .all-requests-section h2 {
       font-size: 1.8rem !important;
     }

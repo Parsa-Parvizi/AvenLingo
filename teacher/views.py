@@ -24,10 +24,40 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
 class TeacherCourseView(LoginRequiredMixin, View):
     def get(self, request):
+        from django.db.models import Sum
         # Map logged-in user to Teacher profile
         teacher = get_object_or_404(Teacher, user=request.user)
         courses = Course.objects.filter(teacher=teacher).select_related('category')
-        return render(request, 'teacher/teacher_courses.html', {'courses': courses})
+        
+        # فیلترها
+        search_query = request.GET.get('q', '')
+        status_filter = request.GET.get('status', '')
+        order_by = request.GET.get('order', '-created_at')
+        
+        if search_query:
+            courses = courses.filter(title__icontains=search_query)
+        
+        if status_filter == 'active':
+            courses = courses.filter(is_active=True, status='active')
+        elif status_filter == 'upcoming':
+            courses = courses.filter(status='upcoming')
+        elif status_filter == 'completed':
+            courses = courses.filter(status='completed')
+        
+        courses = courses.order_by(order_by)
+        
+        # آمار
+        total_students = sum(course.enrolled_count for course in courses)
+        total_revenue = courses.aggregate(
+            total=Sum('price')
+        )['total'] or 0
+        
+        context = {
+            'courses': courses,
+            'total_students': total_students,
+            'total_revenue': total_revenue,
+        }
+        return render(request, 'teacher/teacher_courses.html', context)
 
 
 class TeacherCourseStudentView(LoginRequiredMixin, View):

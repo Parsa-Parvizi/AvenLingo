@@ -1,113 +1,302 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load persian_filters %}
+
 {% block title %} | My Courses{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+<style>
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-top: 3px solid;
+        transition: all 0.3s;
+    }
+    
+    .stat-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-box.primary { border-top-color: #1F3A93; }
+    .stat-box.success { border-top-color: #28a745; }
+    .stat-box.info { border-top-color: #17a2b8; }
+    .stat-box.warning { border-top-color: #ffc107; }
+    
+    .stat-box h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 0;
+    }
+    
+    .stat-box p {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+    }
+    
+    .btn-create-course {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-create-course:hover {
+        background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .course-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        margin-bottom: 20px;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .course-card-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .course-card-body {
+        padding: 20px;
+    }
+    
+    .course-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .info-item i {
+        color: var(--color-primary);
+        width: 20px;
+    }
+    
+    .course-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 {% include 'dashboard/teacher_navbar.html' %}
 
-<div class="container py-4">
-  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-    <h2 class="mb-0 text-gradient d-flex align-items-center"><i class="fas fa-list me-2"></i>دوره‌های من</h2>
-    <div class="d-flex gap-2">
-      <a href="{% url 'teacher:create-course' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>ایجاد دوره جدید</a>
+<div class="container-fluid py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-header mb-0">📚 دوره‌های من</h2>
+        <a href="{% url 'teacher:create-course' %}" class="btn-create-course">
+            <i class="fas fa-plus-circle"></i>
+            ایجاد دوره جدید
+        </a>
     </div>
-  </div>
 
-  <div class="card modern-card mb-3">
-    <div class="card-body">
-      <form class="row g-2 align-items-end">
-        <div class="col-sm-6 col-md-3">
-          <label class="form-label small text-muted">جستجو</label>
-          <input type="text" class="form-control" name="q" value="{{ request.GET.q }}" placeholder="عنوان دوره...">
+    <!-- آمار کلی -->
+    <div class="stats-overview">
+        <div class="stat-box primary">
+            <h3>{{ courses.count|persian_numbers }}</h3>
+            <p>کل دوره‌ها</p>
         </div>
-        <div class="col-sm-6 col-md-3">
-          <label class="form-label small text-muted">وضعیت</label>
-          <select class="form-select" name="status">
-            <option value="">همه</option>
-            <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>منتشر شده</option>
-            <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>پیش‌نویس</option>
-            <option value="archived" {% if request.GET.status == 'archived' %}selected{% endif %}>آرشیو</option>
-          </select>
+        <div class="stat-box success">
+            <h3>{{ courses|length|persian_numbers }}</h3>
+            <p>دوره‌های فعال</p>
         </div>
-        <div class="col-sm-6 col-md-3">
-          <label class="form-label small text-muted">مرتب‌سازی</label>
-          <select class="form-select" name="order">
-            <option value="-created_at" {% if request.GET.order == '-created_at' or not request.GET.order %}selected{% endif %}>جدیدترین</option>
-            <option value="created_at" {% if request.GET.order == 'created_at' %}selected{% endif %}>قدیمی‌ترین</option>
-            <option value="title" {% if request.GET.order == 'title' %}selected{% endif %}>عنوان</option>
-          </select>
+        <div class="stat-box info">
+            <h3>{{ total_students|persian_numbers }}</h3>
+            <p>دانش‌آموزان</p>
         </div>
-        <div class="col-sm-6 col-md-3 d-flex gap-2">
-          <button class="btn btn-outline-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>اعمال</button>
-          <a class="btn btn-outline-secondary" href="?">حذف فیلتر</a>
+        <div class="stat-box warning">
+            <h3>{{ total_revenue|floatformat:0|persian_numbers }}</h3>
+            <p>درآمد کل (تومان)</p>
         </div>
-      </form>
     </div>
-  </div>
 
-  <div class="card modern-card">
-    <div class="card-body p-0">
-      {% if courses %}
-      <div class="table-responsive">
-        <table class="table align-middle mb-0 course-table">
-          <thead class="table-light">
-            <tr>
-              <th>عنوان</th>
-              <th>تاریخ شروع</th>
-              <th>ظرفیت</th>
-              <th>ثبت‌نام‌شده</th>
-              <th>وضعیت</th>
-              <th class="text-end">اقدامات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for course in courses %}
-            <tr>
-              <td class="fw-600">{{ course.title }}</td>
-              <td>{{ course.start_date }}</td>
-              <td>{{ course.capacity }}</td>
-              <td>
-                <span class="chip chip-soft-primary"><i class="fas fa-user me-1"></i>{{ course.enrolled_count }}</span>
-              </td>
-              <td>
-                {% if course.status == 'published' %}<span class="badge bg-success">منتشر شده</span>
-                {% elif course.status == 'draft' %}<span class="badge bg-secondary">پیش‌نویس</span>
-                {% else %}<span class="badge bg-warning text-dark">آرشیو</span>{% endif %}
-              </td>
-              <td class="text-end">
-                <div class="btn-group btn-group-sm" role="group">
-                  <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-outline-danger"><i class="fas fa-file-alt me-1"></i>امتحانات</a>
-                  <a href="{% url 'teacher:course-students' course.id %}" class="btn btn-outline-secondary"><i class="fas fa-users me-1"></i>دانش‌آموزان</a>
-                  <a href="{% url 'course:detail' course.slug %}" class="btn btn-outline-primary"><i class="fas fa-eye me-1"></i>نمایش</a>
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
+                            <label class="form-label">جستجو</label>
+                            <input type="text" class="form-select" name="q" value="{{ request.GET.q }}" placeholder="عنوان دوره...">
+                        </div>
+                        <div class="filter-col">
+                            <label class="form-label">وضعیت</label>
+                            <select class="form-select" name="status">
+                                <option value="">همه</option>
+                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                                <option value="upcoming" {% if request.GET.status == 'upcoming' %}selected{% endif %}>در انتظار شروع</option>
+                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>به اتمام رسیده</option>
+                            </select>
+                        </div>
+                        <div class="filter-col">
+                            <label class="form-label">مرتب‌سازی</label>
+                            <select class="form-select" name="order">
+                                <option value="-created_at" {% if request.GET.order == '-created_at' or not request.GET.order %}selected{% endif %}>جدیدترین</option>
+                                <option value="created_at" {% if request.GET.order == 'created_at' %}selected{% endif %}>قدیمی‌ترین</option>
+                                <option value="title" {% if request.GET.order == 'title' %}selected{% endif %}>عنوان</option>
+                            </select>
+                        </div>
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                        {% if request.GET.q or request.GET.status or request.GET.order %}
+                        <div class="filter-col filter-btn">
+                            <a href="?" class="btn btn-secondary w-100 btn-lg">
+                                <i class="fas fa-times"></i> حذف فیلتر
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="empty-state text-center p-5">
-        <div class="empty-illustration mb-3">📚</div>
-        <h5 class="mb-1">دوره‌ای پیدا نشد</h5>
-        <p class="text-muted mb-3">می‌توانید با دکمه بالا اولین دوره خود را ایجاد کنید.</p>
-        <a href="{% url 'teacher:create-course' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>ایجاد دوره</a>
-      </div>
-      {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-{% endblock %}
 
-{% block extra_css %}
-<style>
-.text-gradient{background:linear-gradient(135deg,#1F3A93,#2C3E50);-webkit-background-clip:text;background-clip:text;color:transparent}
-.modern-card{border:none;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
-.fw-600{font-weight:600}
-.course-table tbody tr{transition:background .2s}
-.course-table tbody tr:hover{background:#fafbfc}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:.25rem .5rem;border-radius:999px;font-size:.85rem}
-.chip-soft-primary{background:rgba(31,58,147,.08);color:#1F3A93}
-.empty-illustration{font-size:2rem}
-</style>
+    <!-- لیست دوره‌ها -->
+    {% if courses %}
+    <div class="row">
+        {% for course in courses %}
+        <div class="col-lg-6 mb-4">
+            <div class="course-card">
+                <div class="course-card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1">{{ course.title }}</h4>
+                            <p class="text-muted mb-0 small">
+                                <i class="fas fa-layer-group"></i> 
+                                {{ course.category.name }}
+                            </p>
+                        </div>
+                        <div>
+                            {% if course.is_active %}
+                                <span class="badge badge-success">فعال</span>
+                            {% else %}
+                                <span class="badge badge-secondary">غیرفعال</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="course-card-body">
+                    <div class="course-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ course.start_date|jalali_short }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>{{ course.enrolled_count|persian_numbers }}/{{ course.capacity|persian_numbers }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ course.duration|persian_numbers }} ساعت</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>{{ course.price|floatformat:0|persian_numbers }} تومان</span>
+                        </div>
+                    </div>
+                    
+                    <div class="course-actions mt-3">
+                        <a href="{% url 'teacher:course-students' course.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-users"></i> دانش‌آموزان
+                        </a>
+                        <a href="{% url 'teacher:course_assignments' course.id %}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-tasks"></i> تکالیف
+                        </a>
+                        <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-file-alt"></i> امتحانات
+                        </a>
+                        <a href="{% url 'teacher:edit-course' course.id %}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a href="{% url 'course:detail' course.slug %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-eye"></i> نمایش
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card text-center py-5">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
+                <h4 class="mb-3">هنوز دوره‌ای ایجاد نکرده‌اید</h4>
+                <p class="text-muted mb-4">با ایجاد اولین دوره خود، تدریس آنلاین را شروع کنید!</p>
+                <a href="{% url 'teacher:create-course' %}" class="btn-create-course">
+                    <i class="fas fa-plus-circle"></i>
+                    ایجاد اولین دوره
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

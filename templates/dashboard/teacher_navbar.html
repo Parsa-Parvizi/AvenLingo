@@ -11,7 +11,6 @@
                 <li><a href="{% url 'dashboard:teacher_dashboard' %}" class="{% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">📅 تقویم و برنامه</a></li>
                 <li><a href="{% url 'teacher:teacher_courses' %}" class="{% if request.resolver_match.url_name == 'teacher_courses' %}active{% endif %}">📚 دوره‌های من</a></li>
                 <li><a href="{% url 'teacher:assignments' %}" class="{% if 'assignment' in request.resolver_match.url_name %}active{% endif %}">📝 تکالیف</a></li>
-                <li><a href="{% url 'teacher:performance' %}" class="{% if request.resolver_match.url_name == 'performance' %}active{% endif %}">📊 عملکرد</a></li>
                 <li><a href="{% url 'teacher:messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">💬 پیام‌ها</a></li>
                 <li><a href="{% url 'teacher:notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">🔔 اعلان‌ها</a></li>
             </ul>

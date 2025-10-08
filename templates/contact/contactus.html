@@ -230,11 +230,17 @@
 
     <!-- Additional Support Styles -->
     <style>
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
         .support-form-section {
             background: white;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            scroll-margin-top: 100px; /* فضا برای navbar */
         }
 
         .support-header {
@@ -597,17 +603,31 @@ document.querySelector('a[href="#map"]')?.addEventListener('click', function(e) 
 });
 
 // Smooth scroll to support form when page loads with anchor
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
     if (window.location.hash === '#support-form') {
         setTimeout(function() {
             const supportForm = document.getElementById('support-form');
             if (supportForm) {
-                supportForm.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+                // اسکرول نرم با offset برای navbar
+                const yOffset = -80; // فاصله از بالا
+                const y = supportForm.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                
+                window.scrollTo({
+                    top: y,
+                    behavior: 'smooth'
                 });
+                
+                // افکت کوچک برای highlight کردن فرم
+                supportForm.style.transition = 'transform 0.5s ease, box-shadow 0.5s ease';
+                supportForm.style.transform = 'scale(1.02)';
+                supportForm.style.boxShadow = '0 15px 50px rgba(102, 126, 234, 0.3)';
+                
+                setTimeout(function() {
+                    supportForm.style.transform = 'scale(1)';
+                    supportForm.style.boxShadow = '0 10px 40px rgba(0,0,0,0.08)';
+                }, 800);
             }
-        }, 100);
+        }, 300);
     }
 });
 </script>

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | مدیریت امتحانات{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+<style>
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-top: 3px solid;
+        transition: all 0.3s;
+    }
+    
+    .stat-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-box.primary { border-top-color: #1F3A93; }
+    .stat-box.success { border-top-color: #28a745; }
+    .stat-box.info { border-top-color: #17a2b8; }
+    .stat-box.warning { border-top-color: #ffc107; }
+    
+    .stat-box h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 0;
+    }
+    
+    .stat-box p {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+    }
+    
+    .exam-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+    
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .exam-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .exam-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .info-item i {
+        color: var(--color-primary);
+        width: 20px;
+    }
+    
+    .exam-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/teacher_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-header mb-0">📋 مدیریت امتحانات</h2>
+    </div>
+
+    <!-- آمار کلی -->
+    <div class="stats-overview">
+        <div class="stat-box primary">
+            <h3>{{ total_exams|persian_numbers }}</h3>
+            <p>کل امتحانات</p>
+        </div>
+        <div class="stat-box warning">
+            <h3>{{ upcoming_exams|persian_numbers }}</h3>
+            <p>امتحانات آینده</p>
+        </div>
+        <div class="stat-box success">
+            <h3>{{ completed_exams|persian_numbers }}</h3>
+            <p>برگزار شده</p>
+        </div>
+        <div class="stat-box info">
+            <h3>{{ total_participants|persian_numbers }}</h3>
+            <p>شرکت‌کنندگان</p>
+        </div>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
+                            <label class="form-label">دوره</label>
+                            <select name="course" class="form-select">
+                                <option value="">همه دوره‌ها</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if request.GET.course == course.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ course.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-col">
+                            <label class="form-label">نوع امتحان</label>
+                            <select name="type" class="form-select">
+                                <option value="">همه انواع</option>
+                                <option value="quiz" {% if request.GET.type == 'quiz' %}selected{% endif %}>کوییز</option>
+                                <option value="midterm" {% if request.GET.type == 'midterm' %}selected{% endif %}>میان‌ترم</option>
+                                <option value="final" {% if request.GET.type == 'final' %}selected{% endif %}>امتحان نهایی</option>
+                            </select>
+                        </div>
+                        <div class="filter-col">
+                            <label class="form-label">وضعیت</label>
+                            <select name="status" class="form-select">
+                                <option value="">همه</option>
+                                <option value="upcoming" {% if request.GET.status == 'upcoming' %}selected{% endif %}>آینده</option>
+                                <option value="ongoing" {% if request.GET.status == 'ongoing' %}selected{% endif %}>در حال برگزاری</option>
+                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>برگزار شده</option>
+                            </select>
+                        </div>
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست امتحانات -->
+    {% if exams %}
+    <div class="row">
+        {% for exam in exams %}
+        <div class="col-lg-6 mb-4">
+            <div class="exam-card">
+                <div class="exam-header">
+                    <div>
+                        <h4 class="mb-1">{{ exam.title }}</h4>
+                        <p class="text-muted mb-0 small">
+                            <i class="fas fa-book"></i> 
+                            {{ exam.course.title }}
+                        </p>
+                    </div>
+                    <div>
+                        {% if exam.exam_type == 'quiz' %}
+                            <span class="badge badge-info">کوییز</span>
+                        {% elif exam.exam_type == 'midterm' %}
+                            <span class="badge badge-warning">میان‌ترم</span>
+                        {% elif exam.exam_type == 'final' %}
+                            <span class="badge badge-danger">نهایی</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="exam-info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ exam.date|jalali_short }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ exam.duration|persian_numbers }} دقیقه</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-list-ol"></i>
+                        <span>{{ exam.questions.count|persian_numbers }} سوال</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ exam.participations.count|persian_numbers }} شرکت‌کننده</span>
+                    </div>
+                </div>
+                
+                <div class="exam-actions mt-3">
+                    <a href="{% url 'teacher:exam_participants' exam.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-users"></i> شرکت‌کنندگان
+                    </a>
+                    <a href="{% url 'teacher:edit_exam' exam.id %}" class="btn btn-sm btn-outline-warning">
+                        <i class="fas fa-edit"></i> ویرایش
+                    </a>
+                    <a href="{% url 'teacher:delete_exam' exam.id %}" class="btn btn-sm btn-outline-danger" 
+                       onclick="return confirm('آیا مطمئن هستید؟')">
+                        <i class="fas fa-trash"></i> حذف
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card text-center py-5">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📋</div>
+                <h4 class="mb-3">امتحانی یافت نشد</h4>
+                <p class="text-muted mb-4">برای ایجاد امتحان، ابتدا وارد دوره مورد نظر شوید.</p>
+                <a href="{% url 'teacher:teacher_courses' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> رفتن به دوره‌ها
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

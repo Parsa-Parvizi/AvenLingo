@@ -397,61 +397,157 @@ class TeacherActivitiesView(View):
 
 
 @method_decorator(login_required, name='dispatch')
-class TeacherNotificationsView(View):
+class TeacherNotificationsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """نمایش اعلانات معلم"""
     template_name = 'teacher/teacher_notifications.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            context['notifications'] = []
+            return context
+        
+        from course.models import AssignmentSubmission, Exam
+        from enrollment.models import Enrollment
+        from django.core.paginator import Paginator
+        
+        filter_type = self.request.GET.get('filter', 'all')
+        
+        # ایجاد اعلانات بر اساس داده‌های واقعی
+        notifications = []
+        
+        # اعلان‌های ثبت‌نام جدید
+        if filter_type in ['all', 'enrollment']:
+            recent_enrollments = Enrollment.objects.filter(
+                course__teacher=teacher,
+                status='pending'
+            ).select_related('student__user', 'course').order_by('-enrolled_at')[:10]
+            
+            for enrollment in recent_enrollments:
+                notifications.append({
+                    'title': 'ثبت‌نام جدید',
+                    'message': f'{enrollment.student.user.get_full_name()} در دوره "{enrollment.course.title}" ثبت‌نام کرد',
+                    'created_at': enrollment.enrolled_at,
+                    'type': 'success',
+                    'is_read': False,
+                    'action_url': f'/dashboard/admin/enrollments/{enrollment.id}/',
+                })
+        
+        # اعلان‌های تکلیف جدید ارسال شده
+        if filter_type in ['all', 'assignment']:
+            recent_submissions = AssignmentSubmission.objects.filter(
+                assignment__course__teacher=teacher,
+                graded_by__isnull=True
+            ).select_related('student__user', 'assignment').order_by('-submitted_at')[:10]
+            
+            for submission in recent_submissions:
+                notifications.append({
+                    'title': 'تکلیف جدید ارسال شد',
+                    'message': f'{submission.student.user.get_full_name()} تکلیف "{submission.assignment.title}" را ارسال کرد',
+                    'created_at': submission.submitted_at,
+                    'type': 'info',
+                    'is_read': False,
+                    'action_url': f'/teachers/assignments/{submission.assignment.id}/',
+                })
+        
+        # اعلان‌های امتحان پیش رو
+        if filter_type in ['all', 'exam']:
+            today = timezone.now().date()
+            upcoming_exams = Exam.objects.filter(
+                course__teacher=teacher,
+                date__gte=today,
+                date__lte=today + timezone.timedelta(days=7)
+            ).select_related('course').order_by('date')[:5]
+            
+            for exam in upcoming_exams:
+                notifications.append({
+                    'title': 'امتحان پیش رو',
+                    'message': f'امتحان "{exam.title}" دوره "{exam.course.title}" در {exam.date}',
+                    'created_at': timezone.now(),
+                    'type': 'warning',
+                    'is_read': False,
+                    'action_url': f'/teachers/exams/{exam.id}/participants/',
+                })
+        
+        # فیلتر unread
+        if filter_type == 'unread':
+            # همه اعلان‌ها به صورت پیش‌فرض unread هستند
+            pass
+        
+        # مرتب‌سازی بر اساس تاریخ
+        notifications.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        # Pagination
+        paginator = Paginator(notifications, 20)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['notifications'] = page_obj
+        
+        return context
 
-    def get(self, request):
-        teacher = get_object_or_404(Teacher, user=request.user)
-        
-        # شبیه‌سازی اعلانات (در آینده از مدل واقعی استفاده کنید)
-        notifications = [
-            {
-                'title': 'تکلیف جدید ارسال شد',
-                'description': 'دانش‌آموز مریم حسینی تکلیف "تمرین مکالمه" را ارسال کرد',
-                'created_at': timezone.now() - timezone.timedelta(minutes=30),
-                'icon': 'fas fa-upload',
-                'type': 'info',
-                'read': False
-            },
-            {
-                'title': 'یادآوری تصحیح تکلیف',
-                'description': '۳ تکلیف در انتظار تصحیح هستند',
-                'created_at': timezone.now() - timezone.timedelta(hours=1),
-                'icon': 'fas fa-clock',
-                'type': 'warning',
-                'read': False
-            },
-            {
-                'title': 'دوره تأیید شد',
-                'description': 'دوره "انگلیسی تجاری" توسط ادمین تأیید شد',
-                'created_at': timezone.now() - timezone.timedelta(days=1),
-                'icon': 'fas fa-check',
-                'type': 'success',
-                'read': True
-            },
-            {
-                'title': 'سیستم به‌روزرسانی شد',
-                'description': 'ویژگی‌های جدید سیستم تکالیف اضافه شد',
-                'created_at': timezone.now() - timezone.timedelta(days=3),
-                'icon': 'fas fa-info-circle',
-                'type': 'info',
-                'read': True
-            },
-        ]
-        
-        context = {
-            'notifications': notifications,
-            'teacher': teacher,
-            'unread_count': len([n for n in notifications if not n['read']])
-        }
-        
-        return render(request, self.template_name, context)
+
 
 
 # These are defined earlier in the file - keeping for backwards compatibility
 
 # Exam Views
+class TeacherExamsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست کل امتحانات معلم"""
+    template_name = 'teacher/teacher_exams_list.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import Exam
+        from django.utils import timezone
+        
+        # فیلترها
+        course_filter = self.request.GET.get('course', '')
+        type_filter = self.request.GET.get('type', '')
+        status_filter = self.request.GET.get('status', '')
+        
+        exams = Exam.objects.filter(course__teacher=teacher).select_related('course').order_by('-date')
+        
+        if course_filter:
+            exams = exams.filter(course_id=course_filter)
+        
+        if type_filter:
+            exams = exams.filter(exam_type=type_filter)
+        
+        today = timezone.now().date()
+        if status_filter == 'upcoming':
+            exams = exams.filter(date__gt=today)
+        elif status_filter == 'ongoing':
+            exams = exams.filter(date=today)
+        elif status_filter == 'completed':
+            exams = exams.filter(date__lt=today)
+        
+        # آمار
+        context['exams'] = exams
+        context['total_exams'] = exams.count()
+        context['upcoming_exams'] = exams.filter(date__gt=today).count()
+        context['completed_exams'] = exams.filter(date__lt=today).count()
+        context['total_participants'] = sum(exam.participations.count() for exam in exams)
+        context['courses'] = Course.objects.filter(teacher=teacher, is_active=True)
+        
+        return context
+
+
 class TeacherExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """لیست امتحانات یک دوره"""
     template_name = 'teacher/teacher_exams.html'

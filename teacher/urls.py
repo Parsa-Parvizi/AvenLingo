@@ -5,7 +5,7 @@ from .views import (
     TeacherPerformanceView, TeacherMessagesView, TeacherAssignmentsView, TeacherCreateAssignmentView,
     TeacherEditAssignmentView, TeacherDeleteAssignmentView, TeacherAssignmentDetailView,
     TeacherActivitiesView, TeacherNotificationsView,
-    TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
+    TeacherExamsListView, TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
     TeacherExamParticipantsView, TeacherGradeExamView
 )
 app_name = 'teacher'
@@ -28,6 +28,7 @@ urlpatterns = [
     path('assignments/<int:assignment_id>/delete/', TeacherDeleteAssignmentView.as_view(), name='delete_assignment'),
     
     # Exam URLs
+    path('exams/', TeacherExamsListView.as_view(), name='exams_list'),
     path('courses/<int:course_id>/exams/', TeacherExamsView.as_view(), name='course_exams'),
     path('courses/<int:course_id>/exams/create/', TeacherCreateExamView.as_view(), name='create_exam'),
     path('exams/<int:exam_id>/edit/', TeacherEditExamView.as_view(), name='edit_exam'),

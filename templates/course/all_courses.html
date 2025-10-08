@@ -324,13 +324,22 @@
   </div>
 </section>
 
-<section class="request-course-section" style="margin: 40px 0; text-align: center;">
-  <h2>دوره مورد نظر خود را پیدا نکردید؟</h2>
-  <p>اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود.</p>
-  <a href="{% url 'core:request-course' %}" class="btn btn-outline">درخواست دوره جدید</a>
+<section class="request-course-section" style="margin: 40px 0;">
+  <!-- بخش درخواست دوره جدید -->
+  <div style="padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center; margin-bottom: 30px;">
+    <h3 style="color: var(--color-primary); margin-bottom: 15px;">
+      <i class="fas fa-book-open"></i> دوره مورد نظر خود را پیدا نکردید؟
+    </h3>
+    <p style="color: #666; margin-bottom: 20px;">
+      اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود
+    </p>
+    <a href="{% url 'core:request-course' %}" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">
+      <i class="fas fa-plus-circle"></i> درخواست دوره جدید
+    </a>
+  </div>
   
   <!-- بخش درخواست مشاوره -->
-  <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center;">
+  <div style="padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center;">
     <h3 style="color: var(--color-primary); margin-bottom: 15px;">
       <i class="fas fa-headset"></i> نیاز به مشاوره تحصیلی دارید؟
     </h3>

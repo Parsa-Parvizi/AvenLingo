@@ -119,13 +119,38 @@ class TeacherMyStudentsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVie
         return context
 
 
-class TeacherCourseStudentView(LoginRequiredMixin, View):
-    def get(self, request, course_id):
-        teacher = get_object_or_404(Teacher, user=request.user)
+class TeacherCourseStudentView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'teacher/teacher_course_students.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from enrollment.models import Enrollment
+        
         course = get_object_or_404(Course, id=course_id, teacher=teacher)
-        # Prefetch students; enrollment status rendering kept simple in template
-        students = course.students.select_related('user').all()
-        return render(request, 'teacher/teacher_course_students.html', {'course': course, 'students': students})
+        enrollments = Enrollment.objects.filter(course=course).select_related('student__user').order_by('-enrolled_at')
+        
+        # آمار
+        confirmed_count = enrollments.filter(status='confirmed').count()
+        pending_count = enrollments.filter(status='pending').count()
+        remaining_capacity = course.capacity - enrollments.filter(status='confirmed').count()
+        
+        context['course'] = course
+        context['enrollments'] = enrollments
+        context['confirmed_count'] = confirmed_count
+        context['pending_count'] = pending_count
+        context['remaining_capacity'] = remaining_capacity if remaining_capacity > 0 else 0
+        
+        return context
 
 class TeacherScheduleView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'teacher/schedule.html'

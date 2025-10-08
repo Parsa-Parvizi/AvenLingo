@@ -20,13 +20,11 @@
                 <div>
                     <h6 class="mb-1"><strong>{{ exam.title }}</strong> - {{ exam.course.title }}</h6>
                     <p class="mb-0"><i class="fas fa-clock"></i> تا پایان: 
-                        {% with time_left=exam.time_until_end %}
-                            {% if time_left %}
-                                {{ time_left.seconds|div:60|persian_numbers }} دقیقه
-                            {% else %}
-                                پایان یافته
-                            {% endif %}
-                        {% endwith %}
+                        {% if exam.minutes_remaining %}
+                            {{ exam.minutes_remaining|persian_numbers }} دقیقه
+                        {% else %}
+                            پایان یافته
+                        {% endif %}
                     </p>
                 </div>
                 <a href="{% url 'course:take_exam' exam.id %}" class="btn btn-success btn-lg">

@@ -707,6 +707,7 @@ class StudentExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         active_exams = []
         past_exams = []
         
+        now = timezone.now()
         for exam in all_exams:
             can_see, _ = exam.can_student_see(student)
             if not can_see:
@@ -715,6 +716,9 @@ class StudentExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             if exam.is_ended():
                 past_exams.append(exam)
             elif exam.is_started():
+                # محاسبه دقایق باقی‌مانده
+                time_left = exam.scheduled_end - now
+                exam.minutes_remaining = int(time_left.total_seconds() / 60) if time_left.total_seconds() > 0 else 0
                 active_exams.append(exam)
             else:
                 upcoming_exams.append(exam)

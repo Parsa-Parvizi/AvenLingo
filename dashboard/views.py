@@ -1334,3 +1334,109 @@ class AdminContactMessageDetailView(LoginRequiredMixin, UserPassesTestMixin, Det
             messages.error(request, 'لطفاً متن پاسخ را وارد کنید.')
         
         return redirect('dashboard:admin_contact_message_detail', message_id=self.object.id)
+
+
+class AdminCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """تقویم ادمین - نمایش همه رویدادها"""
+    template_name = 'dashboard/admin_calendar.html'
+    
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from core.models import CalendarEvent
+        from course.models import Course, Assignment
+        
+        # دریافت تمام رویدادها
+        events = []
+        
+        # رویدادهای تقویم
+        calendar_events = CalendarEvent.objects.all()
+        for event in calendar_events:
+            events.append({
+                'id': f'event-{event.id}',
+                'title': event.title,
+                'start': event.start_datetime.isoformat(),
+                'end': event.end_datetime.isoformat() if event.end_datetime else None,
+                'color': event.color,
+                'type': event.event_type,
+            })
+        
+        # کلاس‌ها
+        courses = Course.objects.filter(is_active=True, status='published')
+        for course in courses:
+            if course.start_date:
+                events.append({
+                    'id': f'course-{course.id}',
+                    'title': f'🎓 {course.title}',
+                    'start': course.start_date.isoformat(),
+                    'end': course.end_date.isoformat() if course.end_date else None,
+                    'color': '#4CAF50',
+                    'type': 'class',
+                })
+        
+        # تکالیف
+        assignments = Assignment.objects.filter(is_active=True)
+        for assignment in assignments:
+            events.append({
+                'id': f'assignment-{assignment.id}',
+                'title': f'📝 {assignment.title}',
+                'start': assignment.due_date.isoformat(),
+                'color': '#FF9800',
+                'type': 'assignment',
+            })
+        
+        context['events_json'] = json.dumps(events)
+        return context
+
+
+class StudentCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """تقویم زبان‌آموز - نمایش کلاس‌ها و تکالیف"""
+    template_name = 'dashboard/student_calendar.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from enrollment.models import Enrollment
+        from course.models import Assignment
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            context['events_json'] = json.dumps([])
+            return context
+        
+        events = []
+        
+        # کلاس‌های ثبت‌نام شده
+        enrollments = Enrollment.objects.filter(student=student, status='confirmed').select_related('course')
+        for enrollment in enrollments:
+            course = enrollment.course
+            if course.start_date:
+                events.append({
+                    'id': f'course-{course.id}',
+                    'title': f'🎓 {course.title}',
+                    'start': course.start_date.isoformat(),
+                    'end': course.end_date.isoformat() if course.end_date else None,
+                    'color': '#4CAF50',
+                    'type': 'class',
+                })
+        
+        # تکالیف دوره‌های ثبت‌نام شده
+        course_ids = enrollments.values_list('course_id', flat=True)
+        assignments = Assignment.objects.filter(course_id__in=course_ids, is_active=True)
+        for assignment in assignments:
+            events.append({
+                'id': f'assignment-{assignment.id}',
+                'title': f'📝 {assignment.title} ({assignment.course.title})',
+                'start': assignment.due_date.isoformat(),
+                'color': '#FF9800',
+                'type': 'assignment',
+            })
+        
+        context['events_json'] = json.dumps(events)
+        return context

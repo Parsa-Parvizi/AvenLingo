@@ -1,10 +1,310 @@
 {% extends 'base.html' %}
-{% block title %} | Schedule{% endblock %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Teacher - Calendar{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>برنامه کلاس‌ها</h1>
-    <p>این صفحه برای نمایش برنامه کلاس‌های مدرس خواهد بود.</p>
-    <a href="{% url 'dashboard:teacher_dashboard' %}" class="btn btn-secondary">بازگشت به داشبورد</a>
+<div class="teacher-dashboard-container" dir="rtl">
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="page-title">📅 تقویم و برنامه کلاس‌ها</h1>
+                    <div class="calendar-actions">
+                        <button class="btn btn-sm btn-primary" onclick="calendar.changeView('dayGridMonth')">ماهانه</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridWeek')">هفتگی</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridDay')">روزانه</button>
+                        <button class="btn btn-sm btn-success" onclick="calendar.today()">امروز</button>
+                        <a href="{% url 'dashboard:teacher_dashboard' %}" class="btn btn-sm btn-secondary">داشبورد</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card stat-card-green">
+                    <div class="stat-icon">🎓</div>
+                    <div class="stat-info">
+                        <div class="stat-label">کلاس‌های فعال</div>
+                        <div class="stat-value">{{ teacher.courses.count|persian_numbers }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-label">تکالیف فعال</div>
+                        <div class="stat-value">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <div class="stat-label">تعداد دانشجو</div>
+                        <div class="stat-value">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">رویدادهای امروز</div>
+                        <div class="stat-value">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="calendar-legend-card mb-4">
+            <div class="legend-items">
+                <span class="legend-item"><span class="legend-dot" style="background: #4CAF50;"></span> کلاس‌های من</span>
+                <span class="legend-item"><span class="legend-dot" style="background: #FF9800;"></span> تکالیف و امتحانات</span>
+                <span class="legend-item"><span class="legend-dot" style="background: #2196F3;"></span> جلسات</span>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-card">
+            <div class="card-body">
+                <div id='calendar'></div>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %} 
+
+<style>
+.teacher-dashboard-container {
+    min-height: 100vh;
+    background: var(--color-background);
+}
+
+.page-title {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 2rem;
+    margin: 0;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.stat-card-green .stat-icon { color: #4CAF50; }
+.stat-card-orange .stat-icon { color: #FF9800; }
+.stat-card-blue .stat-icon { color: #2196F3; }
+.stat-card-purple .stat-icon { color: #9C27B0; }
+
+.calendar-legend-card {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.legend-items {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.calendar-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+#calendar {
+    direction: rtl;
+    font-family: 'Vazir', sans-serif;
+}
+
+.fc {
+    direction: rtl;
+}
+
+.fc-toolbar-title {
+    font-family: 'Vazir', sans-serif !important;
+    font-size: 1.4rem !important;
+    font-weight: 600 !important;
+    color: var(--color-primary);
+}
+
+.fc-button {
+    font-family: 'Vazir', sans-serif !important;
+}
+
+.fc-button-primary {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+}
+
+.fc-button-primary:hover {
+    background-color: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+}
+
+.fc-event {
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 0.85rem;
+    border: none !important;
+    transition: all 0.2s;
+}
+
+.fc-event:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.fc-daygrid-day-number {
+    font-family: 'Vazir', sans-serif;
+    font-size: 0.9rem;
+    padding: 8px;
+}
+
+.fc-col-header-cell-cushion {
+    font-family: 'Vazir', sans-serif;
+    font-weight: 600;
+    color: #666;
+}
+
+.fc-daygrid-day.fc-day-today {
+    background-color: #e3f2fd !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.fc-h-event {
+    border-left: 4px solid rgba(0,0,0,0.2) !important;
+}
+</style>
+
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/fa.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var events = {{ events_json|safe }};
+    
+    window.calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'fa',
+        direction: 'rtl',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'امروز',
+            month: 'ماهانه',
+            week: 'هفتگی',
+            day: 'روزانه'
+        },
+        events: events,
+        eventClick: function(info) {
+            var url = info.event.extendedProps.url;
+            if (url) {
+                window.location.href = url;
+                info.jsEvent.preventDefault();
+            }
+        },
+        eventDidMount: function(info) {
+            // اضافه کردن tooltip
+            info.el.title = info.event.title;
+        },
+        height: 'auto',
+        aspectRatio: 1.8,
+        nowIndicator: true,
+        navLinks: true,
+        editable: false,
+        dayMaxEvents: 3,
+        weekends: true,
+        slotMinTime: '08:00:00',
+        slotMaxTime: '22:00:00',
+        firstDay: 6, // شنبه
+    });
+    
+    calendar.render();
+});
+</script>
+{% endblock %}

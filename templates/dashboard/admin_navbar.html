@@ -8,6 +8,7 @@
             
             <ul class="admin-nav-menu">
                 <li><a href="{% url 'dashboard:admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">داشبورد</a></li>
+                <li><a href="{% url 'dashboard:admin_calendar' %}" class="{% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">📅 تقویم</a></li>
                 <li><a href="{% url 'dashboard:admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">کاربران</a></li>
                 <li><a href="{% url 'dashboard:admin_courses' %}" class="{% if request.resolver_match.url_name == 'admin_courses' %}active{% endif %}">دوره‌ها</a></li>
                 <li><a href="{% url 'dashboard:admin_enrollments' %}" class="{% if request.resolver_match.url_name == 'admin_enrollments' %}active{% endif %}">ثبت‌نام‌ها</a></li>

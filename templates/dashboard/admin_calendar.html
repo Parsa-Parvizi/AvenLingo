@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Admin - Calendar{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container">
+    {% include 'dashboard/admin_navbar.html' %}
+    
+    <main class="admin-main-content">
+        <div class="admin-header">
+            <h1>📅 تقویم مدیریت</h1>
+            <div class="calendar-view-buttons">
+                <button class="btn btn-sm btn-primary" onclick="calendar.changeView('dayGridMonth')">ماهانه</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridWeek')">هفتگی</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridDay')">روزانه</button>
+                <button class="btn btn-sm btn-success" onclick="calendar.today()">امروز</button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="calendar-legend mb-3">
+            <span class="legend-item"><span class="legend-color" style="background: #4CAF50;"></span> کلاس‌ها</span>
+            <span class="legend-item"><span class="legend-color" style="background: #FF9800;"></span> تکالیف</span>
+            <span class="legend-item"><span class="legend-color" style="background: #F44336;"></span> امتحانات</span>
+            <span class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> جلسات</span>
+        </div>
+
+        <!-- Calendar Container -->
+        <div class="card">
+            <div class="card-body p-4">
+                <div id='calendar'></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+.calendar-view-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+#calendar {
+    direction: rtl;
+    font-family: 'Vazir', sans-serif;
+}
+
+.fc {
+    direction: rtl;
+}
+
+.fc-toolbar-title {
+    font-family: 'Vazir', sans-serif !important;
+    font-size: 1.5rem !important;
+}
+
+.fc-event {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.fc-event:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+.fc-daygrid-day-number {
+    font-family: 'Vazir', sans-serif;
+}
+
+.fc-col-header-cell-cushion {
+    font-family: 'Vazir', sans-serif;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/fa.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var events = {{ events_json|safe }};
+    
+    window.calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'fa',
+        direction: 'rtl',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'امروز',
+            month: 'ماهانه',
+            week: 'هفتگی',
+            day: 'روزانه'
+        },
+        events: events,
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.location.href = info.event.extendedProps.url || '#';
+                info.jsEvent.preventDefault();
+            }
+        },
+        eventDidMount: function(info) {
+            // اضافه کردن tooltip
+            info.el.title = info.event.title;
+        },
+        height: 'auto',
+        aspectRatio: 1.8,
+        nowIndicator: true,
+        navLinks: true,
+        editable: false,
+        dayMaxEvents: true,
+        weekends: true,
+        slotMinTime: '08:00:00',
+        slotMaxTime: '22:00:00',
+    });
+    
+    calendar.render();
+});
+</script>
+{% endblock %}

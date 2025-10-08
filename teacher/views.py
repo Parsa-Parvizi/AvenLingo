@@ -43,6 +43,63 @@ class TeacherScheduleView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from core.models import CalendarEvent
+        from course.models import Course, Assignment
+        import json
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            context['events_json'] = json.dumps([])
+            return context
+        
+        events = []
+        
+        # کلاس‌های معلم
+        courses = Course.objects.filter(teacher=teacher, is_active=True)
+        for course in courses:
+            if course.start_date:
+                events.append({
+                    'id': f'course-{course.id}',
+                    'title': f'🎓 {course.title}',
+                    'start': course.start_date.isoformat(),
+                    'end': course.end_date.isoformat() if course.end_date else None,
+                    'color': '#4CAF50',
+                    'type': 'class',
+                    'url': f'/teachers/courses/{course.id}/students/',
+                })
+        
+        # تکالیف کلاس‌های معلم
+        course_ids = courses.values_list('id', flat=True)
+        assignments = Assignment.objects.filter(course_id__in=course_ids, is_active=True)
+        for assignment in assignments:
+            events.append({
+                'id': f'assignment-{assignment.id}',
+                'title': f'📝 {assignment.title}',
+                'start': assignment.due_date.isoformat(),
+                'color': '#FF9800',
+                'type': 'assignment',
+                'url': f'/teachers/assignments/{assignment.id}/',
+            })
+        
+        # رویدادهای شخصی معلم
+        personal_events = CalendarEvent.objects.filter(created_by=self.request.user)
+        for event in personal_events:
+            events.append({
+                'id': f'event-{event.id}',
+                'title': event.title,
+                'start': event.start_datetime.isoformat(),
+                'end': event.end_datetime.isoformat() if event.end_datetime else None,
+                'color': event.color,
+                'type': event.event_type,
+            })
+        
+        context['events_json'] = json.dumps(events)
+        context['teacher'] = teacher
+        return context
 
 class TeacherPerformanceView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'teacher/performance.html'
@@ -348,12 +405,4 @@ class TeacherNotificationsView(View):
         return render(request, self.template_name, context)
 
 
-# Placeholder Views
-class TeacherScheduleView(TemplateView):
-    template_name = 'teacher/teacher_schedule.html'
-
-class TeacherPerformanceView(TemplateView):
-    template_name = 'teacher/teacher_performance.html'
-
-class TeacherMessagesView(TemplateView):
-    template_name = 'teacher/teacher_messages.html'
+# These are defined earlier in the file - keeping for backwards compatibility

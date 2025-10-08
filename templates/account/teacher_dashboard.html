@@ -447,6 +447,7 @@
                             </h2>
                             <p class="mb-2 opacity-75">خوش آمدید به پنل مدیریت آموزشی شما</p>
                             <div class="d-flex gap-2">
+                                <a href="{% url 'teacher:calendar' %}" class="btn btn-light btn-sm"><i class="fas fa-calendar-alt"></i> تقویم</a>
                                 {% if teacher.registration_status == 'approved' %}
                                     <span class="badge bg-success">
                                         <i class="fas fa-check-circle me-1"></i>تایید شده

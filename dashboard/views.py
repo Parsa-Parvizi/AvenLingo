@@ -181,11 +181,12 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         context['total_students'] = total_students
 
         # تکالیف در انتظار بررسی
-        pending_assignments = Assignment.objects.filter(
-            course__teacher=teacher,
-            submissions__is_graded=False
-        ).distinct().count()
-        context['pending_assignments'] = pending_assignments
+        from course.models import AssignmentSubmission
+        pending_submissions = AssignmentSubmission.objects.filter(
+            assignment__course__teacher=teacher,
+            graded_by__isnull=True
+        ).count()
+        context['pending_assignments'] = pending_submissions
 
         # کلاس‌های پیش رو این هفته
         today = timezone.now().date()
@@ -206,12 +207,12 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         
         # کلاس‌ها
         for course in courses:
-            if course.schedule_days:
+            if course.start_date and course.end_date:
                 events.append({
                     'id': f'course-{course.id}',
                     'title': f'📚 {course.title}',
-                    'start': course.start_date.isoformat() if course.start_date else None,
-                    'end': course.end_date.isoformat() if course.end_date else None,
+                    'start': course.start_date.isoformat(),
+                    'end': course.end_date.isoformat(),
                     'color': '#4CAF50',
                     'url': f'/teacher/courses/{course.id}/students/',
                 })

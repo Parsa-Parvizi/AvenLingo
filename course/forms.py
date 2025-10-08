@@ -530,13 +530,10 @@ class ExamForm(forms.ModelForm):
     
     def save(self, commit=True):
         exam = super().save(commit=False)
-        
-        if self.teacher:
-            exam.teacher = self.teacher
         if self.course:
             exam.course = self.course
-        
+        if self.teacher:
+            exam.teacher = self.teacher
         if commit:
             exam.save()
-        
         return exam

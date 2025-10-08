@@ -12,7 +12,10 @@ from .views import (
     AssignmentSubmissionView,
     AssignmentSubmissionGradingView,
     download_assignment_file,
-    download_submission_file
+    download_submission_file,
+    StudentExamsView,
+    StudentTakeExamView,
+    StudentExamResultView
 )
 
 app_name = 'course'
@@ -35,4 +38,9 @@ urlpatterns = [
     # File Download URLs
     path('assignment/<int:assignment_id>/download/', download_assignment_file, name='assignment_download'),
     path('submission/<int:submission_id>/download/', download_submission_file, name='submission_download'),
+    
+    # Exam URLs
+    path('student/exams/', StudentExamsView.as_view(), name='student_exams'),
+    path('student/exams/<int:exam_id>/take/', StudentTakeExamView.as_view(), name='take_exam'),
+    path('student/exams/<int:exam_id>/result/<int:participation_id>/', StudentExamResultView.as_view(), name='exam_result'),
 ]

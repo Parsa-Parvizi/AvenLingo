@@ -653,3 +653,204 @@ def download_submission_file(request, submission_id):
     return response
 
 
+
+
+# Student Exam Views
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import TemplateView
+from django.views import View
+
+class StudentExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست امتحانات دانشجو"""
+    template_name = 'course/student_exams.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from enrollment.models import Enrollment
+        from course.models import Exam
+        from django.utils import timezone
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        # دوره‌های ثبت‌نام شده
+        enrollments = Enrollment.objects.filter(student=student, status='confirmed')
+        course_ids = enrollments.values_list('course_id', flat=True)
+        
+        # امتحانات دوره‌ها
+        all_exams = Exam.objects.filter(course_id__in=course_ids, is_active=True)
+        
+        # دسته‌بندی امتحانات
+        upcoming_exams = []
+        active_exams = []
+        past_exams = []
+        
+        for exam in all_exams:
+            can_see, _ = exam.can_student_see(student)
+            if not can_see:
+                continue
+            
+            if exam.is_ended():
+                past_exams.append(exam)
+            elif exam.is_started():
+                active_exams.append(exam)
+            else:
+                upcoming_exams.append(exam)
+        
+        context['student'] = student
+        context['upcoming_exams'] = upcoming_exams
+        context['active_exams'] = active_exams
+        context['past_exams'] = past_exams
+        
+        return context
+
+
+class StudentTakeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه شرکت در امتحان"""
+    template_name = 'course/student_take_exam.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from course.models import Exam, ExamParticipation
+        from django.utils import timezone
+        
+        exam_id = kwargs.get('exam_id')
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        exam = get_object_or_404(Exam, id=exam_id)
+        
+        # بررسی دسترسی
+        can_participate, message = exam.can_student_participate(student)
+        
+        # پیدا کردن شرکت فعلی یا ایجاد جدید
+        participation = ExamParticipation.objects.filter(
+            exam=exam,
+            student=student
+        ).order_by('-attempt_number').first()
+        
+        # اگر امتحان جدید است یا می‌خواهد دوباره شرکت کند
+        is_new_attempt = not participation or participation.status == 'submitted'
+        
+        context['exam'] = exam
+        context['student'] = student
+        context['can_participate'] = can_participate
+        context['message'] = message
+        context['participation'] = participation
+        context['is_new_attempt'] = is_new_attempt
+        context['time_remaining'] = exam.time_until_end()
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        from account.models import Student
+        from course.models import Exam, ExamParticipation
+        from django.utils import timezone
+        
+        exam_id = kwargs.get('exam_id')
+        action = request.POST.get('action')
+        
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            messages.error(request, 'شما مجاز به این عملیات نیستید.')
+            return redirect('dashboard:student_dashboard')
+        
+        exam = get_object_or_404(Exam, id=exam_id)
+        
+        if action == 'start':
+            # شروع امتحان
+            can_participate, message = exam.can_student_participate(student)
+            if not can_participate:
+                messages.error(request, message)
+                return redirect('course:student_exams')
+            
+            # ایجاد شرکت جدید
+            attempt_number = ExamParticipation.objects.filter(exam=exam, student=student).count() + 1
+            
+            participation = ExamParticipation.objects.create(
+                exam=exam,
+                student=student,
+                attempt_number=attempt_number,
+                status='started',
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500]
+            )
+            
+            messages.success(request, 'امتحان شروع شد. موفق باشید!')
+            return redirect('course:take_exam', exam_id=exam.id)
+        
+        elif action == 'submit':
+            # ارسال پاسخ
+            participation = ExamParticipation.objects.filter(
+                exam=exam,
+                student=student,
+                status='started'
+            ).order_by('-attempt_number').first()
+            
+            if not participation:
+                messages.error(request, 'شرکتی یافت نشد.')
+                return redirect('course:student_exams')
+            
+            # ذخیره پاسخ‌ها
+            answer_file = request.FILES.get('answer_file')
+            answer_text = request.POST.get('answer_text', '')
+            
+            if answer_file:
+                participation.answer_file = answer_file
+            if answer_text:
+                participation.answer_text = answer_text
+            
+            participation.status = 'submitted'
+            participation.submitted_at = timezone.now()
+            participation.save()
+            
+            messages.success(request, 'پاسخ شما با موفقیت ارسال شد!')
+            return redirect('course:exam_result', exam_id=exam.id, participation_id=participation.id)
+        
+        return redirect('course:take_exam', exam_id=exam.id)
+
+
+class StudentExamResultView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش نتیجه امتحان"""
+    template_name = 'course/student_exam_result.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from course.models import ExamParticipation
+        
+        participation_id = kwargs.get('participation_id')
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        participation = get_object_or_404(
+            ExamParticipation,
+            id=participation_id,
+            student=student
+        )
+        
+        context['participation'] = participation
+        context['exam'] = participation.exam
+        context['student'] = student
+        
+        return context

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | My Exams{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <h2 class="mb-4">📊 امتحانات من</h2>
+
+    <!-- امتحانات در حال برگزاری -->
+    {% if active_exams %}
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-play-circle"></i> امتحانات در حال برگزاری</h5>
+        </div>
+        <div class="card-body">
+            {% for exam in active_exams %}
+            <div class="alert alert-success d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1"><strong>{{ exam.title }}</strong> - {{ exam.course.title }}</h6>
+                    <p class="mb-0"><i class="fas fa-clock"></i> تا پایان: 
+                        {% with time_left=exam.time_until_end %}
+                            {% if time_left %}
+                                {{ time_left.seconds|div:60|persian_numbers }} دقیقه
+                            {% else %}
+                                پایان یافته
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                </div>
+                <a href="{% url 'course:take_exam' exam.id %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-pencil-alt"></i> شرکت در امتحان
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- امتحانات آینده -->
+    {% if upcoming_exams %}
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> امتحانات آینده</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>عنوان</th>
+                            <th>دوره</th>
+                            <th>نوع</th>
+                            <th>زمان شروع</th>
+                            <th>مدت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in upcoming_exams %}
+                        <tr>
+                            <td><strong>{{ exam.title }}</strong></td>
+                            <td>{{ exam.course.title }}</td>
+                            <td>
+                                {% if exam.exam_type == 'final' %}<span class="badge bg-danger">نهایی</span>
+                                {% elif exam.exam_type == 'midterm' %}<span class="badge bg-warning">میان‌ترم</span>
+                                {% else %}<span class="badge bg-info">کوییز</span>{% endif %}
+                            </td>
+                            <td>{{ exam.scheduled_start|jalali_datetime }}</td>
+                            <td>{{ exam.duration_minutes|persian_numbers }} دقیقه</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- امتحانات گذشته -->
+    {% if past_exams %}
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-history"></i> امتحانات گذشته</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>عنوان</th>
+                            <th>دوره</th>
+                            <th>تاریخ</th>
+                            <th>نمره</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in past_exams %}
+                        <tr>
+                            <td><strong>{{ exam.title }}</strong></td>
+                            <td>{{ exam.course.title }}</td>
+                            <td>{{ exam.scheduled_start|jalali_short }}</td>
+                            <td>—</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">مشاهده نتیجه</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not active_exams and not upcoming_exams and not past_exams %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-3x mb-3"></i>
+        <p class="mb-0">هنوز امتحانی برای شما تعریف نشده است.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

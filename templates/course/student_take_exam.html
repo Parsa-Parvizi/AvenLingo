@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Take Exam{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <div class="exam-header mb-4">
+        <h2>📊 {{ exam.title }}</h2>
+        <p class="text-muted">{{ exam.course.title }}</p>
+    </div>
+
+    {% if not can_participate %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+            <div class="mt-3">
+                <a href="{% url 'course:student_exams' %}" class="btn btn-secondary">بازگشت به لیست امتحانات</a>
+            </div>
+        </div>
+    {% elif is_new_attempt %}
+        <!-- شروع امتحان -->
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-file-alt fa-5x text-primary mb-4"></i>
+                <h3>آماده شروع امتحان هستید؟</h3>
+                
+                <div class="exam-info mt-4 mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <i class="fas fa-clock"></i> مدت: <strong>{{ exam.duration_minutes|persian_numbers }} دقیقه</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fas fa-star"></i> نمره کل: <strong>{{ exam.total_points|persian_numbers }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fas fa-redo"></i> تعداد شرکت: <strong>{{ exam.max_attempts|persian_numbers }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if exam.instructions %}
+                <div class="alert alert-info text-start">
+                    <strong>دستورالعمل:</strong>
+                    <p class="mb-0">{{ exam.instructions|linebreaks }}</p>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="start">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-play"></i> شروع امتحان
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <!-- امتحان در حال انجام -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">⏱️ امتحان در حال انجام</h5>
+                    <div id="timer" class="fs-4"></div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if exam.question_file %}
+                <div class="mb-4">
+                    <a href="{{ exam.question_file.url }}" class="btn btn-outline-primary" target="_blank" download>
+                        <i class="fas fa-download"></i> دانلود فایل سوالات
+                    </a>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="submit">
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>آپلود فایل پاسخ:</strong></label>
+                        <input type="file" name="answer_file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>پاسخ متنی (اختیاری):</strong></label>
+                        <textarea name="answer_text" class="form-control" rows="10" placeholder="پاسخ‌های خود را اینجا بنویسید..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>توجه:</strong> پس از ارسال، امکان تغییر پاسخ وجود ندارد.
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-check"></i> ارسال پاسخ‌ها
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+{% if participation and participation.status == 'started' %}
+// تایمر شمارش معکوس
+var endTime = new Date("{{ exam.scheduled_end.isoformat }}").getTime();
+
+function updateTimer() {
+    var now = new Date().getTime();
+    var distance = endTime - now;
+    
+    if (distance < 0) {
+        document.getElementById("timer").innerHTML = "زمان به پایان رسید!";
+        // auto-submit form
+        document.querySelector('form').submit();
+        return;
+    }
+    
+    var hours = Math.floor(distance / (1000 * 60 * 60));
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    document.getElementById("timer").innerHTML = 
+        hours.toString().padStart(2, '0') + ":" + 
+        minutes.toString().padStart(2, '0') + ":" + 
+        seconds.toString().padStart(2, '0');
+}
+
+updateTimer();
+setInterval(updateTimer, 1000);
+{% endif %}
+</script>
+{% endblock %}

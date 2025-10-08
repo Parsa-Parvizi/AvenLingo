@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Exam Result{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <div class="text-center mb-4">
+        <h2>✅ امتحان ارسال شد!</h2>
+        <p class="text-muted">{{ exam.title }}</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <h5 class="text-center mb-4">پاسخ‌های شما با موفقیت ثبت شد</h5>
+
+                    <div class="exam-info">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>زمان شروع:</strong>
+                                <p>{{ participation.started_at|jalali_datetime }}</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>زمان ارسال:</strong>
+                                <p>{{ participation.submitted_at|jalali_datetime }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>مدت زمان:</strong>
+                                <p>{{ participation.duration_taken|persian_numbers }} دقیقه</p>
+                            </div>
+                            <div class="col-6">
+                                <strong>وضعیت:</strong>
+                                <p>
+                                    {% if participation.status == 'graded' %}
+                                        <span class="badge bg-success">نمره‌دهی شده</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">در انتظار نمره‌دهی</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        {% if participation.status == 'graded' %}
+                        <div class="alert alert-success">
+                            <h6><strong>نمره شما:</strong></h6>
+                            <h3 class="mb-0">{{ participation.score|persian_numbers }} / {{ exam.total_points|persian_numbers }}</h3>
+                            
+                            {% if participation.feedback %}
+                            <hr>
+                            <p class="mb-0"><strong>بازخورد استاد:</strong></p>
+                            <p class="mb-0">{{ participation.feedback|linebreaks }}</p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            نمره شما توسط استاد ثبت می‌شود و به زودی اعلام خواهد شد.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{% url 'course:student_exams' %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست امتحانات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

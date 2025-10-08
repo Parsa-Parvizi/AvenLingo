@@ -30,7 +30,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if user.is_superuser:
             return redirect('dashboard:admin_calendar')
         elif user.user_type == 'student':
-            return redirect('dashboard:student_dashboard')
+            return redirect('dashboard:student_calendar')
         elif user.user_type == 'teacher':
             return redirect('dashboard:teacher_dashboard')
         else:

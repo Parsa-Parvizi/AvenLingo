@@ -907,7 +907,7 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                     f'شما امروز بیش از ۵ بار پروفایل خود را ویرایش کرده‌اید. لطفاً فردا دوباره تلاش کنید.',
                     extra_tags='profile_limit'
                 )
-                return redirect('dashboard:student_dashboard')
+                return redirect('dashboard:student_calendar')
             
             # Use service layer for profile updates
             updated_student = UserProfileService.update_student_profile(

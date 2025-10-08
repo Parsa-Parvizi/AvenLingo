@@ -6,7 +6,7 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard_home'),
-    path('student/', views.StudentDashboardView.as_view(), name='student_dashboard'),
+    path('student/', lambda request: redirect('dashboard:student_calendar'), name='student_dashboard'),
     path('teacher/', views.TeacherDashboardView.as_view(), name='teacher_dashboard'),
     
     # Admin Dashboard URLs - Redirect to Calendar

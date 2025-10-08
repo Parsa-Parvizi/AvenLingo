@@ -313,7 +313,7 @@ def student_course_detail_view(request, course_id):
         enrollment = Enrollment.objects.get(student=student, course=course, status='confirmed')
     except (Student.DoesNotExist, Enrollment.DoesNotExist):
         messages.error(request, 'شما در این دوره ثبت‌نام نکرده‌اید یا ثبت‌نام شما هنوز تأیید نشده است.')
-        return redirect('dashboard:student_dashboard')
+        return redirect('dashboard:student_calendar')
     
     # دریافت تکالیف دوره
     assignments = Assignment.objects.filter(
@@ -798,7 +798,7 @@ class StudentTakeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
             student = Student.objects.get(user=request.user)
         except Student.DoesNotExist:
             messages.error(request, 'شما مجاز به این عملیات نیستید.')
-            return redirect('dashboard:student_dashboard')
+            return redirect('dashboard:student_calendar')
         
         exam = get_object_or_404(Exam, id=exam_id)
         

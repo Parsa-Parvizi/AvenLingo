@@ -167,7 +167,7 @@ class CourseEnrollmentView(LoginRequiredMixin, CreateView):
                         'در انتظار تأیید مدیریت هستید.',
                         extra_tags='enrollment'
                     )
-                    return redirect('dashboard:student_dashboard')
+                    return redirect('dashboard:student_calendar')
                 else:
                     messages.success(
                         self.request, 

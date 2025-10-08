@@ -272,19 +272,11 @@ def featured_courses_view(request):
             enrollment_count=Count('enrollments')
         ).order_by('-enrollment_count', '-created_at')
     
-    # پیاده‌سازی pagination
-    paginator = Paginator(recommended_courses, 20)
-    page = request.GET.get('page')
-    
-    try:
-        paginated_courses = paginator.page(page)
-    except PageNotAnInteger:
-        paginated_courses = paginator.page(1)
-    except EmptyPage:
-        paginated_courses = paginator.page(paginator.num_pages)
+    # محدود کردن به 6 دوره برتر
+    top_courses = recommended_courses[:6] if is_student else recommended_courses[:6]
     
     context = {
-        'courses': paginated_courses,
+        'courses': top_courses,
         'is_personalized': is_student,
         'page_title': 'دوره‌های پیشنهادی برای شما' if is_student else 'دوره‌های ویژه'
     }

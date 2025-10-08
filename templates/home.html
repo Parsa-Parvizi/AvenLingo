@@ -217,6 +217,20 @@
           ارسال درخواست همکاری
         </a>
       </div>
+
+      <!-- کارت پشتیبانی -->
+      <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
+        <div style="background: linear-gradient(135deg, #a8edea, #fed6e3); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(168, 237, 234, 0.4);">
+          <i class="fas fa-headset" style="font-size: 2rem; color: #333;"></i>
+        </div>
+        <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">پشتیبانی</h3>
+        <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
+          سوالی دارید یا به کمک نیاز دارید؟ تیم پشتیبانی ما آماده پاسخگویی است
+        </p>
+        <a href="{% url 'core:contactus' %}" style="display: inline-block; background: linear-gradient(45deg, #a8edea, #fed6e3); color: #333; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          ارتباط با پشتیبانی
+        </a>
+      </div>
     </div>
   </div>
 </section>

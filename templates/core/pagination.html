@@ -2,12 +2,13 @@
 کامپوننت pagination قابل استفاده مجدد
 استفاده: {% include 'core/pagination.html' with paginated_object=courses %}
 {% endcomment %}
+{% load persian_filters %}
 
 {% if paginated_object.has_other_pages %}
 <div class="pagination-wrapper">
   <div class="pagination-info">
     <span class="pagination-text">
-      نمایش {{ paginated_object.start_index }} تا {{ paginated_object.end_index }} از {{ paginated_object.paginator.count }} نتیجه
+      نمایش {{ paginated_object.start_index|persian_numbers }} تا {{ paginated_object.end_index|persian_numbers }} از {{ paginated_object.paginator.count|persian_numbers }} نتیجه
     </span>
   </div>
   
@@ -37,31 +38,31 @@
         {% if page_num == paginated_object.number %}
           <li class="pagination-item active">
             <span class="pagination-link pagination-number active" aria-current="page">
-              {{ page_num }}
+              {{ page_num|persian_numbers }}
             </span>
           </li>
         {% elif page_num == 1 %}
           <li class="pagination-item">
             <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}" 
                class="pagination-link pagination-number" 
-               aria-label="صفحه {{ page_num }}">
-              {{ page_num }}
+               aria-label="صفحه {{ page_num|persian_numbers }}">
+              {{ page_num|persian_numbers }}
             </a>
           </li>
         {% elif page_num == paginated_object.paginator.num_pages %}
           <li class="pagination-item">
             <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_num }}" 
                class="pagination-link pagination-number" 
-               aria-label="صفحه {{ page_num }}">
-              {{ page_num }}
+               aria-label="صفحه {{ page_num|persian_numbers }}">
+              {{ page_num|persian_numbers }}
             </a>
           </li>
         {% elif page_num >= paginated_object.number|add:"-2" and page_num <= paginated_object.number|add:"2" %}
           <li class="pagination-item">
             <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}page={{ page_num }}" 
                class="pagination-link pagination-number" 
-               aria-label="صفحه {{ page_num }}">
-              {{ page_num }}
+               aria-label="صفحه {{ page_num|persian_numbers }}">
+              {{ page_num|persian_numbers }}
             </a>
           </li>
         {% elif page_num == paginated_object.number|add:"-3" or page_num == paginated_object.number|add:"3" %}

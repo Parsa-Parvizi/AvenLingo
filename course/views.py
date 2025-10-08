@@ -396,7 +396,7 @@ def student_course_detail_view(request, course_id):
         elif request.user.is_staff or request.user.is_superuser:
             messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید. شما به عنوان ادمین وارد شده‌اید.')
         else:
-            messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.')
+        messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.')
         return redirect('core:home')
     
     # دریافت دوره

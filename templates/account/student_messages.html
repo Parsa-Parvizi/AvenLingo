@@ -16,6 +16,35 @@
         border-bottom: 3px solid var(--color-accent);
     }
     
+    .tabs-container {
+        margin-bottom: 30px;
+    }
+    
+    .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #666;
+        font-weight: 500;
+        padding: 12px 24px;
+        transition: all 0.3s;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #28a745;
+        color: #28a745;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-bottom-color: #28a745;
+        color: #28a745;
+        background: transparent;
+        font-weight: 600;
+    }
+    
     .message-form-card {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         border-radius: 12px;
@@ -52,6 +81,11 @@
     .message-card:hover {
         transform: translateX(-5px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .message-card.unread {
+        background: #f8f9fa;
+        border-right: 4px solid #28a745;
     }
     
     .message-header {
@@ -93,6 +127,20 @@
         color: #28a745;
         margin-bottom: 8px;
     }
+    
+    .admin-reply {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border-right: 3px solid #007bff;
+    }
+    
+    .admin-reply-header {
+        font-weight: 600;
+        color: #007bff;
+        margin-bottom: 8px;
+    }
 </style>
 {% endblock %}
 
@@ -100,136 +148,238 @@
 {% include 'dashboard/student_navbar.html' %}
 
 <div class="container-fluid py-4" dir="rtl">
-    <h2 class="page-header">💬 پیام به معلمان</h2>
+    <h2 class="page-header">💬 مرکز پیام‌رسانی</h2>
 
-    <!-- فرم ارسال پیام جدید -->
-    <div class="row mb-4">
-        <div class="col-lg-8 mx-auto">
-            <div class="message-form-card">
-                <h4 class="mb-3">
-                    <i class="fas fa-envelope"></i> ارسال پیام جدید به معلم
-                </h4>
-                
-                <!-- نمایش تعداد پیام‌های باقی‌مانده -->
-                <div class="remaining-messages {% if remaining_messages <= 1 %}danger{% elif remaining_messages == 2 %}warning{% endif %}">
-                    <strong>
-                        <i class="fas fa-info-circle"></i>
-                        تعداد پیام‌های باقی‌مانده امروز: {{ remaining_messages|persian_numbers }} از ۳
-                    </strong>
-                </div>
-                
-                {% if remaining_messages > 0 and my_teachers %}
-                <form method="post" action="{% url 'enrollment:send_message_to_teacher' %}">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label">انتخاب معلم و دوره *</label>
-                            <select name="course" class="form-select" required>
-                                <option value="">انتخاب کنید...</option>
-                                {% for enrollment in my_teachers %}
-                                <option value="{{ enrollment.course.id }}">
-                                    {{ enrollment.course.title }} - {{ enrollment.course.teacher.user.get_full_name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted">فقط می‌توانید به معلمان دوره‌های تأیید شده خود پیام بفرستید</small>
-                        </div>
-                        
-                        <div class="col-12">
-                            <label class="form-label">موضوع *</label>
-                            <input type="text" name="subject" class="form-control" required 
-                                   placeholder="موضوع پیام خود را وارد کنید...">
-                        </div>
-                        
-                        <div class="col-12">
-                            <label class="form-label">پیام *</label>
-                            <textarea name="message" class="form-control" rows="6" required 
-                                      placeholder="متن پیام خود را وارد کنید..."></textarea>
-                        </div>
-                        
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> ارسال پیام
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                {% elif not my_teachers %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>توجه:</strong> شما در هیچ دوره‌ای ثبت‌نام تأیید شده ندارید. 
-                    برای ارسال پیام به معلم، ابتدا باید در یک دوره ثبت‌نام کنید.
-                </div>
-                {% else %}
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>توجه:</strong> شما امروز سقف مجاز ارسال پیام (3 پیام) را استفاده کرده‌اید. 
-                    لطفاً فردا دوباره تلاش کنید.
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- پیام‌های ارسال شده -->
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <div class="modern-card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">📨 پیام‌های ارسال شده ({{ sent_messages.count|persian_numbers }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if sent_messages %}
-                        {% for msg in sent_messages %}
-                        <div class="message-card">
-                            <div class="message-header">
-                                <div>
-                                    <h5 class="message-title">{{ msg.subject }}</h5>
-                                    <p class="text-muted mb-0 small">
-                                        <i class="fas fa-chalkboard-teacher"></i> معلم: {{ msg.teacher.user.get_full_name }}
-                                        <span class="mx-2">|</span>
-                                        <i class="fas fa-book"></i> دوره: {{ msg.course.title }}
-                                    </p>
-                                </div>
-                                <span class="message-time">{{ msg.created_at|jalali_datetime }}</span>
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <ul class="nav nav-tabs" id="messagesTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="send-teacher-tab" data-bs-toggle="tab" data-bs-target="#send-teacher" 
+                        type="button" role="tab">
+                    📤 پیام به معلم
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="teacher-messages-tab" data-bs-toggle="tab" data-bs-target="#teacher-messages" 
+                        type="button" role="tab">
+                    👨‍🏫 پیام‌های معلمان
+                    {% if teacher_messages_with_reply > 0 %}
+                    <span class="badge bg-success">{{ teacher_messages_with_reply|persian_numbers }}</span>
+                    {% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admin-messages-tab" data-bs-toggle="tab" data-bs-target="#admin-messages" 
+                        type="button" role="tab">
+                    📥 پیام‌های پشتیبانی
+                    {% if admin_messages_with_reply > 0 %}
+                    <span class="badge bg-info">{{ admin_messages_with_reply|persian_numbers }}</span>
+                    {% endif %}
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-4" id="messagesTabContent">
+            <!-- Tab 1: ارسال به معلم -->
+            <div class="tab-pane fade show active" id="send-teacher" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="message-form-card">
+                            <h4 class="mb-3">
+                                <i class="fas fa-envelope"></i> ارسال پیام جدید به معلم
+                            </h4>
+                            
+                            <!-- نمایش تعداد پیام‌های باقی‌مانده -->
+                            <div class="remaining-messages {% if remaining_messages <= 1 %}danger{% elif remaining_messages == 2 %}warning{% endif %}">
+                                <strong>
+                                    <i class="fas fa-info-circle"></i>
+                                    تعداد پیام‌های باقی‌مانده امروز: {{ remaining_messages|persian_numbers }} از ۳
+                                </strong>
                             </div>
                             
-                            <div class="message-body">
-                                {{ msg.message }}
-                            </div>
-                            
-                            {% if msg.teacher_reply %}
-                            <div class="teacher-reply">
-                                <div class="teacher-reply-header">
-                                    <i class="fas fa-reply"></i> پاسخ معلم:
+                            {% if remaining_messages > 0 and my_teachers %}
+                            <form method="post" action="{% url 'enrollment:send_message_to_teacher' %}">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">انتخاب معلم و دوره *</label>
+                                        <select name="course" class="form-select" required>
+                                            <option value="">انتخاب کنید...</option>
+                                            {% for enrollment in my_teachers %}
+                                            <option value="{{ enrollment.course.id }}">
+                                                {{ enrollment.course.title }} - {{ enrollment.course.teacher.user.get_full_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="text-muted">فقط می‌توانید به معلمان دوره‌های تأیید شده خود پیام بفرستید</small>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">موضوع *</label>
+                                        <input type="text" name="subject" class="form-control" required 
+                                               placeholder="موضوع پیام خود را وارد کنید...">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">پیام *</label>
+                                        <textarea name="message" class="form-control" rows="6" required 
+                                                  placeholder="متن پیام خود را وارد کنید..."></textarea>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane"></i> ارسال پیام
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>{{ msg.teacher_reply }}</div>
-                                {% if msg.replied_at %}
-                                <small class="text-muted d-block mt-2">
-                                    <i class="fas fa-clock"></i> {{ msg.replied_at|jalali_datetime }}
-                                </small>
-                                {% endif %}
+                            </form>
+                            {% elif not my_teachers %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>توجه:</strong> شما در هیچ دوره‌ای ثبت‌نام تأیید شده ندارید. 
+                                برای ارسال پیام به معلم، ابتدا باید در یک دوره ثبت‌نام کنید و ادمین آن را تأیید کند.
                             </div>
                             {% else %}
-                            <div class="mt-3">
-                                <span class="badge badge-warning">
-                                    <i class="fas fa-clock"></i> در انتظار پاسخ معلم
-                                </span>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>توجه:</strong> شما امروز سقف مجاز ارسال پیام (3 پیام) را استفاده کرده‌اید. 
+                                لطفاً فردا دوباره تلاش کنید.
                             </div>
                             {% endif %}
                         </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="text-center py-5">
-                        <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
-                        <h5 class="mb-3">پیامی ارسال نکرده‌اید</h5>
-                        <p class="text-muted">می‌توانید از فرم بالا برای ارسال پیام به معلمان خود استفاده کنید.</p>
                     </div>
-                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tab 2: پیام‌های معلمان -->
+            <div class="tab-pane fade" id="teacher-messages" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-10 mx-auto">
+                        <div class="modern-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">📨 پیام‌های ارسال شده به معلمان ({{ teacher_sent_messages.count|persian_numbers }})</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if teacher_sent_messages %}
+                                    {% for msg in teacher_sent_messages %}
+                                    <div class="message-card {% if msg.teacher_reply and not msg.is_read %}unread{% endif %}">
+                                        <div class="message-header">
+                                            <div>
+                                                <h5 class="message-title">{{ msg.subject }}</h5>
+                                                <p class="text-muted mb-0 small">
+                                                    <i class="fas fa-chalkboard-teacher"></i> معلم: {{ msg.teacher.user.get_full_name }}
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-book"></i> دوره: {{ msg.course.title }}
+                                                </p>
+                                            </div>
+                                            <span class="message-time">{{ msg.created_at|jalali_datetime }}</span>
+                                        </div>
+                                        
+                                        <div class="message-body">
+                                            {{ msg.message }}
+                                        </div>
+                                        
+                                        {% if msg.teacher_reply %}
+                                        <div class="teacher-reply">
+                                            <div class="teacher-reply-header">
+                                                <i class="fas fa-reply"></i> پاسخ معلم:
+                                            </div>
+                                            <div>{{ msg.teacher_reply }}</div>
+                                            {% if msg.replied_at %}
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="fas fa-clock"></i> {{ msg.replied_at|jalali_datetime }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                        {% else %}
+                                        <div class="mt-3">
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-clock"></i> در انتظار پاسخ معلم
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center py-5">
+                                    <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+                                    <h5 class="mb-3">پیامی به معلمان ارسال نکرده‌اید</h5>
+                                    <p class="text-muted">از تب "پیام به معلم" می‌توانید پیام ارسال کنید.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 3: پیام‌های پشتیبانی -->
+            <div class="tab-pane fade" id="admin-messages" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-10 mx-auto">
+                        <div class="modern-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">📥 پیام‌های دریافتی از پشتیبانی ({{ admin_messages.count|persian_numbers }})</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if admin_messages %}
+                                    {% for msg in admin_messages %}
+                                    <div class="message-card {% if msg.status == 'new' or msg.status == 'replied' %}unread{% endif %}">
+                                        <div class="message-header">
+                                            <div>
+                                                <h5 class="message-title">{{ msg.subject }}</h5>
+                                                <span class="message-time">
+                                                    <i class="fas fa-clock"></i> {{ msg.created_at|jalali_datetime }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                {% if msg.status == 'new' %}
+                                                    <span class="badge badge-warning">جدید</span>
+                                                {% elif msg.status == 'read' %}
+                                                    <span class="badge badge-info">خوانده شده</span>
+                                                {% elif msg.status == 'replied' %}
+                                                    <span class="badge badge-success">پاسخ داده شده</span>
+                                                {% elif msg.status == 'archived' %}
+                                                    <span class="badge badge-secondary">بایگانی</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="message-body">
+                                            {{ msg.message }}
+                                        </div>
+                                        
+                                        {% if msg.reply %}
+                                        <div class="admin-reply">
+                                            <div class="admin-reply-header">
+                                                <i class="fas fa-reply"></i> پاسخ پشتیبانی:
+                                            </div>
+                                            <div>{{ msg.reply }}</div>
+                                            {% if msg.replied_at %}
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="fas fa-clock"></i> {{ msg.replied_at|jalali_datetime }}
+                                                {% if msg.replied_by %}
+                                                    - توسط {{ msg.replied_by.get_full_name }}
+                                                {% endif %}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center py-5">
+                                    <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+                                    <h5 class="mb-3">پیامی از پشتیبانی دریافت نکرده‌اید</h5>
+                                    <p class="text-muted">پیام‌هایی که پشتیبانی برای شما ارسال کرده اینجا نمایش داده می‌شود.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-

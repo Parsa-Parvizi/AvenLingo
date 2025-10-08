@@ -380,8 +380,8 @@ class StudentMessagesView(LoginRequiredMixin, StudentRequiredMixin, TemplateView
             status='confirmed'
         ).select_related('course__teacher__user', 'course')
         
-        # پیام‌های ارسال شده
-        sent_messages = StudentTeacherMessage.objects.filter(
+        # پیام‌های ارسال شده به معلمان
+        teacher_sent_messages = StudentTeacherMessage.objects.filter(
             student=student
         ).select_related('teacher__user', 'course').order_by('-created_at')
         
@@ -394,10 +394,30 @@ class StudentMessagesView(LoginRequiredMixin, StudentRequiredMixin, TemplateView
         # تعداد باقی‌مانده
         remaining_messages = max(0, 3 - messages_today)
         
+        # پیام‌های دریافتی از پشتیبانی (با فیلتر ایمیل زبان‌آموز)
+        from core.models import ContactMessage
+        admin_messages = ContactMessage.objects.filter(
+            email=self.request.user.email
+        ).exclude(
+            subject__startswith='[معلم]'  # حذف پیام‌های معلمان
+        ).order_by('-created_at')
+        
+        # تعداد پاسخ‌های جدید
+        teacher_messages_with_reply = teacher_sent_messages.filter(
+            teacher_reply__isnull=False
+        ).exclude(teacher_reply='').count()
+        
+        admin_messages_with_reply = admin_messages.filter(
+            reply__isnull=False
+        ).exclude(reply='').count()
+        
         context['my_teachers'] = my_teachers
-        context['sent_messages'] = sent_messages
+        context['teacher_sent_messages'] = teacher_sent_messages
+        context['admin_messages'] = admin_messages
         context['remaining_messages'] = remaining_messages
         context['messages_today'] = messages_today
+        context['teacher_messages_with_reply'] = teacher_messages_with_reply
+        context['admin_messages_with_reply'] = admin_messages_with_reply
         
         return context
 

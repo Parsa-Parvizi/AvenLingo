@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Course, Category, Assignment, AssignmentSubmission
+from django.utils.safestring import mark_safe
+from .models import Course, Category, Assignment, AssignmentSubmission, Exam, ExamParticipation
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -184,3 +185,159 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
         updated = queryset.update(is_late=True, status='late')
         self.message_user(request, f'{updated} ارسال به عنوان دیر هنگام علامت‌گذاری شد.')
     mark_as_late.short_description = 'علامت‌گذاری به عنوان دیر هنگام'
+
+
+@admin.register(Exam)
+class ExamAdmin(admin.ModelAdmin):
+    """مدیریت امتحانات"""
+    list_display = ['title_display', 'course', 'exam_type_badge', 'scheduled_start_display', 'status_badge', 'participants_count']
+    list_filter = ['exam_type', 'status', 'course', 'scheduled_start']
+    search_fields = ['title', 'course__title', 'description']
+    ordering = ['-scheduled_start']
+    readonly_fields = ['created_at', 'updated_at', 'participants_count_detail']
+    
+    fieldsets = (
+        ('📚 اطلاعات اصلی', {
+            'fields': ('course', 'teacher', 'title', 'description', 'exam_type')
+        }),
+        ('📄 محتوای امتحان', {
+            'fields': ('question_file', 'instructions'),
+        }),
+        ('🕒 زمان‌بندی', {
+            'fields': ('scheduled_start', 'scheduled_end', 'duration_minutes'),
+            'description': 'امتحان راس ساعت شروع شروع و راس ساعت پایان بسته می‌شود'
+        }),
+        ('👁️ تنظیمات رویت', {
+            'fields': ('is_visible', 'visibility_date'),
+            'classes': ('collapse',)
+        }),
+        ('📊 نمره‌دهی', {
+            'fields': ('total_points', 'passing_score', 'auto_close', 'allow_late_submission', 'late_penalty_percent'),
+        }),
+        ('⚙️ تنظیمات پیشرفته', {
+            'fields': ('randomize_questions', 'show_answers_after', 'max_attempts'),
+            'classes': ('collapse',)
+        }),
+        ('📈 وضعیت', {
+            'fields': ('status', 'is_active', 'participants_count_detail'),
+        }),
+    )
+    
+    def title_display(self, obj):
+        return format_html('<strong>{}</strong>', obj.title)
+    title_display.short_description = 'عنوان'
+    
+    def exam_type_badge(self, obj):
+        badges = {
+            'final': '<span style="background: #F44336; color: #fff; padding: 4px 12px; border-radius: 12px;">🎓 امتحان نهایی</span>',
+            'midterm': '<span style="background: #FF9800; color: #fff; padding: 4px 12px; border-radius: 12px;">📊 میان‌ترم</span>',
+            'quiz': '<span style="background: #2196F3; color: #fff; padding: 4px 12px; border-radius: 12px;">❓ کوییز</span>',
+        }
+        return mark_safe(badges.get(obj.exam_type, obj.exam_type))
+    exam_type_badge.short_description = 'نوع'
+    
+    def status_badge(self, obj):
+        styles = {
+            'draft': '<span style="background: #9E9E9E; color: #fff; padding: 4px 12px; border-radius: 12px;">📝 پیش‌نویس</span>',
+            'scheduled': '<span style="background: #2196F3; color: #fff; padding: 4px 12px; border-radius: 12px;">📅 زمان‌بندی شده</span>',
+            'active': '<span style="background: #4CAF50; color: #fff; padding: 4px 12px; border-radius: 12px;">▶️ در حال برگزاری</span>',
+            'ended': '<span style="background: #FF9800; color: #fff; padding: 4px 12px; border-radius: 12px;">⏹️ پایان یافته</span>',
+            'graded': '<span style="background: #9C27B0; color: #fff; padding: 4px 12px; border-radius: 12px;">✅ نمره‌دهی شده</span>',
+        }
+        return mark_safe(styles.get(obj.status, obj.status))
+    status_badge.short_description = 'وضعیت'
+    
+    def scheduled_start_display(self, obj):
+        from core.templatetags.persian_filters import jalali_datetime
+        try:
+            return jalali_datetime(obj.scheduled_start)
+        except:
+            return obj.scheduled_start.strftime('%Y/%m/%d %H:%M')
+    scheduled_start_display.short_description = 'زمان شروع'
+    
+    def participants_count(self, obj):
+        count = obj.participations.count()
+        return format_html('<span style="font-weight: bold; color: #2196F3;">{} نفر</span>', count)
+    participants_count.short_description = 'تعداد شرکت‌کننده'
+    
+    def participants_count_detail(self, obj):
+        total = obj.participations.count()
+        submitted = obj.participations.filter(status='submitted').count()
+        graded = obj.participations.filter(status='graded').count()
+        return format_html(
+            'کل: {} | ارسال شده: {} | نمره‌دهی شده: {}',
+            total, submitted, graded
+        )
+    participants_count_detail.short_description = 'جزئیات شرکت‌کنندگان'
+
+
+@admin.register(ExamParticipation)
+class ExamParticipationAdmin(admin.ModelAdmin):
+    """مدیریت شرکت در امتحانات"""
+    list_display = ['student_display', 'exam', 'started_at_display', 'status_badge', 'score_display', 'is_late']
+    list_filter = ['status', 'is_late', 'exam__exam_type', 'started_at']
+    search_fields = ['student__user__first_name', 'student__user__last_name', 'exam__title']
+    ordering = ['-started_at']
+    readonly_fields = ['started_at', 'submitted_at', 'graded_at', 'created_at', 'updated_at', 'duration_display']
+    
+    fieldsets = (
+        ('📚 اطلاعات امتحان', {
+            'fields': ('exam', 'student', 'attempt_number', 'status')
+        }),
+        ('📝 پاسخ‌ها', {
+            'fields': ('answer_file', 'answer_text'),
+        }),
+        ('📊 نمره‌دهی', {
+            'fields': ('score', 'feedback', 'graded_by'),
+        }),
+        ('🕒 زمان‌بندی', {
+            'fields': ('started_at', 'submitted_at', 'graded_at', 'is_late', 'duration_display'),
+            'classes': ('collapse',)
+        }),
+        ('🔍 اطلاعات تکمیلی', {
+            'fields': ('ip_address', 'user_agent'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def student_display(self, obj):
+        return format_html('<strong>{}</strong>', obj.student.user.get_full_name())
+    student_display.short_description = 'دانشجو'
+    
+    def started_at_display(self, obj):
+        from core.templatetags.persian_filters import jalali_datetime
+        try:
+            return jalali_datetime(obj.started_at)
+        except:
+            return obj.started_at.strftime('%Y/%m/%d %H:%M')
+    started_at_display.short_description = 'زمان شروع'
+    
+    def status_badge(self, obj):
+        styles = {
+            'started': '<span style="background: #2196F3; color: #fff; padding: 4px 12px; border-radius: 12px;">▶️ شروع شده</span>',
+            'submitted': '<span style="background: #FF9800; color: #fff; padding: 4px 12px; border-radius: 12px;">✅ ارسال شده</span>',
+            'graded': '<span style="background: #4CAF50; color: #fff; padding: 4px 12px; border-radius: 12px;">💯 نمره‌دهی شده</span>',
+        }
+        return mark_safe(styles.get(obj.status, obj.status))
+    status_badge.short_description = 'وضعیت'
+    
+    def score_display(self, obj):
+        if obj.score is not None:
+            percentage = (obj.score / obj.exam.total_points * 100) if obj.exam.total_points else 0
+            color = '#4CAF50' if percentage >= 60 else '#F44336'
+            return format_html(
+                '<span style="color: {}; font-weight: bold;">{}/{} ({}%)</span>',
+                color, obj.score, obj.exam.total_points, int(percentage)
+            )
+        return '—'
+    score_display.short_description = 'نمره'
+    
+    def duration_display(self, obj):
+        duration = obj.duration_taken()
+        if duration:
+            return f'{duration} دقیقه'
+        return '—'
+    duration_display.short_description = 'مدت زمان'
+    
+    def has_add_permission(self, request):
+        return False

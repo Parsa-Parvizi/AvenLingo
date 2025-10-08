@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from .models import Course, Assignment, AssignmentSubmission
+from .models import Course, Assignment, AssignmentSubmission, Exam, ExamParticipation
 from datetime import datetime
 import re
 
@@ -440,3 +440,103 @@ class AssignmentGradingForm(forms.ModelForm):
                 raise ValidationError('نمره نمی‌تواند منفی باشد.')
         
         return score
+
+class ExamForm(forms.ModelForm):
+    """فرم ایجاد و ویرایش امتحان توسط معلم"""
+    
+    class Meta:
+        model = Exam
+        fields = [
+            'title', 'description', 'exam_type', 'question_file', 'instructions',
+            'scheduled_start', 'scheduled_end', 'duration_minutes',
+            'is_visible', 'visibility_date',
+            'total_points', 'passing_score', 'auto_close', 'allow_late_submission', 'late_penalty_percent',
+            'randomize_questions', 'show_answers_after', 'max_attempts'
+        ]
+        
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان امتحان'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'exam_type': forms.Select(attrs={'class': 'form-control'}),
+            'instructions': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'scheduled_start': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
+            'scheduled_end': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
+            'visibility_date': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
+            'duration_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'total_points': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'passing_score': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'late_penalty_percent': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '100'}),
+            'max_attempts': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.teacher = kwargs.pop('teacher', None)
+        self.course = kwargs.pop('course', None)
+        super().__init__(*args, **kwargs)
+        
+        # تبدیل تاریخ‌ها به شمسی برای ویرایش
+        if JDATETIME_AVAILABLE and self.instance and self.instance.pk:
+            for field_name in ['scheduled_start', 'scheduled_end', 'visibility_date']:
+                field_value = getattr(self.instance, field_name, None)
+                if field_value:
+                    try:
+                        j_datetime = jdatetime.datetime.fromgregorian(datetime=field_value)
+                        self.initial[field_name] = j_datetime.strftime('%Y/%m/%d %H:%M')
+                    except:
+                        pass
+    
+    def clean_scheduled_start(self):
+        """تبدیل تاریخ شمسی به میلادی"""
+        scheduled_start = self.cleaned_data.get('scheduled_start')
+        if isinstance(scheduled_start, str):
+            gregorian_datetime = persian_to_gregorian_datetime(scheduled_start)
+            if gregorian_datetime:
+                return gregorian_datetime
+            raise ValidationError('فرمت تاریخ صحیح نیست')
+        return scheduled_start
+    
+    def clean_scheduled_end(self):
+        """تبدیل تاریخ شمسی به میلادی"""
+        scheduled_end = self.cleaned_data.get('scheduled_end')
+        if isinstance(scheduled_end, str):
+            gregorian_datetime = persian_to_gregorian_datetime(scheduled_end)
+            if gregorian_datetime:
+                return gregorian_datetime
+            raise ValidationError('فرمت تاریخ صحیح نیست')
+        return scheduled_end
+    
+    def clean_visibility_date(self):
+        """تبدیل تاریخ شمسی به میلادی"""
+        visibility_date = self.cleaned_data.get('visibility_date')
+        if not visibility_date:
+            return None
+        if isinstance(visibility_date, str):
+            gregorian_datetime = persian_to_gregorian_datetime(visibility_date)
+            if gregorian_datetime:
+                return gregorian_datetime
+            raise ValidationError('فرمت تاریخ صحیح نیست')
+        return visibility_date
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        scheduled_start = cleaned_data.get('scheduled_start')
+        scheduled_end = cleaned_data.get('scheduled_end')
+        
+        if scheduled_start and scheduled_end:
+            if scheduled_end <= scheduled_start:
+                raise ValidationError('زمان پایان باید بعد از زمان شروع باشد')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        exam = super().save(commit=False)
+        
+        if self.teacher:
+            exam.teacher = self.teacher
+        if self.course:
+            exam.course = self.course
+        
+        if commit:
+            exam.save()
+        
+        return exam

@@ -367,3 +367,248 @@ class AssignmentSubmission(models.Model):
             return "C"
         else:
             return "F"
+
+class Exam(models.Model):
+    """مدل امتحانات دوره"""
+    EXAM_TYPE_CHOICES = [
+        ('final', 'امتحان نهایی'),
+        ('midterm', 'امتحان میان‌ترم'),
+        ('quiz', 'کوییز'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('draft', 'پیش‌نویس'),
+        ('scheduled', 'زمان‌بندی شده'),
+        ('active', 'در حال برگزاری'),
+        ('ended', 'پایان یافته'),
+        ('graded', 'نمره‌دهی شده'),
+    ]
+    
+    # اطلاعات اصلی
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='exams', verbose_name="دوره")
+    teacher = models.ForeignKey('account.Teacher', on_delete=models.CASCADE, related_name='exams', verbose_name="معلم")
+    title = models.CharField(max_length=200, verbose_name="عنوان امتحان")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+    exam_type = models.CharField(max_length=20, choices=EXAM_TYPE_CHOICES, verbose_name="نوع امتحان")
+    
+    # فایل‌های امتحان
+    question_file = models.FileField(
+        upload_to='exams/questions/',
+        blank=True,
+        null=True,
+        verbose_name="فایل سوالات",
+        help_text="فایل PDF حاوی سوالات امتحان"
+    )
+    instructions = models.TextField(blank=True, verbose_name="دستورالعمل امتحان")
+    
+    # زمان‌بندی دقیق
+    scheduled_start = models.DateTimeField(verbose_name="زمان شروع امتحان")
+    scheduled_end = models.DateTimeField(verbose_name="زمان پایان امتحان")
+    duration_minutes = models.IntegerField(verbose_name="مدت امتحان (دقیقه)")
+    
+    # تنظیمات رویت
+    is_visible = models.BooleanField(default=False, verbose_name="قابل رویت برای دانشجو")
+    visibility_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="تاریخ رویت شدن",
+        help_text="از چه زمانی دانشجو بتواند امتحان را ببیند"
+    )
+    
+    # تنظیمات امتحان
+    total_points = models.DecimalField(max_digits=6, decimal_places=2, default=100, verbose_name="نمره کل")
+    passing_score = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="نمره قبولی")
+    auto_close = models.BooleanField(default=True, verbose_name="بسته شدن خودکار")
+    allow_late_submission = models.BooleanField(default=False, verbose_name="اجازه ارسال دیرهنگام")
+    late_penalty_percent = models.IntegerField(default=0, verbose_name="جریمه دیرهنگام (درصد)")
+    
+    # تنظیمات دسترسی
+    randomize_questions = models.BooleanField(default=False, verbose_name="ترتیب تصادفی سوالات")
+    show_answers_after = models.BooleanField(default=False, verbose_name="نمایش پاسخ بعد از امتحان")
+    max_attempts = models.IntegerField(default=1, verbose_name="حداکثر تعداد شرکت")
+    
+    # وضعیت
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="وضعیت")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    
+    # زمان‌های سیستمی
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    
+    class Meta:
+        verbose_name = "امتحان"
+        verbose_name_plural = "امتحانات"
+        ordering = ['-scheduled_start']
+        indexes = [
+            models.Index(fields=['course', 'exam_type']),
+            models.Index(fields=['scheduled_start']),
+            models.Index(fields=['status']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(scheduled_end__gt=models.F('scheduled_start')),
+                name='exam_end_after_start'
+            ),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_exam_type_display()} - {self.course.title}"
+    
+    def is_started(self):
+        """آیا امتحان شروع شده است"""
+        from django.utils import timezone
+        return timezone.now() >= self.scheduled_start
+    
+    def is_ended(self):
+        """آیا امتحان پایان یافته است"""
+        from django.utils import timezone
+        return timezone.now() >= self.scheduled_end
+    
+    def time_until_start(self):
+        """زمان باقیمانده تا شروع"""
+        from django.utils import timezone
+        if self.is_started():
+            return None
+        return self.scheduled_start - timezone.now()
+    
+    def time_until_end(self):
+        """زمان باقیمانده تا پایان"""
+        from django.utils import timezone
+        if self.is_ended():
+            return None
+        return self.scheduled_end - timezone.now()
+    
+    def can_student_see(self, student):
+        """آیا دانشجو می‌تواند امتحان را ببیند"""
+        from django.utils import timezone
+        
+        # باید فعال باشد
+        if not self.is_active:
+            return False, "امتحان غیرفعال است"
+        
+        # بررسی رویت
+        if not self.is_visible:
+            return False, "امتحان هنوز قابل رویت نیست"
+        
+        # بررسی تاریخ رویت
+        if self.visibility_date and timezone.now() < self.visibility_date:
+            return False, f"امتحان از {self.visibility_date} قابل رویت است"
+        
+        return True, "قابل رویت"
+    
+    def can_student_participate(self, student):
+        """آیا دانشجو می‌تواند در امتحان شرکت کند"""
+        from django.utils import timezone
+        
+        # بررسی رویت
+        can_see, message = self.can_student_see(student)
+        if not can_see:
+            return False, message
+        
+        # بررسی شروع
+        if not self.is_started():
+            return False, "امتحان هنوز شروع نشده است"
+        
+        # بررسی پایان
+        if self.is_ended():
+            if not self.allow_late_submission:
+                return False, "زمان امتحان به پایان رسیده است"
+        
+        # بررسی تعداد شرکت
+        participation_count = ExamParticipation.objects.filter(
+            exam=self,
+            student=student
+        ).count()
+        
+        if participation_count >= self.max_attempts:
+            return False, f"شما قبلاً {participation_count} بار در این امتحان شرکت کرده‌اید"
+        
+        return True, "می‌توانید شرکت کنید"
+
+
+class ExamParticipation(models.Model):
+    """مدل شرکت دانشجو در امتحان"""
+    STATUS_CHOICES = [
+        ('started', 'شروع شده'),
+        ('submitted', 'ارسال شده'),
+        ('graded', 'نمره‌دهی شده'),
+    ]
+    
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='participations', verbose_name="امتحان")
+    student = models.ForeignKey('account.Student', on_delete=models.CASCADE, related_name='exam_participations', verbose_name="دانشجو")
+    
+    # زمان‌بندی
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="زمان شروع")
+    submitted_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان ارسال")
+    graded_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان نمره‌دهی")
+    
+    # فایل‌های ارسالی
+    answer_file = models.FileField(
+        upload_to='exams/answers/',
+        blank=True,
+        null=True,
+        verbose_name="فایل پاسخ"
+    )
+    answer_text = models.TextField(blank=True, verbose_name="پاسخ متنی")
+    
+    # نمره‌دهی
+    score = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="نمره"
+    )
+    feedback = models.TextField(blank=True, verbose_name="بازخورد معلم")
+    graded_by = models.ForeignKey(
+        'account.Teacher',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='graded_exams',
+        verbose_name="نمره‌دهنده"
+    )
+    
+    # وضعیت
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='started', verbose_name="وضعیت")
+    is_late = models.BooleanField(default=False, verbose_name="دیرهنگام")
+    attempt_number = models.IntegerField(default=1, verbose_name="شماره تلاش")
+    
+    # اطلاعات اضافی
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP آدرس")
+    user_agent = models.CharField(max_length=500, blank=True, verbose_name="User Agent")
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    
+    class Meta:
+        verbose_name = "شرکت در امتحان"
+        verbose_name_plural = "شرکت‌ها در امتحان"
+        ordering = ['-started_at']
+        unique_together = [['exam', 'student', 'attempt_number']]
+        indexes = [
+            models.Index(fields=['exam', 'student']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} - {self.exam.title}"
+    
+    def duration_taken(self):
+        """مدت زمان شرکت در امتحان"""
+        if self.submitted_at:
+            delta = self.submitted_at - self.started_at
+            return int(delta.total_seconds() / 60)
+        return None
+    
+    def save(self, *args, **kwargs):
+        # بررسی دیرهنگام بودن
+        if self.submitted_at and self.exam.scheduled_end:
+            self.is_late = self.submitted_at > self.exam.scheduled_end
+        
+        # اگر دیرهنگام و جریمه فعال است
+        if self.is_late and self.exam.late_penalty_percent > 0 and self.score:
+            penalty = (self.score * self.exam.late_penalty_percent) / 100
+            self.score = max(0, self.score - penalty)
+        
+        super().save(*args, **kwargs)

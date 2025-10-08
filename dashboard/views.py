@@ -214,7 +214,7 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
                     'start': course.start_date.isoformat(),
                     'end': course.end_date.isoformat(),
                     'color': '#4CAF50',
-                    'url': f'/teacher/courses/{course.id}/students/',
+                    'url': f'/teachers/courses/{course.id}/students/'
                 })
         
         # تکالیف
@@ -1788,6 +1788,7 @@ class StudentCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
                     'end': course.end_date.isoformat() if course.end_date else None,
                     'color': '#4CAF50',
                     'type': 'class',
+                    'url': f'/courses/student-course/{course.id}/'
                 })
         
         # تکالیف دوره‌های ثبت‌نام شده

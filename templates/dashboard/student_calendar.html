@@ -181,18 +181,14 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         events: events,
         eventClick: function(info) {
-            var eventType = info.event.extendedProps.type;
-            var eventId = info.event.id;
-            
-            if (eventType === 'class') {
-                var courseId = eventId.replace('course-', '');
-                window.location.href = '/dashboard/admin/courses/' + courseId + '/';
-            } else if (eventType === 'assignment') {
-                var assignmentId = eventId.replace('assignment-', '');
-                // می‌توانید لینک به صفحه جزئیات assignment اضافه کنید
+            // اگر رویداد URL دارد، به آن برود
+            if (info.event.url) {
+                window.location.href = info.event.url;
+                info.jsEvent.preventDefault();
+            } else if (info.event.extendedProps.url) {
+                window.location.href = info.event.extendedProps.url;
+                info.jsEvent.preventDefault();
             }
-            
-            info.jsEvent.preventDefault();
         },
         height: 'auto',
         aspectRatio: 1.8,

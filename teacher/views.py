@@ -458,17 +458,18 @@ class TeacherNotificationsView(LoginRequiredMixin, UserPassesTestMixin, Template
         
         # اعلان‌های امتحان پیش رو
         if filter_type in ['all', 'exam']:
-            today = timezone.now().date()
+            today = timezone.now()
+            week_later = today + timezone.timedelta(days=7)
             upcoming_exams = Exam.objects.filter(
                 course__teacher=teacher,
-                date__gte=today,
-                date__lte=today + timezone.timedelta(days=7)
-            ).select_related('course').order_by('date')[:5]
+                scheduled_start__gte=today,
+                scheduled_start__lte=week_later
+            ).select_related('course').order_by('scheduled_start')[:5]
             
             for exam in upcoming_exams:
                 notifications.append({
                     'title': 'امتحان پیش رو',
-                    'message': f'امتحان "{exam.title}" دوره "{exam.course.title}" در {exam.date}',
+                    'message': f'امتحان "{exam.title}" دوره "{exam.course.title}" در {exam.scheduled_start.strftime("%Y-%m-%d")}',
                     'created_at': timezone.now(),
                     'type': 'warning',
                     'is_read': False,
@@ -521,7 +522,7 @@ class TeacherExamsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         type_filter = self.request.GET.get('type', '')
         status_filter = self.request.GET.get('status', '')
         
-        exams = Exam.objects.filter(course__teacher=teacher).select_related('course').order_by('-date')
+        exams = Exam.objects.filter(course__teacher=teacher).select_related('course').order_by('-scheduled_start')
         
         if course_filter:
             exams = exams.filter(course_id=course_filter)
@@ -529,19 +530,19 @@ class TeacherExamsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         if type_filter:
             exams = exams.filter(exam_type=type_filter)
         
-        today = timezone.now().date()
+        today = timezone.now()
         if status_filter == 'upcoming':
-            exams = exams.filter(date__gt=today)
+            exams = exams.filter(scheduled_start__gt=today)
         elif status_filter == 'ongoing':
-            exams = exams.filter(date=today)
+            exams = exams.filter(scheduled_start__lte=today, scheduled_end__gte=today)
         elif status_filter == 'completed':
-            exams = exams.filter(date__lt=today)
+            exams = exams.filter(scheduled_end__lt=today)
         
         # آمار
         context['exams'] = exams
         context['total_exams'] = exams.count()
-        context['upcoming_exams'] = exams.filter(date__gt=today).count()
-        context['completed_exams'] = exams.filter(date__lt=today).count()
+        context['upcoming_exams'] = exams.filter(scheduled_start__gt=today).count()
+        context['completed_exams'] = exams.filter(scheduled_end__lt=today).count()
         context['total_participants'] = sum(exam.participations.count() for exam in exams)
         context['courses'] = Course.objects.filter(teacher=teacher, is_active=True)
         

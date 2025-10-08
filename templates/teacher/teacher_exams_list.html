@@ -208,15 +208,15 @@
                 <div class="exam-info-grid">
                     <div class="info-item">
                         <i class="fas fa-calendar"></i>
-                        <span>{{ exam.date|jalali_short }}</span>
+                        <span>{{ exam.scheduled_start|jalali_datetime }}</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-clock"></i>
-                        <span>{{ exam.duration|persian_numbers }} دقیقه</span>
+                        <span>{{ exam.duration_minutes|persian_numbers }} دقیقه</span>
                     </div>
                     <div class="info-item">
-                        <i class="fas fa-list-ol"></i>
-                        <span>{{ exam.questions.count|persian_numbers }} سوال</span>
+                        <i class="fas fa-star"></i>
+                        <span>{{ exam.total_points|persian_numbers }} امتیاز</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-users"></i>

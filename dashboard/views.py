@@ -234,7 +234,8 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
             events.append({
                 'id': f'exam-{exam.id}',
                 'title': f'📋 {exam.title}',
-                'start': exam.date.isoformat(),
+                'start': exam.scheduled_start.isoformat(),
+                'end': exam.scheduled_end.isoformat() if exam.scheduled_end else None,
                 'color': color,
             })
         

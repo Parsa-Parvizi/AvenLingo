@@ -240,6 +240,88 @@ class TeacherMessagesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        from core.models import ContactMessage
+        from datetime import date
+        
+        user = self.request.user
+        today = date.today()
+        
+        # پیام‌های ارسال شده توسط این معلم
+        sent_messages = ContactMessage.objects.filter(
+            email=user.email
+        ).order_by('-created_at')
+        
+        # تعداد پیام‌های ارسال شده امروز
+        messages_today = ContactMessage.objects.filter(
+            email=user.email,
+            created_at__date=today
+        ).count()
+        
+        # تعداد پیام‌های باقی‌مانده
+        remaining_messages = max(0, 3 - messages_today)
+        
+        context['sent_messages'] = sent_messages
+        context['remaining_messages'] = remaining_messages
+        context['messages_today'] = messages_today
+        
+        return context
+
+
+@login_required
+def teacher_send_message(request):
+    """ارسال پیام به پشتیبانی با محدودیت روزانه"""
+    if request.method != 'POST':
+        return redirect('teacher:messages')
+    
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'teacher':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    from core.models import ContactMessage
+    from datetime import date
+    
+    today = date.today()
+    
+    # بررسی محدودیت روزانه
+    messages_today = ContactMessage.objects.filter(
+        email=request.user.email,
+        created_at__date=today
+    ).count()
+    
+    if messages_today >= 3:
+        messages.error(request, 'شما امروز سقف مجاز ارسال پیام (3 پیام) را استفاده کرده‌اید.')
+        return redirect('teacher:messages')
+    
+    # ایجاد پیام
+    subject = request.POST.get('subject', '')
+    message_text = request.POST.get('message', '')
+    
+    if not subject or not message_text:
+        messages.error(request, 'لطفاً تمام فیلدها را پر کنید.')
+        return redirect('teacher:messages')
+    
+    # دریافت شماره تلفن معلم
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+        phone = teacher.phone_number if teacher.phone_number else ''
+    except Teacher.DoesNotExist:
+        phone = ''
+    
+    ContactMessage.objects.create(
+        name=request.user.get_full_name(),
+        email=request.user.email,
+        phone=phone,
+        subject=f'[معلم] {subject}',
+        message=message_text,
+        status='new'
+    )
+    
+    messages.success(request, 'پیام شما با موفقیت ارسال شد. پشتیبانی به زودی پاسخ خواهد داد.')
+    return redirect('teacher:messages')
 
 
 class AllTeacherView(ListView):

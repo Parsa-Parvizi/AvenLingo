@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     TeacherDashboardView, TeacherCourseStudentView, TeacherCourseView, AllTeacherView, 
     TeacherDetailView, TeacherCreateCourseView, TeacherEditCourseView, TeacherScheduleView, 
-    TeacherPerformanceView, TeacherMessagesView, TeacherAssignmentsView, TeacherCreateAssignmentView,
+    TeacherPerformanceView, TeacherMessagesView, teacher_send_message, TeacherAssignmentsView, TeacherCreateAssignmentView,
     TeacherEditAssignmentView, TeacherDeleteAssignmentView, TeacherAssignmentDetailView,
     TeacherActivitiesView, TeacherNotificationsView, TeacherMyStudentsView,
     TeacherExamsListView, TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
@@ -44,5 +44,6 @@ urlpatterns = [
     path('calendar/', TeacherScheduleView.as_view(), name='calendar'), # Integrated with schedule
     path('schedule/', TeacherScheduleView.as_view(), name='schedule'), # Alias for calendar
     path('performance/', TeacherPerformanceView.as_view(), name='performance'), # Placeholder
-    path('messages/', TeacherMessagesView.as_view(), name='messages'), # Placeholder
+    path('messages/', TeacherMessagesView.as_view(), name='messages'),
+    path('messages/send/', teacher_send_message, name='send_message'),
 ]

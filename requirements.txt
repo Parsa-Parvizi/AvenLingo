@@ -43,3 +43,6 @@ gunicorn==21.2.0
 
 # Calender
 jdatetime==5.2.0
+
+# PDF Generation
+weasyprint==62.3

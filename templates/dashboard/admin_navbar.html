@@ -8,22 +8,24 @@
             
             <ul class="admin-nav-menu">
                 <li><a href="{% url 'dashboard:admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">داشبورد</a></li>
-                <li><a href="{% url 'dashboard:admin_calendar' %}" class="{% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">📅 تقویم</a></li>
-                <li><a href="{% url 'dashboard:admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">کاربران</a></li>
+                <li><a href="{% url 'dashboard:admin_calendar' %}" class="{% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}"> تقویم</a></li>
+                <li><a href="{% url 'dashboard:admin_users' %}?user_type=teacher" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'teacher' %}active{% endif %}"> معلمان</a></li>
+                <li><a href="{% url 'dashboard:admin_users' %}?user_type=student" class="{% if request.resolver_match.url_name == 'admin_users' and request.GET.user_type == 'student' %}active{% endif %}"> زبان‌آموزان</a></li>
                 <li><a href="{% url 'dashboard:admin_courses' %}" class="{% if request.resolver_match.url_name == 'admin_courses' %}active{% endif %}">دوره‌ها</a></li>
                 <li><a href="{% url 'dashboard:admin_enrollments' %}" class="{% if request.resolver_match.url_name == 'admin_enrollments' %}active{% endif %}">ثبت‌نام‌ها</a></li>
+                <li><a href="{% url 'dashboard:admin_financial' %}" class="{% if request.resolver_match.url_name == 'admin_financial' %}active{% endif %}"> مدیریت مالی</a></li>
+                <li><a href="{% url 'dashboard:admin_contact_messages' %}" class="{% if request.resolver_match.url_name == 'admin_contact_messages' %}active{% endif %}"> پیام‌ها</a></li>
                 
                 <li class="dropdown-menu-item">
-                    <a href="#" class="{% if 'applications' in request.resolver_match.url_name or 'requests' in request.resolver_match.url_name or 'messages' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="#" class="{% if 'applications' in request.resolver_match.url_name or 'requests' in request.resolver_match.url_name %}active{% endif %}">
                         درخواست‌ها <span class="dropdown-arrow">▼</span>
                     </a>
                     <ul class="dropdown-submenu">
-                        <li><a href="{% url 'dashboard:admin_applications' %}">📋 همکاری معلمان</a></li>
-                        <li><a href="{% url 'dashboard:admin_private_class_requests' %}">📚 کلاس خصوصی</a></li>
-                        <li><a href="{% url 'dashboard:admin_course_requests' %}">🎓 درخواست دوره</a></li>
-                        <li><a href="{% url 'dashboard:admin_consultation_requests' %}">💬 درخواست مشاوره</a></li>
-                        <li><a href="{% url 'dashboard:admin_level_assessment_requests' %}">📊 درخواست تعیین سطح</a></li>
-                        <li><a href="{% url 'dashboard:admin_contact_messages' %}">💌 پیام‌های پشتیبانی</a></li>
+                        <li><a href="{% url 'dashboard:admin_applications' %}"> همکاری معلمان</a></li>
+                        <li><a href="{% url 'dashboard:admin_private_class_requests' %}"> کلاس خصوصی</a></li>
+                        <li><a href="{% url 'dashboard:admin_course_requests' %}"> درخواست دوره</a></li>
+                        <li><a href="{% url 'dashboard:admin_consultation_requests' %}"> درخواست مشاوره</a></li>
+                        <li><a href="{% url 'dashboard:admin_level_assessment_requests' %}"> درخواست تعیین سطح</a></li>
                     </ul>
                 </li>
                 
@@ -184,6 +186,20 @@
 .admin-nav-actions .btn-outline:hover {
     background: var(--color-primary);
     color: white;
+}
+
+.admin-nav-actions .btn-success {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.admin-nav-actions .btn-success:hover {
+    background: #218838;
 }
 
 .admin-nav-actions .btn-logout {

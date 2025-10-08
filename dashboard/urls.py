@@ -19,6 +19,10 @@ urlpatterns = [
     path('admin/enrollments/<int:enrollment_id>/approve/', views.admin_approve_enrollment, name='admin_approve_enrollment'),
     path('admin/enrollments/<int:enrollment_id>/reject/', views.admin_reject_enrollment, name='admin_reject_enrollment'),
     
+    # Financial Management
+    path('admin/financial/', views.AdminFinancialView.as_view(), name='admin_financial'),
+    path('admin/financial/export-pdf/', views.export_financial_pdf, name='export_financial_pdf'),
+    
     # Requests Management
     path('admin/applications/', views.AdminApplicationsListView.as_view(), name='admin_applications'),
     path('admin/applications/<uuid:application_id>/', views.AdminApplicationDetailView.as_view(), name='admin_application_detail'),

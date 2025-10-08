@@ -386,7 +386,6 @@ select.form-control {
 .card-footer {
     padding: var(--spacing-lg);
     background: var(--gray-50);
-    border-top: 1px solid var(--gray-200);
 }
 
 /* ==========================================================================
@@ -458,7 +457,6 @@ select.form-control {
     height: 20px;
     border: 2px solid var(--gray-300);
     border-radius: 50%;
-    border-top-color: var(--primary-color);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -481,7 +479,6 @@ select.form-control {
     margin: -10px 0 0 -10px;
     border: 2px solid var(--gray-300);
     border-radius: 50%;
-    border-top-color: var(--primary-color);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -519,7 +516,7 @@ select.form-control {
 .mb-2 { margin-bottom: var(--spacing-sm); }
 .mb-3 { margin-bottom: var(--spacing-md); }
 .mb-4 { margin-bottom: var(--spacing-lg); }
-.mb-5 { margin-bottom: var(--spacing-xl); }
+.mb-5 { margin-bottom: var(--spacing-xl); margin-top: 10px;}
 
 .p-1 { padding: var(--spacing-xs); }
 .p-2 { padding: var(--spacing-sm); }

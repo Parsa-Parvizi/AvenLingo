@@ -25,7 +25,6 @@
         height: 100%;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
-        border-top: 4px solid;
     }
     .stats-box:hover {
         transform: translateY(-3px);
@@ -50,7 +49,6 @@
     .stats-box .stats-footer {
         margin-top: 15px;
         padding-top: 15px;
-        border-top: 1px solid #f0f0f0;
         font-size: 0.9rem;
         color: #777;
     }
@@ -70,15 +68,13 @@
 
 <div class="container-fluid py-4" dir="rtl">
 
-    <!-- آمار کلی -->
-    <h3 class="section-title">آمار کلی سیستم</h3>
     <div class="row mb-5">
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stats-box primary">
-                <h3>{{ total_students }}</h3>
+                <h3>{{ total_students|persian_numbers }}</h3>
                 <div class="stats-label">زبان‌آموزان</div>
                 <div class="stats-footer">
-                    فعال: <strong>{{ active_students }}</strong>
+                    فعال: <strong>{{ active_students|persian_numbers }}</strong>
                 </div>
                 <div class="mt-3">
                     <a href="{% url 'dashboard:admin_users' %}?user_type=student" class="text-decoration-none" style="color: var(--color-primary); font-weight: 500;">
@@ -90,10 +86,10 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stats-box info">
-                <h3>{{ total_teachers }}</h3>
+                <h3>{{ total_teachers|persian_numbers }}</h3>
                 <div class="stats-label">معلمان</div>
                 <div class="stats-footer">
-                    فعال: <strong>{{ active_teachers }}</strong>
+                    فعال: <strong>{{ active_teachers|persian_numbers }}</strong>
                 </div>
                 <div class="mt-3">
                     <a href="{% url 'dashboard:admin_users' %}?user_type=teacher" class="text-decoration-none" style="color: var(--color-secondary); font-weight: 500;">
@@ -105,10 +101,10 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stats-box success">
-                <h3>{{ total_courses }}</h3>
+                <h3>{{ total_courses|persian_numbers }}</h3>
                 <div class="stats-label">دوره‌های آموزشی</div>
                 <div class="stats-footer">
-                    فعال: <strong>{{ active_courses }}</strong>
+                    فعال: <strong>{{ active_courses|persian_numbers }}</strong>
                 </div>
                 <div class="mt-3">
                     <a href="{% url 'dashboard:admin_courses' %}" class="text-decoration-none" style="color: var(--color-highlight); font-weight: 500;">
@@ -120,28 +116,13 @@
 
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stats-box info">
-                <h3>{{ total_enrollments }}</h3>
+                <h3>{{ total_enrollments|persian_numbers }}</h3>
                 <div class="stats-label">ثبت‌نام‌ها</div>
                 <div class="stats-footer">
-                    در انتظار: <strong>{{ pending_enrollments }}</strong>
+                    در انتظار: <strong>{{ pending_enrollments|persian_numbers }}</strong>
                 </div>
                 <div class="mt-3">
                     <a href="{% url 'dashboard:admin_enrollments' %}" class="text-decoration-none" style="color: var(--color-secondary); font-weight: 500;">
-                        مشاهده همه ←
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stats-box warning">
-                <h3>{{ pending_applications }}</h3>
-                <div class="stats-label">درخواست‌های معلمان</div>
-                <div class="stats-footer">
-                    در انتظار بررسی
-                </div>
-                <div class="mt-3">
-                    <a href="{% url 'dashboard:admin_applications' %}" class="text-decoration-none" style="color: #e6b100; font-weight: 500;">
                         مشاهده همه ←
                     </a>
                 </div>
@@ -151,50 +132,52 @@
 
     <!-- آمار و نمودارها -->
     <h3 class="section-title">آمار و گزارش‌ها</h3>
-    <div class="row mb-5">
-        <div class="col-lg-8 mb-3">
-            <div class="modern-card h-100">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">نمودار ثبت‌نام‌های 12 ماه گذشته</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="enrollmentChart" height="100"></canvas>
+                    <canvas id="enrollmentChart" height="80"></canvas>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4 mb-3">
-            <div class="modern-card h-100">
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="modern-card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">آمار ماه جاری</h5>
                 </div>
                 <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span style="color: #666; font-weight: 500;">دانش‌آموزان جدید</span>
-                                <strong style="color: var(--color-primary); font-size: 1.1rem;">{{ monthly_stats.new_students }}</strong>
+                                <strong style="color: var(--color-primary); font-size: 1.3rem;">{{ monthly_stats.new_students|persian_numbers }}</strong>
                             </div>
-                        </li>
-                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span style="color: #666; font-weight: 500;">دوره‌های جدید</span>
-                                <strong style="color: var(--color-highlight); font-size: 1.1rem;">{{ monthly_stats.new_courses }}</strong>
+                                <strong style="color: var(--color-highlight); font-size: 1.3rem;">{{ monthly_stats.new_courses|persian_numbers }}</strong>
                             </div>
-                        </li>
-                        <li class="mb-3 pb-3" style="border-bottom: 1px solid #eceff1;">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span style="color: #666; font-weight: 500;">ثبت‌نام‌های جدید</span>
-                                <strong style="color: var(--color-secondary); font-size: 1.1rem;">{{ monthly_stats.new_enrollments }}</strong>
+                                <strong style="color: var(--color-secondary); font-size: 1.3rem;">{{ monthly_stats.new_enrollments|persian_numbers }}</strong>
                             </div>
-                        </li>
-                        <li class="mb-0">
+                        </div>
+                        <div class="col-lg-3 col-md-6">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span style="color: #666; font-weight: 500;">درآمد</span>
-                                <strong style="color: #e6b100; font-size: 1.1rem;">{{ monthly_stats.revenue|floatformat:0 }} تومان</strong>
+                                <strong style="color: #e6b100; font-size: 1.3rem;">{{ monthly_stats.revenue|floatformat:0|persian_numbers }} تومان</strong>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -208,8 +191,10 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">وضعیت ثبت‌نام‌ها</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="enrollmentStatusChart"></canvas>
+                <div class="card-body" style="padding: 20px;">
+                    <div style="max-width: 300px; max-height: 300px; margin: 0 auto;">
+                        <canvas id="enrollmentStatusChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -219,8 +204,10 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">وضعیت پرداخت‌ها</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="paymentStatusChart"></canvas>
+                <div class="card-body" style="padding: 20px;">
+                    <div style="max-width: 300px; max-height: 300px; margin: 0 auto;">
+                        <canvas id="paymentStatusChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -254,7 +241,7 @@
                                         </strong>
                                     </td>
                                     <td>
-                                        <span class="badge badge-success">{{ teacher.confirmed_enrollments }}</span>
+                                        <span class="badge badge-success">{{ teacher.confirmed_enrollments|persian_numbers }}</span>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -294,7 +281,7 @@
                                     <td><strong style="color: var(--color-primary);">{{ course.title }}</strong></td>
                                     <td>{{ course.teacher.user.get_full_name }}</td>
                                     <td>{{ course.category.name|default:"—" }}</td>
-                                    <td><span class="badge badge-success">{{ course.enrollment_count }}</span></td>
+                                    <td><span class="badge badge-success">{{ course.enrollment_count|persian_numbers }}</span></td>
                                     <td>
                                         {% if course.is_active %}
                                             <span class="badge badge-success">فعال</span>
@@ -315,87 +302,24 @@
             </div>
         </div>
     </div>
-
-    <!-- آخرین فعالیت‌ها -->
-    <h3 class="section-title">آخرین فعالیت‌های سیستم</h3>
-    <div class="row mb-5">
-        <div class="col-lg-6 mb-3">
-            <div class="modern-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">آخرین ثبت‌نام‌ها</h5>
-                    <a href="{% url 'dashboard:admin_enrollments' %}" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
-                </div>
-                <div class="card-body">
-                    {% for enrollment in recent_enrollments|slice:":5" %}
-                    <div class="enrollment-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="course-title mb-1">{{ enrollment.student.user.get_full_name }}</h6>
-                                <p class="course-meta mb-1">{{ enrollment.course.title }}</p>
-                                <small class="text-muted">{{ enrollment.enrolled_at|jalali_datetime }}</small>
-                            </div>
-                            <div>
-                                {% if enrollment.status == 'pending' %}
-                                    <span class="badge badge-warning">در انتظار</span>
-                                {% elif enrollment.status == 'confirmed' %}
-                                    <span class="badge badge-success">تایید شده</span>
-                                {% elif enrollment.status == 'cancelled' %}
-                                    <span class="badge badge-danger">لغو شده</span>
-                                {% else %}
-                                    <span class="badge badge-info">{{ enrollment.get_status_display }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="empty-state">
-                        <p class="text-muted">ثبت‌نامی یافت نشد</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-3">
-            <div class="modern-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">آخرین درخواست‌های معلمان</h5>
-                    <a href="{% url 'dashboard:admin_applications' %}" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
-                </div>
-                <div class="card-body">
-                    {% for app in recent_applications|slice:":5" %}
-                    <div class="enrollment-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="course-title mb-1">{{ app.first_name }} {{ app.last_name }}</h6>
-                                <p class="course-meta mb-1">{{ app.email }}</p>
-                                <small class="text-muted">{{ app.submitted_at|jalali_datetime }}</small>
-                            </div>
-                            <div>
-                                <span class="badge badge-warning">در انتظار بررسی</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="empty-state">
-                        <p class="text-muted">درخواستی یافت نشد</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersianNumber(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return num.toString().replace(/\d/g, x => persianDigits[x]);
+    }
+
     // نمودار ثبت‌نام‌های ماهانه
     const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
     new Chart(enrollmentCtx, {
         type: 'line',
         data: {
-            labels: ['12 ماه پیش', '11 ماه پیش', '10 ماه پیش', '9 ماه پیش', '8 ماه پیش', '7 ماه پیش', '6 ماه پیش', '5 ماه پیش', '4 ماه پیش', '3 ماه پیش', '2 ماه پیش', 'ماه جاری'],
+            labels: ['۱۲ ماه پیش', '۱۱ ماه پیش', '۱۰ ماه پیش', '۹ ماه پیش', '۸ ماه پیش', '۷ ماه پیش', '۶ ماه پیش', '۵ ماه پیش', '۴ ماه پیش', '۳ ماه پیش', '۲ ماه پیش', 'ماه جاری'],
             datasets: [{
                 label: 'تعداد ثبت‌نام',
                 data: [{{ monthly_enrollment_data }}],
@@ -409,19 +333,33 @@
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
+                datalabels: {
+                    display: false
+                },
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'تعداد ثبت‌نام: ' + toPersianNumber(context.parsed.y);
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        precision: 0
+                        precision: 0,
+                        callback: function(value) {
+                            return toPersianNumber(value);
+                        }
                     }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
 
     // نمودار وضعیت ثبت‌نام‌ها
@@ -442,8 +380,47 @@
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true
-        }
+            maintainAspectRatio: true,
+            plugins: {
+                datalabels: {
+                    color: '#fff',
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    },
+                    formatter: function(value) {
+                        return toPersianNumber(value);
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + toPersianNumber(context.parsed);
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: label + ' (' + toPersianNumber(value) + ')',
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
     });
 
     // نمودار وضعیت پرداخت‌ها
@@ -463,8 +440,47 @@
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true
-        }
+            maintainAspectRatio: true,
+            plugins: {
+                datalabels: {
+                    color: '#fff',
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    },
+                    formatter: function(value) {
+                        return toPersianNumber(value);
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + toPersianNumber(context.parsed);
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: label + ' (' + toPersianNumber(value) + ')',
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
     });
 </script>
 {% endblock %} 

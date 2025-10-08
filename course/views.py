@@ -294,8 +294,13 @@ def student_course_detail_view(request, course_id):
     """صفحه مخصوص زبان‌آموز برای مشاهده دوره‌های ثبت‌نام شده"""
     # بررسی اینکه کاربر دانش‌آموز است
     if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
-        messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.')
-        return redirect('account:login')
+        if hasattr(request.user, 'user_type') and request.user.user_type == 'teacher':
+            messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید. شما به عنوان معلم وارد شده‌اید.')
+        elif request.user.is_staff or request.user.is_superuser:
+            messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید. شما به عنوان ادمین وارد شده‌اید.')
+        else:
+            messages.error(request, 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.')
+        return redirect('core:home')
     
     # دریافت دوره
     course = get_object_or_404(Course, id=course_id, is_active=True)
@@ -667,6 +672,17 @@ class StudentExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def test_func(self):
         return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
     
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'teacher':
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان معلم وارد شده‌اید.')
+            elif self.request.user.is_staff or self.request.user.is_superuser:
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان ادمین وارد شده‌اید.')
+            else:
+                messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
+            return redirect('core:home')
+        return super().handle_no_permission()
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from account.models import Student
@@ -717,6 +733,17 @@ class StudentTakeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
     
     def test_func(self):
         return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'teacher':
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان معلم وارد شده‌اید.')
+            elif self.request.user.is_staff or self.request.user.is_superuser:
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان ادمین وارد شده‌اید.')
+            else:
+                messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
+            return redirect('core:home')
+        return super().handle_no_permission()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -830,6 +857,17 @@ class StudentExamResultView(LoginRequiredMixin, UserPassesTestMixin, TemplateVie
     
     def test_func(self):
         return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'teacher':
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان معلم وارد شده‌اید.')
+            elif self.request.user.is_staff or self.request.user.is_superuser:
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان ادمین وارد شده‌اید.')
+            else:
+                messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
+            return redirect('core:home')
+        return super().handle_no_permission()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -1,0 +1,657 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Financial Management{% endblock %}
+
+{% block extra_meta %}
+<style>
+    nav:not(.admin-navbar) { display: none !important; }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    #transactions-list {
+        scroll-margin-top: 100px;
+    }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #28a745;
+    }
+    
+    .financial-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .financial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .financial-card.revenue { border-top-color: #28a745; }
+    .financial-card.expense { border-top-color: #dc3545; }
+    .financial-card.profit { border-top-color: #17a2b8; }
+    .financial-card.pending { border-top-color: #ffc107; }
+    
+    .financial-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .financial-card.revenue .icon { color: #28a745; }
+    .financial-card.expense .icon { color: #dc3545; }
+    .financial-card.profit .icon { color: #17a2b8; }
+    .financial-card.pending .icon { color: #ffc107; }
+    
+    .financial-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    
+    .financial-card .label {
+        color: #666;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    .financial-card .detail {
+        margin-top: 12px;
+        padding-top: 12px;
+        font-size: 0.9rem;
+        color: #777;
+    }
+    
+    .section-title {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--color-background);
+    }
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+        table-layout: auto;
+    }
+    
+    .table th, .table td {
+        white-space: nowrap;
+        padding: 12px 15px;
+    }
+    
+    .chart-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    .export-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .export-btn:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+    
+    .export-btn i {
+        font-size: 1.2rem;
+    }
+    
+    .pagination {
+        display: flex !important;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-item {
+        display: inline-block !important;
+    }
+    
+    .page-item .page-link {
+        display: block !important;
+        padding: 10px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        color: #1F3A93 !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        background: white !important;
+        cursor: pointer;
+        min-width: 45px;
+        text-align: center;
+    }
+    
+    .page-item .page-link:hover {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .page-item.active .page-link {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        cursor: default;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d !important;
+        pointer-events: none;
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/admin_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-header mb-0"> مدیریت مالی</h2>
+        <a href="{% url 'dashboard:export_financial_pdf' %}{% if teacher_filter != 'all' %}?teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}" class="export-btn">
+            <i class="fas fa-file-pdf"></i>
+            دانلود گزارش PDF
+        </a>
+    </div>
+
+    <!-- آمار مالی کلی -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="financial-card revenue">
+                <h3>{{ total_revenue|floatformat:0|persian_numbers }}</h3>
+                <div class="label">کل درآمد</div>
+                <div class="detail">
+                    ماه جاری: <strong>{{ monthly_revenue|floatformat:0|persian_numbers }}</strong> تومان
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="financial-card pending">
+                <h3>{{ pending_payments|floatformat:0|persian_numbers }}</h3>
+                <div class="label">در انتظار پرداخت</div>
+                <div class="detail">
+                    تعداد: <strong>{{ pending_count|persian_numbers }}</strong> ثبت‌نام
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="financial-card profit">
+                <h3>{{ teacher_share|floatformat:0|persian_numbers }}</h3>
+                <div class="label">سهم معلمان</div>
+                <div class="detail">
+                    ماه جاری: <strong>{{ monthly_teacher_share|floatformat:0|persian_numbers }}</strong> تومان
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="financial-card revenue">
+                <h3>{{ platform_profit|floatformat:0|persian_numbers }}</h3>
+                <div class="label">سود پلتفرم</div>
+                <div class="detail">
+                    ماه جاری: <strong>{{ monthly_platform_profit|floatformat:0|persian_numbers }}</strong> تومان
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نمودارهای مالی -->
+    <h3 class="section-title">نمودارهای مالی</h3>
+    <div class="row mb-5">
+        <div class="col-lg-8 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">نمودار درآمد ۱۲ ماه گذشته</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلترهای پیشرفته -->
+    <h3 class="section-title">گزارش تراکنش‌های مالی</h3>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
+                            <label class="form-label">معلم</label>
+                            <select name="teacher" class="form-select">
+                                <option value="all">همه معلمان</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ teacher.user.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="filter-col">
+                            <label class="form-label">دوره</label>
+                            <select name="course" class="form-select">
+                                <option value="all">همه دوره‌ها</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ course.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="filter-col">
+                            <label class="form-label">وضعیت پرداخت</label>
+                            <select name="payment_status" class="form-select">
+                                <option value="all">همه</option>
+                                <option value="paid" {% if payment_filter == 'paid' %}selected{% endif %}>پرداخت شده</option>
+                                <option value="unpaid" {% if payment_filter == 'unpaid' %}selected{% endif %}>پرداخت نشده</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-col">
+                            <label class="form-label">از تاریخ</label>
+                            <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                        </div>
+                        
+                        <div class="filter-col">
+                            <label class="form-label">تا تاریخ</label>
+                            <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                        </div>
+                        
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست تراکنش‌ها -->
+    <div class="row mb-5" id="transactions-list">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        لیست تراکنش‌های مالی 
+                        ({{ transactions.paginator.count|persian_numbers }} تراکنش - 
+                        صفحه {{ transactions.number|persian_numbers }} از {{ transactions.paginator.num_pages|persian_numbers }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover w-100">
+                            <thead>
+                                <tr>
+                                    <th>شماره تراکنش</th>
+                                    <th>دانش‌آموز</th>
+                                    <th>دوره</th>
+                                    <th>معلم</th>
+                                    <th>مبلغ کل</th>
+                                    <th>سهم معلم</th>
+                                    <th>سهم پلتفرم</th>
+                                    <th>وضعیت</th>
+                                    <th>تاریخ</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td><strong>#{{ transaction.id|persian_numbers }}</strong></td>
+                                    <td>{{ transaction.student.user.get_full_name }}</td>
+                                    <td>{{ transaction.course.title }}</td>
+                                    <td>{{ transaction.course.teacher.user.get_full_name }}</td>
+                                    <td><strong>{{ transaction.amount_paid|floatformat:0|persian_numbers }}</strong> تومان</td>
+                                    <td>{% widthratio transaction.amount_paid 10 7 as teacher_share_calc %}{{ teacher_share_calc|floatformat:0|persian_numbers }} تومان</td>
+                                    <td>{% widthratio transaction.amount_paid 10 3 as platform_share_calc %}{{ platform_share_calc|floatformat:0|persian_numbers }} تومان</td>
+                                    <td>
+                                        {% if transaction.payment_status == 'paid' %}
+                                            <span class="badge badge-success">پرداخت شده</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">پرداخت نشده</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ transaction.enrolled_at|jalali_datetime|persian_numbers }}</td>
+                                    <td>
+                                        <a href="{% url 'dashboard:admin_enrollment_detail' transaction.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">تراکنشی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="mt-4 mb-3" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <!-- Debug Info -->
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <small style="color: #666; font-weight: 600;">
+                                کل تراکنش‌ها: {{ transactions.paginator.count|persian_numbers }} | 
+                                صفحه فعلی: {{ transactions.number|persian_numbers }} | 
+                                کل صفحات: {{ transactions.paginator.num_pages|persian_numbers }}
+                            </small>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <ul class="pagination mb-0">
+                            <!-- دکمه اول -->
+                            <li class="page-item {% if not transactions.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if transactions.has_previous %}?page=1{% if teacher_filter != 'all' %}&teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}#transactions-list{% else %}#{% endif %}">
+                                    « اول
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه قبلی -->
+                            <li class="page-item {% if not transactions.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if transactions.has_previous %}?page={{ transactions.previous_page_number }}{% if teacher_filter != 'all' %}&teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}#transactions-list{% else %}#{% endif %}">
+                                    ‹ قبلی
+                                </a>
+                            </li>
+                            
+                            <!-- شماره صفحات -->
+                            {% for num in transactions.paginator.page_range %}
+                                {% if num == transactions.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num|persian_numbers }}</span>
+                                    </li>
+                                {% elif num <= 3 or num >= transactions.paginator.num_pages|add:'-2' or num >= transactions.number|add:'-2' and num <= transactions.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if teacher_filter != 'all' %}&teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}#transactions-list">
+                                            {{ num|persian_numbers }}
+                                        </a>
+                                    </li>
+                                {% elif num == transactions.number|add:'-3' or num == transactions.number|add:'3' %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- دکمه بعدی -->
+                            <li class="page-item {% if not transactions.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if transactions.has_next %}?page={{ transactions.next_page_number }}{% if teacher_filter != 'all' %}&teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}#transactions-list{% else %}#{% endif %}">
+                                    بعدی ›
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه آخر -->
+                            <li class="page-item {% if not transactions.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if transactions.has_next %}?page={{ transactions.paginator.num_pages }}{% if teacher_filter != 'all' %}&teacher={{ teacher_filter }}{% endif %}{% if course_filter != 'all' %}&course={{ course_filter }}{% endif %}{% if payment_filter != 'all' %}&payment_status={{ payment_filter }}{% endif %}{% if from_date %}&from_date={{ from_date }}{% endif %}{% if to_date %}&to_date={{ to_date }}{% endif %}#transactions-list{% else %}#{% endif %}">
+                                    آخر »
+                                </a>
+                            </li>
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- گزارش‌های تفکیکی -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">برترین معلمان از نظر درآمد</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>رتبه</th>
+                                    <th>نام معلم</th>
+                                    <th>کل درآمد</th>
+                                    <th>تعداد دوره</th>
+                                    <th>ثبت‌نام‌های موفق</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in top_teachers %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                            🥇
+                                        {% elif forloop.counter == 2 %}
+                                            🥈
+                                        {% elif forloop.counter == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ forloop.counter|persian_numbers }}
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ teacher.user.get_full_name }}</strong></td>
+                                    <td><strong style="color: #28a745;">{{ teacher.total_revenue|floatformat:0|persian_numbers }}</strong> تومان</td>
+                                    <td>{{ teacher.course_count|persian_numbers }}</td>
+                                    <td><span class="badge badge-success">{{ teacher.successful_enrollments|persian_numbers }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-3">
+            <div class="modern-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">پردرآمدترین دوره‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>رتبه</th>
+                                    <th>نام دوره</th>
+                                    <th>نام معلم</th>
+                                    <th>کل درآمد</th>
+                                    <th>تعداد ثبت‌نام</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in top_courses %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                            🥇
+                                        {% elif forloop.counter == 2 %}
+                                            🥈
+                                        {% elif forloop.counter == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ forloop.counter|persian_numbers }}
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ course.title }}</strong></td>
+                                    <td>{{ course.teacher.user.get_full_name }}</td>
+                                    <td><strong style="color: #28a745;">{{ course.total_revenue|floatformat:0|persian_numbers }}</strong> تومان</td>
+                                    <td>{{ course.enrollment_count|persian_numbers }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">داده‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // تابع تبدیل اعداد به فارسی
+    function toPersianNumber(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return num.toString().replace(/\d/g, x => persianDigits[x]);
+    }
+
+    // نمودار درآمد ماهانه
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'],
+            datasets: [{
+                label: 'درآمد (تومان)',
+                data: [{{ monthly_revenue_data }}],
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                borderColor: '#28a745',
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'درآمد: ' + toPersianNumber(context.parsed.y.toLocaleString()) + ' تومان';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return toPersianNumber(value.toLocaleString());
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // نمودار وضعیت پرداخت
+    const paymentCtx = document.getElementById('paymentStatusChart').getContext('2d');
+    new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['پرداخت شده', 'پرداخت نشده'],
+            datasets: [{
+                data: [{{ paid_amount }}, {{ unpaid_amount }}],
+                backgroundColor: ['#28a745', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + toPersianNumber(context.parsed.toLocaleString()) + ' تومان';
+                        }
+                    }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: label + ' (' + toPersianNumber(value.toLocaleString()) + ')',
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
+

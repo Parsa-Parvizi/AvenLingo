@@ -578,14 +578,11 @@ textarea.form-control {
     margin-bottom: 0;
     background-color: var(--gray-100);
     border-bottom: 1px solid var(--gray-200);
-    border-top-left-radius: calc(var(--border-radius) - 1px);
-    border-top-right-radius: calc(var(--border-radius) - 1px);
 }
 
 .card-footer {
     padding: var(--spacing-3) var(--spacing-4);
     background-color: var(--gray-100);
-    border-top: 1px solid var(--gray-200);
     border-bottom-right-radius: calc(var(--border-radius) - 1px);
     border-bottom-left-radius: calc(var(--border-radius) - 1px);
 }
@@ -668,7 +665,7 @@ textarea.form-control {
 .mb-2 { margin-bottom: var(--spacing-2) !important; width: 100%;}
 .mb-3 { margin-bottom: var(--spacing-3) !important; }
 .mb-4 { margin-bottom: var(--spacing-4) !important; }
-.mb-5 { margin-bottom: var(--spacing-5) !important; }
+.mb-5 { margin-bottom: var(--spacing-5) !important; margin-top: 10px !important;}
 
 .ms-0 { margin-left: 0 !important; }
 .ms-1 { margin-left: var(--spacing-1) !important; }

@@ -264,7 +264,6 @@
     flex-direction: column;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-top: 1px solid #e0e0e0;
   }
   
   .navbar-menu.active {
@@ -537,7 +536,6 @@
     position: static;
     background: transparent;
     box-shadow: none;
-    border-top: none;
     padding: 0;
     opacity: 1;
     pointer-events: auto;
@@ -632,7 +630,6 @@
   /* Show mobile auth links in hamburger menu */
   .mobile-auth-links {
     display: block !important;
-    border-top: 1px solid #eee;
     margin-top: 10px;
     padding-top: 15px;
   }

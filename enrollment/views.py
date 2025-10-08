@@ -29,8 +29,17 @@ class StudentRequiredMixin(UserPassesTestMixin):
                 self.request.user.user_type == 'student')
     
     def handle_no_permission(self):
-        messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
-        return redirect('account:login')
+        if self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'teacher':
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان معلم وارد شده‌اید.')
+            elif self.request.user.is_staff or self.request.user.is_superuser:
+                messages.error(self.request, 'این صفحه فقط برای زبان‌آموزان است. شما به عنوان ادمین وارد شده‌اید.')
+            else:
+                messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
+            return redirect('core:home')
+        else:
+            messages.error(self.request, 'شما باید به عنوان دانش‌آموز وارد شوید.')
+            return redirect('account:login')
 
 
 class StudentEnrollmentListView(StudentRequiredMixin, ListView):
@@ -90,7 +99,12 @@ class CourseEnrollmentView(LoginRequiredMixin, CreateView):
         
         # Must be student (not admin, not teacher)
         if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
-            messages.error(request, 'فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند.')
+            if request.user.user_type == 'teacher':
+                messages.error(request, 'فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند. شما به عنوان معلم وارد شده‌اید.')
+            elif request.user.is_staff or request.user.is_superuser:
+                messages.error(request, 'فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند. شما به عنوان ادمین وارد شده‌اید.')
+            else:
+                messages.error(request, 'فقط زبان‌آموزان می‌توانند در دوره‌ها ثبت‌نام کنند.')
             return redirect('course:all-courses')
         
         self.course = get_object_or_404(Course, slug=kwargs['course_slug'], is_active=True)

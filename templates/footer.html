@@ -35,11 +35,11 @@
                         دسترسی سریع
                     </h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'core:home' %}"> صفحه اصلی</a></li>
                         <li><a href="{% url 'course:all-courses' %}"> دوره‌های آموزشی</a></li>
                         <li><a href="{% url 'teacher:all-teachers' %}"> اساتید</a></li>
-                                        <li><a href="{% url 'aboutus' %}"> درباره ما</a></li>
-                <li><a href="{% url 'contactus' %}"> تماس با ما</a></li>
+                        <li><a href="{% url 'contactus' %}#support-form">پشتیبانی </a></li>
+                        <li><a href="{% url 'aboutus' %}"> درباره ما</a></li>
+                        <li><a href="{% url 'contactus' %}"> تماس با ما</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -52,7 +52,7 @@
                         <li><a href="{% url 'core:determination' %}">درخواست  تعیین سطح  </a></li>
                         <li><a href="{% url 'core:collaborate' %}"> همکاری با ما</a></li>
                         <li><a href="{% url 'core:request-course' %}"> درخواست دوره</a></li>
-                        <li><a href="{% url 'account:login' %}"> ناحیه کاربری</a></li>
+                        <li><a href="{% url 'core:request-private-class' %}"> درخواست کلاس خصوصی</a></li>
                     </ul>
                 </div>
                 <div class="footer-section contact-social">
@@ -243,12 +243,6 @@
     gap: 12px !important;
     color: rgba(255, 255, 255, 0.8) !important;
     font-size: 1.2rem !important;
-    transition: all 0.3s ease !important;
-}
-
-.contact-item:hover {
-    color: #F4D03F !important;
-    transform: translateX(5px) !important;
 }
 
 .contact-item i {
@@ -378,7 +372,6 @@
 }
 
 .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     padding: 25px 0 !important;
 }
 

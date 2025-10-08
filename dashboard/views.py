@@ -515,6 +515,150 @@ class AdminEnrollmentsListView(LoginRequiredMixin, UserPassesTestMixin, Template
         return context
 
 
+class AdminFinancialView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """مدیریت مالی و گزارشات مالی"""
+    template_name = 'dashboard/admin_financial.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from decimal import Decimal
+        
+        # فیلترها
+        teacher_filter = self.request.GET.get('teacher', 'all')
+        course_filter = self.request.GET.get('course', 'all')
+        payment_filter = self.request.GET.get('payment_status', 'all')
+        from_date = self.request.GET.get('from_date', '')
+        to_date = self.request.GET.get('to_date', '')
+        
+        # لیست معلمان و دوره‌ها برای فیلتر
+        context['teachers'] = Teacher.objects.select_related('user').filter(is_active=True)
+        context['courses'] = Course.objects.select_related('teacher__user').filter(is_active=True)
+        
+        # تراکنش‌ها (ثبت‌نام‌ها)
+        transactions = Enrollment.objects.select_related(
+            'student__user', 'course', 'course__teacher__user'
+        ).all()
+        
+        # اعمال فیلترها
+        if teacher_filter != 'all':
+            transactions = transactions.filter(course__teacher__id=teacher_filter)
+        
+        if course_filter != 'all':
+            transactions = transactions.filter(course__id=course_filter)
+        
+        if payment_filter != 'all':
+            transactions = transactions.filter(payment_status=payment_filter)
+        
+        if from_date:
+            transactions = transactions.filter(enrolled_at__gte=from_date)
+        
+        if to_date:
+            transactions = transactions.filter(enrolled_at__lte=to_date)
+        
+        # Pagination
+        from django.core.paginator import Paginator
+        transactions_ordered = transactions.order_by('-enrolled_at')
+        paginator = Paginator(transactions_ordered, 10)  # 10 تراکنش در هر صفحه
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['transactions'] = page_obj
+        context['total_transactions_count'] = transactions.count()
+        context['teacher_filter'] = teacher_filter
+        context['course_filter'] = course_filter
+        context['payment_filter'] = payment_filter
+        context['from_date'] = from_date
+        context['to_date'] = to_date
+        
+        # محاسبات مالی کلی
+        paid_enrollments = Enrollment.objects.filter(payment_status='paid')
+        pending_enrollments = Enrollment.objects.filter(payment_status='unpaid')
+        
+        # کل درآمد
+        total_revenue = paid_enrollments.aggregate(
+            total=Sum('amount_paid')
+        )['total'] or Decimal('0')
+        
+        # درآمد ماه جاری
+        current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_revenue = paid_enrollments.filter(
+            enrolled_at__gte=current_month_start
+        ).aggregate(total=Sum('amount_paid'))['total'] or Decimal('0')
+        
+        # پرداخت‌های در انتظار
+        pending_payments = pending_enrollments.aggregate(
+            total=Sum('amount_paid')
+        )['total'] or Decimal('0')
+        pending_count = pending_enrollments.count()
+        
+        # محاسبه سهم معلمان و پلتفرم (فرض: 70% معلم، 30% پلتفرم)
+        teacher_share = total_revenue * Decimal('0.7')
+        platform_profit = total_revenue * Decimal('0.3')
+        monthly_teacher_share = monthly_revenue * Decimal('0.7')
+        monthly_platform_profit = monthly_revenue * Decimal('0.3')
+        
+        context['total_revenue'] = total_revenue
+        context['monthly_revenue'] = monthly_revenue
+        context['pending_payments'] = pending_payments
+        context['pending_count'] = pending_count
+        context['teacher_share'] = teacher_share
+        context['platform_profit'] = platform_profit
+        context['monthly_teacher_share'] = monthly_teacher_share
+        context['monthly_platform_profit'] = monthly_platform_profit
+        
+        # داده‌های نمودار درآمد ماهانه (12 ماه گذشته)
+        monthly_data = []
+        for i in range(11, -1, -1):
+            month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30*i)
+            month_end = month_start + timedelta(days=30)
+            
+            revenue = paid_enrollments.filter(
+                enrolled_at__gte=month_start,
+                enrolled_at__lt=month_end
+            ).aggregate(total=Sum('amount_paid'))['total'] or 0
+            
+            monthly_data.append(str(revenue))
+        
+        context['monthly_revenue_data'] = ', '.join(monthly_data)
+        
+        # وضعیت پرداخت‌ها
+        paid_amount = paid_enrollments.aggregate(total=Sum('amount_paid'))['total'] or 0
+        unpaid_amount = pending_enrollments.aggregate(total=Sum('amount_paid'))['total'] or 0
+        
+        context['paid_amount'] = paid_amount
+        context['unpaid_amount'] = unpaid_amount
+        
+        # برترین معلمان از نظر درآمد
+        from django.db.models import Count
+        top_teachers = Teacher.objects.filter(
+            is_active=True
+        ).select_related('user').annotate(
+            total_revenue=Sum('courses__enrollments__amount_paid', 
+                            filter=Q(courses__enrollments__payment_status='paid')),
+            course_count=Count('courses', filter=Q(courses__is_active=True)),
+            successful_enrollments=Count('courses__enrollments',
+                                        filter=Q(courses__enrollments__payment_status='paid'))
+        ).filter(total_revenue__gt=0).order_by('-total_revenue')[:10]
+        
+        context['top_teachers'] = top_teachers
+        
+        # پردرآمدترین دوره‌ها
+        top_courses = Course.objects.filter(
+            is_active=True
+        ).select_related('teacher__user').annotate(
+            total_revenue=Sum('enrollments__amount_paid',
+                            filter=Q(enrollments__payment_status='paid')),
+            enrollment_count=Count('enrollments')
+        ).filter(total_revenue__gt=0).order_by('-total_revenue')[:10]
+        
+        context['top_courses'] = top_courses
+        
+        return context
+
+
 class AdminApplicationsListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """لیست درخواست‌های همکاری معلمان"""
     template_name = 'dashboard/admin_applications.html'
@@ -1470,3 +1614,91 @@ class StudentCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         
         context['events_json'] = json.dumps(events)
         return context
+
+
+@login_required
+def export_financial_pdf(request):
+    """تولید گزارش مالی به صورت PDF"""
+    if not request.user.is_superuser:
+        messages.error(request, 'شما دسترسی لازم برای این عملیات را ندارید.')
+        return redirect('dashboard:admin_dashboard')
+    
+    from django.template.loader import render_to_string
+    from django.http import HttpResponse
+    from decimal import Decimal
+    import jdatetime
+    
+    # دریافت فیلترها
+    teacher_filter = request.GET.get('teacher', 'all')
+    course_filter = request.GET.get('course', 'all')
+    payment_filter = request.GET.get('payment_status', 'all')
+    from_date = request.GET.get('from_date', '')
+    to_date = request.GET.get('to_date', '')
+    
+    # تراکنش‌ها
+    transactions = Enrollment.objects.select_related(
+        'student__user', 'course', 'course__teacher__user'
+    ).all()
+    
+    # اعمال فیلترها
+    if teacher_filter != 'all':
+        transactions = transactions.filter(course__teacher__id=teacher_filter)
+    
+    if course_filter != 'all':
+        transactions = transactions.filter(course__id=course_filter)
+    
+    if payment_filter != 'all':
+        transactions = transactions.filter(payment_status=payment_filter)
+    
+    if from_date:
+        transactions = transactions.filter(enrolled_at__gte=from_date)
+    
+    if to_date:
+        transactions = transactions.filter(enrolled_at__lte=to_date)
+    
+    transactions = transactions.order_by('-enrolled_at')
+    
+    # محاسبات مالی
+    paid_enrollments = Enrollment.objects.filter(payment_status='paid')
+    total_revenue = paid_enrollments.aggregate(total=Sum('amount_paid'))['total'] or Decimal('0')
+    teacher_share = total_revenue * Decimal('0.7')
+    platform_profit = total_revenue * Decimal('0.3')
+    
+    # محاسبه مجموع تراکنش‌های فیلتر شده
+    filtered_total = transactions.filter(payment_status='paid').aggregate(
+        total=Sum('amount_paid')
+    )['total'] or Decimal('0')
+    
+    # تاریخ فارسی
+    now = jdatetime.datetime.now()
+    jalali_date = now.strftime('%Y/%m/%d - %H:%M')
+    
+    context = {
+        'transactions': transactions,
+        'total_revenue': total_revenue,
+        'teacher_share': teacher_share,
+        'platform_profit': platform_profit,
+        'filtered_total': filtered_total,
+        'jalali_date': jalali_date,
+        'total_count': transactions.count(),
+    }
+    
+    # رندر template
+    html_string = render_to_string('dashboard/financial_report_pdf.html', context)
+    
+    # تولید PDF با WeasyPrint
+    try:
+        from weasyprint import HTML
+        
+        # ایجاد PDF
+        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        pdf = pdf_file.write_pdf()
+        
+        # ارسال response
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="financial_report_{now.strftime("%Y%m%d_%H%M")}.pdf"'
+        return response
+        
+    except ImportError:
+        messages.error(request, 'برای تولید PDF باید کتابخانه WeasyPrint نصب شود: pip install weasyprint')
+        return redirect('dashboard:admin_financial')

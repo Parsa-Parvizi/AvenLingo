@@ -25,6 +25,21 @@
         padding-bottom: 15px;
         border-bottom: 3px solid var(--color-highlight);
     }
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+        table-layout: auto;
+    }
+    
+    .table th, .table td {
+        white-space: nowrap;
+        padding: 12px 15px;
+    }
 </style>
 {% endblock %}
 
@@ -46,6 +61,7 @@
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
                                 <option value="published" {% if status_filter == 'published' %}selected{% endif %}>منتشر شده</option>
                                 <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>پیش‌نویس</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>به اتمام رسیده</option>
                                 <option value="archived" {% if status_filter == 'archived' %}selected{% endif %}>آرشیو</option>
                             </select>
                         </div>
@@ -91,11 +107,11 @@
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">لیست دوره‌ها ({{ courses.count }})</h5>
+                    <h5 class="card-title mb-0">لیست دوره‌ها ({{ courses.count|persian_numbers }})</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover w-100">
                             <thead>
                                 <tr>
                                     <th>عنوان</th>
@@ -124,16 +140,18 @@
                                         {% if course.is_free %}
                                             <span class="badge bg-success">رایگان</span>
                                         {% else %}
-                                            {{ course.price|floatformat:0 }} تومان
+                                            {{ course.price|floatformat:0|persian_numbers }} تومان
                                         {% endif %}
                                     </td>
-                                    <td>{{ course.capacity }}</td>
-                                    <td><span class="badge bg-primary">{{ course.enrolled_count }}</span></td>
+                                    <td>{{ course.capacity|persian_numbers }}</td>
+                                    <td><span class="badge bg-primary">{{ course.enrolled_count|persian_numbers }}</span></td>
                                     <td>
                                         {% if course.status == 'published' %}
                                             <span class="badge badge-success">منتشر شده</span>
                                         {% elif course.status == 'draft' %}
                                             <span class="badge badge-warning">پیش‌نویس</span>
+                                        {% elif course.status == 'completed' %}
+                                            <span class="badge badge-primary">به اتمام رسیده</span>
                                         {% elif course.status == 'archived' %}
                                             <span class="badge badge-info">آرشیو</span>
                                         {% endif %}

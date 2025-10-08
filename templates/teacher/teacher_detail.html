@@ -82,13 +82,118 @@
       <div class="detail-section bio-section">
         <div class="section-header-detail">
           <i class="fas fa-user-circle"></i>
-          <h2>درباره {{ teacher.full_name }}</h2>
+          <h2>درباره استاد {{ teacher.full_name }}</h2>
         </div>
         <div class="section-content">
           <p class="teacher-bio-text">{{ teacher.bio }}</p>
         </div>
       </div>
       {% endif %}
+      
+      <!-- Teacher Details Section -->
+      <div class="detail-section teacher-details-section">
+        <div class="section-header-detail">
+          <i class="fas fa-id-card"></i>
+          <h2>پروفایل استاد</h2>
+        </div>
+        
+        <div class="details-grid">
+          
+          <!-- Specialties -->
+          {% if teacher.specialties or teacher.application.specialties %}
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <i class="fas fa-star"></i>
+              <h3>تخصص‌ها</h3>
+            </div>
+            <div class="detail-card-content">
+              <p>{{ teacher.specialties|default:teacher.application.specialties }}</p>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Experience -->
+          {% if teacher.experience_years or teacher.experience_description or teacher.application.experience %}
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <i class="fas fa-briefcase"></i>
+              <h3>تجربه کاری</h3>
+            </div>
+            <div class="detail-card-content">
+              {% if teacher.experience_years %}
+                <p class="highlight-info">
+                  <i class="fas fa-clock"></i>
+                  {{ teacher.experience_years|add:0|stringformat:"d"|default:""|add:" سال تجربه تدریس" }}
+                </p>
+              {% endif %}
+              <p>{{ teacher.experience_description|default:teacher.application.experience }}</p>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Education -->
+          {% if teacher.education_degree or teacher.education_field or teacher.education_institution or teacher.application.education %}
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <i class="fas fa-graduation-cap"></i>
+              <h3>تحصیلات</h3>
+            </div>
+            <div class="detail-card-content">
+              {% if teacher.education_degree %}
+                <p class="highlight-info">
+                  <i class="fas fa-certificate"></i>
+                  {{ teacher.education_degree }}
+                </p>
+              {% endif %}
+              {% if teacher.education_field %}
+                <p><strong>رشته:</strong> {{ teacher.education_field }}</p>
+              {% endif %}
+              {% if teacher.education_institution %}
+                <p><strong>دانشگاه:</strong> {{ teacher.education_institution }}</p>
+              {% endif %}
+              {% if teacher.application.education and not teacher.education_degree %}
+                <p>{{ teacher.application.education }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Certifications -->
+          {% if teacher.application.certifications %}
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <i class="fas fa-award"></i>
+              <h3>گواهینامه‌ها و مدارک</h3>
+            </div>
+            <div class="detail-card-content">
+              <p>{{ teacher.application.certifications }}</p>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Availability -->
+          {% if teacher.availability_days or teacher.availability_hours or teacher.availability_description %}
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <i class="fas fa-calendar-check"></i>
+              <h3>زمان‌های فعالیت</h3>
+            </div>
+            <div class="detail-card-content">
+              {% if teacher.availability_days %}
+                <p><strong>روزهای فعالیت:</strong> {{ teacher.availability_days }}</p>
+              {% endif %}
+              {% if teacher.availability_hours %}
+                <p><strong>ساعات فعالیت:</strong> {{ teacher.availability_hours }}</p>
+              {% endif %}
+              {% if teacher.availability_description %}
+                <p>{{ teacher.availability_description }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          
+        </div>
+      </div>
       
       <!-- Courses Section -->
       <div class="detail-section courses-section">
@@ -167,7 +272,7 @@
       <div class="detail-section back-section">
         <a href="{% url 'teacher:all-teachers' %}" class="back-to-list-btn">
           <i class="fas fa-arrow-right"></i>
-          بازگشت به لیست اساتید
+          لیست تمامی اساتید
         </a>
       </div>
       
@@ -393,10 +498,100 @@
   margin: 0;
 }
 
+/* Teacher Details Section */
+.teacher-details-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.detail-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.detail-card:hover {
+  border-color: #667eea;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.detail-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.detail-card-header i {
+  font-size: 1.5rem;
+  color: #667eea;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 10px;
+}
+
+.detail-card-header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.detail-card-content {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.detail-card-content p {
+  margin: 0;
+  margin-bottom: 12px;
+}
+
+.detail-card-content p:last-child {
+  margin-bottom: 0;
+}
+
+.detail-card-content strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.highlight-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+  padding: 12px 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.highlight-info i {
+  font-size: 1.1rem;
+}
+
 /* Courses Section */
 .teacher-courses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 25px;
 }
 
@@ -507,7 +702,6 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 20px;
-  border-top: 2px solid #f1f5f9;
 }
 
 .course-price {
@@ -643,7 +837,12 @@
   }
   
   .teacher-courses-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  .details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
   }
 }
 
@@ -680,6 +879,15 @@
   
   .teacher-courses-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .detail-card {
+    margin-bottom: 0;
   }
   
   .teacher-detail-content {
@@ -752,6 +960,22 @@
   
   .teacher-bio-text {
     font-size: 1rem;
+  }
+  
+  .detail-card {
+    padding: 20px;
+  }
+  
+  .detail-card-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .detail-card-content {
+    font-size: 0.95rem;
+  }
+  
+  .highlight-info {
+    font-size: 0.95rem;
   }
   
   .course-card-header {

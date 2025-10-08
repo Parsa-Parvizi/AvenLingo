@@ -325,28 +325,26 @@
 
 <section class="request-course-section" style="margin: 40px 0;">
   <!-- بخش درخواست دوره جدید -->
-  <div style="padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center; margin-bottom: 30px;">
-    <h3 style="color: var(--color-primary); margin-bottom: 15px;">
+  <div style="padding: 35px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center; margin-bottom: 30px;">
+    <h3 style="color: var(--color-primary); margin-bottom: 15px; font-size: 1.5rem;">
       <i class="fas fa-book-open"></i> دوره مورد نظر خود را پیدا نکردید؟
     </h3>
-    <p style="color: #666; margin-bottom: 20px;">
+    <p style="color: #666; margin-bottom: 25px; font-size: 1.1rem; line-height: 1.8;">
       اگر دوره‌ای که می‌خواهید در لیست نیست، درخواست خود را ثبت کنید تا بررسی شود
     </p>
+    <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 25px;">
+      <div style="background: white; padding: 10px 20px; border-radius: 25px; color: var(--color-primary); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <i class="fas fa-check-circle"></i> ثبت درخواست رایگان
+      </div>
+      <div style="background: white; padding: 10px 20px; border-radius: 25px; color: var(--color-primary); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <i class="fas fa-check-circle"></i> پاسخ سریع تیم آموزشی
+      </div>
+      <div style="background: white; padding: 10px 20px; border-radius: 25px; color: var(--color-primary); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <i class="fas fa-check-circle"></i> طراحی دوره متناسب با نیاز شما
+      </div>
+    </div>
     <a href="{% url 'core:request-course' %}" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">
       <i class="fas fa-plus-circle"></i> درخواست دوره جدید
-    </a>
-  </div>
-  
-  <!-- بخش درخواست مشاوره -->
-  <div style="padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center;">
-    <h3 style="color: var(--color-primary); margin-bottom: 15px;">
-      <i class="fas fa-headset"></i> نیاز به مشاوره تحصیلی دارید؟
-    </h3>
-    <p style="color: #666; margin-bottom: 20px;">
-      مشاوران ما آماده‌اند تا شما را در انتخاب بهترین دوره و مسیر یادگیری راهنمایی کنند
-    </p>
-    <a href="{% url 'core:advice' %}" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">
-      <i class="fas fa-calendar-check"></i> درخواست جلسه مشاوره
     </a>
   </div>
 </section>

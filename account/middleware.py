@@ -110,8 +110,8 @@ class SecurityMiddleware(MiddlewareMixin):
         if not settings.DEBUG:
             csp = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; "
-                "style-src 'self' 'unsafe-inline' fonts.googleapis.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com code.jquery.com cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net; "
                 "font-src 'self' fonts.gstatic.com; "
                 "img-src 'self' data:; "
                 "connect-src 'self'"
@@ -286,8 +286,8 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         # Content Security Policy
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; "
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com code.jquery.com cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net; "
             "font-src 'self' fonts.gstatic.com; "
             "img-src 'self' data: https:;"
         )

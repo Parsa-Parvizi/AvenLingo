@@ -252,8 +252,8 @@ X_FRAME_OPTIONS = 'DENY'  # جلوگیری از clickjacking
 
 # Content Security Policy - HTTP only
 CSP_DEFAULT_SRC = ("'self'", "http:", "https:")
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "cdnjs.cloudflare.com")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "fonts.googleapis.com")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http:", "https:", "cdnjs.cloudflare.com", "code.jquery.com", "cdn.jsdelivr.net")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "fonts.googleapis.com", "cdn.jsdelivr.net")
 CSP_FONT_SRC = ("'self'", "http:", "https:", "fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "http:", "https:", "data:")
 CSP_CONNECT_SRC = ("'self'", "http:", "https:")
@@ -444,9 +444,9 @@ URL_SECURITY = {
     'HSTS_SECONDS': 31536000,  # 1 year
     'ENABLE_CONTENT_SECURITY_POLICY': True,
     'CSP_DEFAULT_SRC': ["'self'"],
-    'CSP_SCRIPT_SRC': ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
-    'CSP_STYLE_SRC': ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-    'CSP_FONT_SRC': ["'self'", "https://cdnjs.cloudflare.com"],
+    'CSP_SCRIPT_SRC': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://code.jquery.com", "https://cdn.jsdelivr.net"],
+    'CSP_STYLE_SRC': ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+    'CSP_FONT_SRC': ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
     'CSP_IMG_SRC': ["'self'", "data:", "https:"],
     # Development overrides
     'SKIP_SECURITY_IN_DEBUG': True,

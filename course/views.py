@@ -855,6 +855,193 @@ class StudentTakeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         return redirect('course:take_exam', exam_id=exam.id)
 
 
+class StudentAssignmentsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه لیست تکالیف زبان‌آموز"""
+    template_name = 'course/student_assignments.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from enrollment.models import Enrollment
+        from course.models import Assignment, AssignmentSubmission
+        from django.utils import timezone
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        # فیلترها
+        course_filter = self.request.GET.get('course', '')
+        status_filter = self.request.GET.get('status', '')
+        
+        # دوره‌های تأیید شده
+        enrollments = Enrollment.objects.filter(student=student, status='confirmed')
+        course_ids = enrollments.values_list('course_id', flat=True)
+        my_courses = Course.objects.filter(id__in=course_ids)
+        
+        # تکالیف دوره‌ها
+        assignments = Assignment.objects.filter(course_id__in=course_ids).select_related('course').order_by('-due_date')
+        
+        if course_filter:
+            assignments = assignments.filter(course_id=course_filter)
+        
+        # پردازش تکالیف
+        assignments_data = []
+        total = 0
+        pending = 0
+        submitted = 0
+        overdue = 0
+        now = timezone.now()
+        
+        for assignment in assignments:
+            submission = AssignmentSubmission.objects.filter(
+                assignment=assignment,
+                student=student
+            ).first()
+            
+            is_overdue = assignment.due_date < now.date() and not submission
+            
+            if submission:
+                if submission.graded_by:
+                    status_class = 'submitted'
+                else:
+                    status_class = 'submitted'
+                    submitted += 1
+            elif is_overdue:
+                status_class = 'overdue'
+                overdue += 1
+            else:
+                status_class = 'pending'
+                pending += 1
+            
+            total += 1
+            
+            # فیلتر وضعیت
+            if status_filter == 'pending' and submission:
+                continue
+            elif status_filter == 'submitted' and not submission:
+                continue
+            elif status_filter == 'graded' and (not submission or not submission.graded_by):
+                continue
+            elif status_filter == 'overdue' and not is_overdue:
+                continue
+            
+            assignments_data.append({
+                'assignment': assignment,
+                'submission': submission,
+                'is_overdue': is_overdue,
+                'status_class': status_class
+            })
+        
+        context['assignments'] = assignments_data
+        context['my_courses'] = my_courses
+        context['total_assignments'] = total
+        context['pending_assignments'] = pending
+        context['submitted_assignments'] = submitted
+        context['overdue_assignments'] = overdue
+        
+        return context
+
+
+class StudentGradesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه نمرات زبان‌آموز"""
+    template_name = 'course/student_grades.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from enrollment.models import Enrollment
+        from course.models import Assignment, AssignmentSubmission, Exam, ExamParticipation
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        # دوره‌های تأیید شده
+        enrollments = Enrollment.objects.filter(student=student, status='confirmed')
+        
+        # نمرات به تفکیک دوره
+        course_grades = []
+        total_score = 0
+        total_max_score = 0
+        total_assignments_graded = 0
+        
+        for enrollment in enrollments:
+            course = enrollment.course
+            
+            # نمرات تکالیف
+            assignment_submissions = AssignmentSubmission.objects.filter(
+                assignment__course=course,
+                student=student,
+                graded_by__isnull=False
+            ).select_related('assignment')
+            
+            grades = []
+            course_total = 0
+            course_max = 0
+            
+            for submission in assignment_submissions:
+                if submission.score is not None:
+                    score_percent = (submission.score / submission.assignment.max_score * 100) if submission.assignment.max_score > 0 else 0
+                    grades.append({
+                        'assignment': submission.assignment,
+                        'submission': submission,
+                        'score_percent': score_percent
+                    })
+                    course_total += submission.score
+                    course_max += submission.assignment.max_score
+                    total_score += submission.score
+                    total_max_score += submission.assignment.max_score
+                    total_assignments_graded += 1
+            
+            # نمرات امتحانات
+            exam_participations = ExamParticipation.objects.filter(
+                exam__course=course,
+                student=student,
+                score__isnull=False
+            ).select_related('exam')
+            
+            exam_grades = []
+            for participation in exam_participations:
+                score_percent = (participation.score / participation.exam.total_points * 100) if participation.exam.total_points > 0 else 0
+                exam_grades.append({
+                    'exam': participation.exam,
+                    'participation': participation,
+                    'score_percent': score_percent
+                })
+                course_total += participation.score
+                course_max += participation.exam.total_points
+            
+            # محاسبه میانگین دوره
+            overall_grade = (course_total / course_max * 20) if course_max > 0 else None
+            
+            if grades or exam_grades:
+                course_grades.append({
+                    'course': course,
+                    'grades': grades,
+                    'exam_grades': exam_grades,
+                    'overall_grade': overall_grade
+                })
+        
+        # میانگین کل
+        average_grade = (total_score / total_max_score * 20) if total_max_score > 0 else 0
+        
+        context['course_grades'] = course_grades
+        context['total_courses'] = len(course_grades)
+        context['average_grade'] = average_grade
+        context['total_assignments_graded'] = total_assignments_graded
+        
+        return context
+
+
 class StudentExamResultView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """نمایش نتیجه امتحان"""
     template_name = 'course/student_exam_result.html'

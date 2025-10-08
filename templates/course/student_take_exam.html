@@ -5,6 +5,8 @@
 {% block title %} | Take Exam{% endblock %}
 
 {% block content %}
+{% include 'dashboard/student_navbar.html' %}
+
 <div class="container py-4" dir="rtl">
     <div class="exam-header mb-4">
         <h2>📊 {{ exam.title }}</h2>

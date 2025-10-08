@@ -5,10 +5,18 @@
 {% block title %} | Featured Courses{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated and user.user_type == 'student' %}
+{% include 'dashboard/student_navbar.html' %}
+{% endif %}
+
 <section class="featured-courses-page">
   <div class="page-header">
-    <h1>دوره‌های ویژه</h1>
+    <h1>{{ page_title|default:"دوره‌های ویژه" }}</h1>
+    {% if is_personalized %}
+    <p>دوره‌های انتخاب شده بر اساس پروفایل و علایق شما</p>
+    {% else %}
     <p>بهترین و محبوب‌ترین دوره‌های زبان انگلیسی</p>
+    {% endif %}
   </div>
 
   {% if courses %}

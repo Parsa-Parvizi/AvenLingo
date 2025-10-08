@@ -170,11 +170,110 @@ def all_courses_view(request):
 
 
 def featured_courses_view(request):
-    """نمایش کلاس‌های ویژه"""
-    featured_courses = Course.objects.filter(is_active=True, is_featured=True).order_by('-created_at')  # type: ignore
+    """نمایش دوره‌های پیشنهادی هوشمند بر اساس پروفایل زبان‌آموز"""
+    from account.models import Student
+    from enrollment.models import Enrollment
+    from django.db.models import Count, Avg, Q
+    from datetime import date
+    
+    # بررسی کاربر زبان‌آموز
+    is_student = (request.user.is_authenticated and 
+                  hasattr(request.user, 'user_type') and 
+                  request.user.user_type == 'student')
+    
+    if is_student:
+        try:
+            student = Student.objects.get(user=request.user)
+            
+            # دوره‌های فعلی و گذشته زبان‌آموز
+            my_enrollments = Enrollment.objects.filter(student=student).select_related('course', 'course__category')
+            enrolled_course_ids = my_enrollments.values_list('course_id', flat=True)
+            
+            # دسته‌بندی‌های دوره‌های فعلی
+            my_categories = my_enrollments.values_list('course__category', flat=True).distinct()
+            
+            # معلمان دوره‌های فعلی
+            my_teachers = my_enrollments.values_list('course__teacher', flat=True).distinct()
+            
+            # محاسبه امتیاز برای دوره‌ها
+            all_courses = Course.objects.filter(
+                is_active=True
+            ).exclude(
+                id__in=enrolled_course_ids  # حذف دوره‌هایی که قبلاً ثبت‌نام کرده
+            ).annotate(
+                enrollment_count=Count('enrollments')
+            ).select_related('category', 'teacher__user')
+            
+            # امتیازدهی
+            scored_courses = []
+            for course in all_courses:
+                score = 0
+                
+                # 1. دوره‌های همان دسته‌بندی (+30 امتیاز)
+                if course.category_id in my_categories:
+                    score += 30
+                
+                # 2. دوره‌های همان معلم (+25 امتیاز)
+                if course.teacher_id in my_teachers:
+                    score += 25
+                
+                # 3. سطح مناسب (+20 امتیاز)
+                if student.english_level:
+                    student_level = student.english_level.lower()
+                    course_level = course.level.lower() if hasattr(course, 'level') and course.level else ''
+                    
+                    # اگر سطح دوره مناسب است
+                    if student_level in ['beginner', 'elementary'] and course_level in ['beginner', 'elementary', 'pre-intermediate']:
+                        score += 20
+                    elif student_level in ['intermediate', 'pre-intermediate'] and course_level in ['pre-intermediate', 'intermediate', 'upper-intermediate']:
+                        score += 20
+                    elif student_level in ['advanced', 'upper-intermediate'] and course_level in ['upper-intermediate', 'advanced']:
+                        score += 20
+                
+                # 4. محبوبیت دوره (+15 امتیاز برای دوره‌های پرمخاطب)
+                if course.enrollment_count > 10:
+                    score += 15
+                elif course.enrollment_count > 5:
+                    score += 10
+                
+                # 5. دوره‌های ویژه (+10 امتیاز)
+                if course.is_featured:
+                    score += 10
+                
+                # 6. قیمت مناسب (+5 امتیاز برای دوره‌های ارزان‌تر)
+                if course.price < 500000:
+                    score += 5
+                
+                # 7. دوره‌های جدید (+5 امتیاز)
+                if course.created_at and (date.today() - course.created_at.date()).days < 30:
+                    score += 5
+                
+                scored_courses.append({
+                    'course': course,
+                    'score': score
+                })
+            
+            # مرتب‌سازی بر اساس امتیاز
+            scored_courses.sort(key=lambda x: x['score'], reverse=True)
+            recommended_courses = [item['course'] for item in scored_courses]
+            
+        except Student.DoesNotExist:
+            # اگر زبان‌آموز نبود، دوره‌های ویژه را نمایش بده
+            recommended_courses = Course.objects.filter(
+                is_active=True, 
+                is_featured=True
+            ).order_by('-created_at')
+    else:
+        # برای کاربران مهمان یا غیر زبان‌آموز، دوره‌های ویژه
+        recommended_courses = Course.objects.filter(
+            is_active=True, 
+            is_featured=True
+        ).annotate(
+            enrollment_count=Count('enrollments')
+        ).order_by('-enrollment_count', '-created_at')
     
     # پیاده‌سازی pagination
-    paginator = Paginator(featured_courses, 20)  # 20 کلاس در هر صفحه
+    paginator = Paginator(recommended_courses, 20)
     page = request.GET.get('page')
     
     try:
@@ -184,7 +283,13 @@ def featured_courses_view(request):
     except EmptyPage:
         paginated_courses = paginator.page(paginator.num_pages)
     
-    return render(request, 'course/featured_courses.html', {'courses': paginated_courses})
+    context = {
+        'courses': paginated_courses,
+        'is_personalized': is_student,
+        'page_title': 'دوره‌های پیشنهادی برای شما' if is_student else 'دوره‌های ویژه'
+    }
+    
+    return render(request, 'course/featured_courses.html', context)
 
 
 def category_courses_view(request, category_slug):

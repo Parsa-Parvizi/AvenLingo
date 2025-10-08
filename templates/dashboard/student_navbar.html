@@ -8,13 +8,14 @@
             </div>
             
             <ul class="student-nav-menu">
-                <li><a href="{% url 'dashboard:student_calendar' %}" class="{% if request.resolver_match.url_name == 'student_calendar' %}active{% endif %}">📅 تقویم</a></li>
-                <li><a href="{% url 'enrollment:my-enrollments' %}" class="{% if request.resolver_match.url_name == 'my-enrollments' %}active{% endif %}">📚 دوره‌های من</a></li>
-                <li><a href="{% url 'course:student_assignments' %}" class="{% if request.resolver_match.url_name == 'student_assignments' %}active{% endif %}">📋 تکالیف</a></li>
-                <li><a href="{% url 'course:student_exams' %}" class="{% if 'exam' in request.resolver_match.url_name %}active{% endif %}">📝 امتحانات</a></li>
-                <li><a href="{% url 'course:student_grades' %}" class="{% if request.resolver_match.url_name == 'student_grades' %}active{% endif %}">📊 نمرات</a></li>
-                <li><a href="{% url 'enrollment:student_messages' %}" class="{% if request.resolver_match.url_name == 'student_messages' %}active{% endif %}">💬 پیام‌ها</a></li>
-                <li><a href="{% url 'course:all-courses' %}" class="{% if request.resolver_match.url_name == 'all-courses' %}active{% endif %}">🌟 دوره‌های پیشنهادی</a></li>
+                <li><a href="{% url 'dashboard:student_calendar' %}" class="{% if request.resolver_match.url_name == 'student_calendar' %}active{% endif %}"> تقویم</a></li>
+                <li><a href="{% url 'course:featured' %}" class="{% if request.resolver_match.url_name == 'featured' %}active{% endif %}"> دوره‌های پیشنهادی</a></li>
+                <li><a href="{% url 'enrollment:my-enrollments' %}" class="{% if request.resolver_match.url_name == 'my-enrollments' %}active{% endif %}"> دوره‌های من</a></li>
+                <li><a href="{% url 'enrollment:my-enrollments' %}" class="{% if 'enrollment-detail' in request.resolver_match.url_name %}active{% endif %}"> ثبت‌نام‌های من</a></li>
+                <li><a href="{% url 'course:student_assignments' %}" class="{% if request.resolver_match.url_name == 'student_assignments' %}active{% endif %}"> تکالیف</a></li>
+                <li><a href="{% url 'course:student_exams' %}" class="{% if 'exam' in request.resolver_match.url_name %}active{% endif %}"> امتحانات</a></li>
+                <li><a href="{% url 'course:student_grades' %}" class="{% if request.resolver_match.url_name == 'student_grades' %}active{% endif %}"> نمرات</a></li>
+                <li><a href="{% url 'enrollment:student_messages' %}" class="{% if request.resolver_match.url_name == 'student_messages' %}active{% endif %}"> پیام‌ها</a></li>
             </ul>
         </div>
     </div>

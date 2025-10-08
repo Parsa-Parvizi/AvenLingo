@@ -85,6 +85,20 @@ class TeacherScheduleView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
                 'url': f'/teachers/assignments/{assignment.id}/',
             })
         
+        # امتحانات کلاس‌های معلم
+        from course.models import Exam
+        exams = Exam.objects.filter(course_id__in=course_ids, is_active=True)
+        for exam in exams:
+            color = '#F44336' if exam.exam_type == 'final' else '#FF5722' if exam.exam_type == 'midterm' else '#9C27B0'
+            events.append({
+                'id': f'exam-{exam.id}',
+                'title': f'📊 {exam.title}',
+                'start': exam.scheduled_start.isoformat(),
+                'end': exam.scheduled_end.isoformat(),
+                'color': color,
+                'type': 'exam',
+            })
+        
         # رویدادهای شخصی معلم
         personal_events = CalendarEvent.objects.filter(created_by=self.request.user)
         for event in personal_events:

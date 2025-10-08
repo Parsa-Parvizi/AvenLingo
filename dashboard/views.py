@@ -1346,7 +1346,7 @@ class AdminCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from core.models import CalendarEvent
-        from course.models import Course, Assignment
+        from course.models import Course, Assignment, Exam
         
         # دریافت تمام رویدادها
         events = []
@@ -1385,6 +1385,19 @@ class AdminCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'start': assignment.due_date.isoformat(),
                 'color': '#FF9800',
                 'type': 'assignment',
+            })
+        
+        # امتحانات
+        exams = Exam.objects.filter(is_active=True)
+        for exam in exams:
+            color = '#F44336' if exam.exam_type == 'final' else '#FF5722' if exam.exam_type == 'midterm' else '#9C27B0'
+            events.append({
+                'id': f'exam-{exam.id}',
+                'title': f'📊 {exam.title}',
+                'start': exam.scheduled_start.isoformat(),
+                'end': exam.scheduled_end.isoformat(),
+                'color': color,
+                'type': 'exam',
             })
         
         context['events_json'] = json.dumps(events)
@@ -1437,6 +1450,23 @@ class StudentCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
                 'color': '#FF9800',
                 'type': 'assignment',
             })
+        
+        # امتحانات دوره‌های ثبت‌نام شده
+        from course.models import Exam
+        exams = Exam.objects.filter(course_id__in=course_ids, is_active=True)
+        for exam in exams:
+            # فقط امتحانات قابل رویت را نمایش بده
+            can_see, _ = exam.can_student_see(student)
+            if can_see:
+                color = '#F44336' if exam.exam_type == 'final' else '#FF5722' if exam.exam_type == 'midterm' else '#9C27B0'
+                events.append({
+                    'id': f'exam-{exam.id}',
+                    'title': f'📊 {exam.title}',
+                    'start': exam.scheduled_start.isoformat(),
+                    'end': exam.scheduled_end.isoformat(),
+                    'color': color,
+                    'type': 'exam',
+                })
         
         context['events_json'] = json.dumps(events)
         return context

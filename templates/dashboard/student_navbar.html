@@ -1,0 +1,109 @@
+{% load static %}
+
+<nav class="student-navbar" dir="rtl">
+    <div class="container-fluid">
+        <div class="student-nav-content">
+            <div class="student-brand">
+                <h5 class="mb-0">پنل زبان‌آموز</h5>
+            </div>
+            
+            <ul class="student-nav-menu">
+                <li><a href="{% url 'dashboard:student_dashboard' %}" class="{% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">🏠 داشبورد</a></li>
+                <li><a href="{% url 'dashboard:student_calendar' %}" class="{% if request.resolver_match.url_name == 'student_calendar' %}active{% endif %}">📅 تقویم</a></li>
+                <li><a href="{% url 'course:student_exams' %}" class="{% if 'exam' in request.resolver_match.url_name %}active{% endif %}">📝 امتحانات</a></li>
+                <li><a href="#" class="{% if 'assignment' in request.resolver_match.url_name %}active{% endif %}">📋 تکالیف</a></li>
+                <li><a href="#" class="{% if 'grade' in request.resolver_match.url_name %}active{% endif %}">📊 نمرات</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+.student-navbar {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 12px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 80px;
+    z-index: 999;
+}
+
+.student-nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.student-brand {
+    color: white;
+}
+
+.student-brand h5 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.student-nav-menu {
+    display: flex;
+    gap: 5px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+    justify-content: center;
+}
+
+.student-nav-menu li {
+    margin: 0;
+}
+
+.student-nav-menu a {
+    display: block;
+    padding: 8px 14px;
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.student-nav-menu a:hover {
+    background: rgba(255,255,255,0.15);
+    color: white;
+}
+
+.student-nav-menu a.active {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+    .student-nav-menu {
+        gap: 3px;
+    }
+    
+    .student-nav-menu a {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .student-nav-content {
+        flex-wrap: wrap;
+    }
+    
+    .student-nav-menu {
+        width: 100%;
+        overflow-x: auto;
+        padding: 10px 0;
+        justify-content: flex-start;
+    }
+}
+</style>
+

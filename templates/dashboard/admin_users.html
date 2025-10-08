@@ -7,15 +7,23 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
 </style>
 {% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
 <style>
+    html {
+        scroll-behavior: smooth;
+    }
+    
     body { padding-top: 0 !important; }
     .content { margin-top: 0 !important; }
+    
+    #users-list {
+        scroll-margin-top: 100px;
+    }
     
     .page-header {
         color: var(--color-primary);
@@ -40,6 +48,126 @@
         white-space: nowrap;
         padding: 12px 15px;
     }
+    
+    .section-title {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--color-background);
+    }
+    
+    .pagination {
+        display: flex !important;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-item {
+        display: inline-block !important;
+    }
+    
+    .page-item .page-link {
+        display: block !important;
+        padding: 10px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        color: #1F3A93 !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        background: white !important;
+        cursor: pointer;
+        min-width: 45px;
+        text-align: center;
+    }
+    
+    .page-item .page-link:hover {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .page-item.active .page-link {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        cursor: default;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d !important;
+        pointer-events: none;
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .btn-add-teacher {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-add-teacher:hover {
+        background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-add-teacher i {
+        font-size: 1.1rem;
+    }
+    
+    .btn-add-student {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+    
+    .btn-add-student:hover {
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    }
+    
+    .btn-add-student i {
+        font-size: 1.1rem;
+    }
 </style>
 {% endblock %}
 
@@ -47,15 +175,28 @@
 {% include 'dashboard/admin_navbar.html' %}
 
 <div class="container-fluid py-4" dir="rtl">
-    <h2 class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-header mb-0">
+            {% if user_type_filter == 'teacher' %}
+                مدیریت معلمان
+            {% elif user_type_filter == 'student' %}
+                مدیریت زبان‌آموزان
+            {% else %}
+                مدیریت کاربران
+            {% endif %}
+        </h2>
         {% if user_type_filter == 'teacher' %}
-            مدیریت معلمان
+        <a href="{% url 'dashboard:admin_teacher_register' %}" class="btn-add-teacher">
+            <i class="fas fa-plus-circle"></i>
+            ثبت معلم جدید
+        </a>
         {% elif user_type_filter == 'student' %}
-            مدیریت زبان‌آموزان
-        {% else %}
-            مدیریت کاربران
+        <a href="{% url 'dashboard:admin_student_register' %}" class="btn-add-student">
+            <i class="fas fa-plus-circle"></i>
+            ثبت زبان‌آموز جدید
+        </a>
         {% endif %}
-    </h2>
+    </div>
 
     <!-- فیلترها -->
     <div class="row mb-4">
@@ -90,17 +231,17 @@
     </div>
 
     <!-- لیست کاربران -->
-    <div class="row">
+    <div class="row" id="users-list">
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
                         {% if user_type_filter == 'teacher' %}
-                            لیست معلمان ({{ users.count|persian_numbers }})
+                            لیست معلمان ({{ users.paginator.count|persian_numbers }} معلم - صفحه {{ users.number|persian_numbers }} از {{ users.paginator.num_pages|persian_numbers }})
                         {% elif user_type_filter == 'student' %}
-                            لیست زبان‌آموزان ({{ users.count|persian_numbers }})
+                            لیست زبان‌آموزان ({{ users.paginator.count|persian_numbers }} زبان‌آموز - صفحه {{ users.number|persian_numbers }} از {{ users.paginator.num_pages|persian_numbers }})
                         {% else %}
-                            لیست کاربران ({{ users.count|persian_numbers }})
+                            لیست کاربران ({{ users.paginator.count|persian_numbers }} کاربر - صفحه {{ users.number|persian_numbers }} از {{ users.paginator.num_pages|persian_numbers }})
                         {% endif %}
                     </h5>
                 </div>
@@ -153,9 +294,130 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    <div class="mt-4 mb-3" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <small style="color: #666; font-weight: 600;">
+                                کل کاربران: {{ users.paginator.count|persian_numbers }} | 
+                                صفحه فعلی: {{ users.number|persian_numbers }} | 
+                                کل صفحات: {{ users.paginator.num_pages|persian_numbers }}
+                            </small>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <ul class="pagination mb-0">
+                            <!-- دکمه اول -->
+                            <li class="page-item {% if not users.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if users.has_previous %}?page=1{% if user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#users-list{% else %}#{% endif %}">
+                                    « اول
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه قبلی -->
+                            <li class="page-item {% if not users.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if users.has_previous %}?page={{ users.previous_page_number }}{% if user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#users-list{% else %}#{% endif %}">
+                                    ‹ قبلی
+                                </a>
+                            </li>
+                            
+                            <!-- شماره صفحات -->
+                            {% for num in users.paginator.page_range %}
+                                {% if num == users.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num|persian_numbers }}</span>
+                                    </li>
+                                {% elif num <= 3 or num >= users.paginator.num_pages|add:'-2' or num >= users.number|add:'-2' and num <= users.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#users-list">
+                                            {{ num|persian_numbers }}
+                                        </a>
+                                    </li>
+                                {% elif num == users.number|add:'-3' or num == users.number|add:'3' %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- دکمه بعدی -->
+                            <li class="page-item {% if not users.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if users.has_next %}?page={{ users.next_page_number }}{% if user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#users-list{% else %}#{% endif %}">
+                                    بعدی ›
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه آخر -->
+                            <li class="page-item {% if not users.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if users.has_next %}?page={{ users.paginator.num_pages }}{% if user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#users-list{% else %}#{% endif %}">
+                                    آخر »
+                                </a>
+                            </li>
+                        </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- محبوب‌ترین معلمان -->
+    {% if user_type_filter == 'teacher' %}
+    <h3 class="section-title mt-5">⭐ محبوب‌ترین معلمان</h3>
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">برترین معلمان بر اساس تعداد ثبت‌نام</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover w-100">
+                            <thead>
+                                <tr>
+                                    <th>رتبه</th>
+                                    <th>نام معلم</th>
+                                    <th>ثبت‌نام‌های تأیید شده</th>
+                                    <th>دوره‌های فعال</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in popular_teachers %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                            🥇
+                                        {% elif forloop.counter == 2 %}
+                                            🥈
+                                        {% elif forloop.counter == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ forloop.counter|persian_numbers }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong style="color: var(--color-primary);">
+                                            {{ teacher.user.get_full_name }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success">{{ teacher.confirmed_enrollments|persian_numbers }}</span>
+                                    </td>
+                                    <td>{{ teacher.active_courses_count|persian_numbers }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">معلمی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %} 

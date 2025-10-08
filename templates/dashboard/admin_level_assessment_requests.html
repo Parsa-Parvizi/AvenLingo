@@ -7,7 +7,7 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
 </style>
 {% endblock %}
 
@@ -23,29 +23,22 @@
         font-size: 1.8rem;
         margin-bottom: 25px;
         padding-bottom: 15px;
-        border-bottom: 3px solid var(--color-secondary);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        border-bottom: 3px solid var(--color-accent);
     }
-
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 25px;
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
     }
-
-    .stats-card h3 {
-        font-size: 16px;
-        opacity: 0.9;
-        margin-bottom: 10px;
+    
+    .table {
+        width: 100%;
+        table-layout: auto;
     }
-
-    .stats-card .number {
-        font-size: 36px;
-        font-weight: 700;
+    
+    .table th, .table td {
+        white-space: nowrap;
+        padding: 12px 15px;
     }
 </style>
 {% endblock %}
@@ -54,52 +47,48 @@
 {% include 'dashboard/admin_navbar.html' %}
 
 <div class="container-fluid py-4" dir="rtl">
-    <div class="page-header">
-        <div>
-            <i class="fas fa-clipboard-check me-2"></i>
-            مدیریت درخواست‌های تعیین سطح
-        </div>
-        <div class="stats-card" style="padding: 10px 20px; margin: 0;">
-            <span style="font-size: 14px; opacity: 0.9;">کل درخواست‌ها: </span>
-            <span style="font-size: 24px; font-weight: 700;">{{ total_requests }}</span>
-        </div>
-    </div>
+    <h2 class="page-header">درخواست‌های تعیین سطح</h2>
 
-    <!-- جستجو -->
+    <!-- فیلترها -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-8">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
                             <label class="form-label">جستجو</label>
                             <input type="text" name="search" class="form-select" 
                                    placeholder="نام، ایمیل یا شماره تماس..." 
                                    value="{{ search_query }}">
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
                                 <i class="fas fa-search"></i> جستجو
                             </button>
-                            {% if search_query %}
-                            <a href="{% url 'dashboard:admin_level_assessment_requests' %}" class="btn btn-secondary">
+                        </div>
+                        {% if search_query %}
+                        <div class="filter-col filter-btn">
+                            <a href="{% url 'dashboard:admin_level_assessment_requests' %}" class="btn btn-secondary w-100 btn-lg">
                                 <i class="fas fa-times"></i> حذف فیلتر
                             </a>
-                            {% endif %}
                         </div>
+                        {% endif %}
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- جدول درخواست‌ها -->
+    <!-- لیست درخواست‌ها -->
     <div class="row">
         <div class="col-12">
             <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست درخواست‌ها ({{ requests.paginator.count|persian_numbers }})</h5>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table table-hover w-100">
                             <thead>
                                 <tr>
                                     <th>شناسه</th>
@@ -113,16 +102,18 @@
                             <tbody>
                                 {% for req in requests %}
                                 <tr>
-                                    <td>{{ req.id }}</td>
-                                    <td>{{ req.name }}</td>
+                                    <td>{{ req.id|persian_numbers }}</td>
+                                    <td><strong>{{ req.name }}</strong></td>
                                     <td>{{ req.email }}</td>
-                                    <td>{{ req.phone }}</td>
+                                    <td>{{ req.phone|persian_numbers }}</td>
                                     <td>{{ req.submitted_at|jalali_datetime }}</td>
                                     <td>
-                                        <a href="{% url 'dashboard:admin_level_assessment_detail' req.id %}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> مشاهده
-                                        </a>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'dashboard:admin_level_assessment_detail' req.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> مشاهده
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -144,5 +135,6 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}

@@ -26,9 +26,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        # فقط superuser به admin dashboard می‌رود
+        # فقط superuser به admin calendar می‌رود
         if user.is_superuser:
-            return redirect('dashboard:admin_dashboard')
+            return redirect('dashboard:admin_calendar')
         elif user.user_type == 'student':
             return redirect('dashboard:student_dashboard')
         elif user.user_type == 'teacher':
@@ -50,7 +50,7 @@ class StudentDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         # اگر کاربر superuser است، اجازه دسترسی به student dashboard را نده
         if request.user.is_superuser:
             messages.error(request, 'کاربران ادمین باید از داشبورد مدیریت استفاده کنند.')
-            return redirect('dashboard:admin_dashboard')
+            return redirect('dashboard:admin_calendar')
             
         try:
             _ = Student.objects.get(user=request.user)
@@ -151,7 +151,7 @@ class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         # اگر کاربر superuser است، اجازه دسترسی به teacher dashboard را نده
         if request.user.is_superuser:
             messages.error(request, 'کاربران ادمین باید از داشبورد مدیریت استفاده کنند.')
-            return redirect('dashboard:admin_dashboard')
+            return redirect('dashboard:admin_calendar')
             
         try:
             _ = Teacher.objects.get(user=request.user)
@@ -422,10 +422,29 @@ class AdminUsersListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 Q(last_name__icontains=search_query)
             )
         
-        context['users'] = users.order_by('-date_joined')
+        # Pagination
+        from django.core.paginator import Paginator
+        users_ordered = users.order_by('-date_joined')
+        paginator = Paginator(users_ordered, 10)  # 10 کاربر در هر صفحه
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['users'] = page_obj
         context['user_type_filter'] = user_type
         context['is_active_filter'] = is_active
         context['search_query'] = search_query
+        
+        # اگر فیلتر روی معلمان است، لیست محبوب‌ترین‌ها را نمایش بده
+        if user_type == 'teacher':
+            popular_teachers = Teacher.objects.filter(
+                is_active=True
+            ).select_related('user').annotate(
+                confirmed_enrollments=Count('courses__enrollments',
+                                          filter=Q(courses__enrollments__status='confirmed')),
+                active_courses_count=Count('courses', filter=Q(courses__is_active=True))
+            ).filter(confirmed_enrollments__gt=0).order_by('-confirmed_enrollments')[:10]
+            
+            context['popular_teachers'] = popular_teachers
         
         return context
 
@@ -465,12 +484,28 @@ class AdminCoursesListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
                 Q(description__icontains=search_query)
             )
         
-        context['courses'] = courses.order_by('-created_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        courses_ordered = courses.order_by('-created_at')
+        paginator = Paginator(courses_ordered, 10)  # 10 دوره در هر صفحه
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['courses'] = page_obj
         context['categories'] = Category.objects.all()
         context['status_filter'] = status
         context['is_active_filter'] = is_active
         context['category_filter'] = category
         context['search_query'] = search_query
+        
+        # لیست محبوب‌ترین دوره‌ها
+        popular_courses = Course.objects.filter(
+            is_active=True
+        ).select_related('teacher__user', 'category').annotate(
+            enrollment_count=Count('enrollments', filter=Q(enrollments__status='confirmed'))
+        ).filter(enrollment_count__gt=0).order_by('-enrollment_count')[:10]
+        
+        context['popular_courses'] = popular_courses
         
         return context
 
@@ -507,10 +542,41 @@ class AdminEnrollmentsListView(LoginRequiredMixin, UserPassesTestMixin, Template
                 Q(course__title__icontains=search_query)
             )
         
-        context['enrollments'] = enrollments.order_by('-enrolled_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        enrollments_ordered = enrollments.order_by('-enrolled_at')
+        paginator = Paginator(enrollments_ordered, 10)  # 10 ثبت‌نام در هر صفحه
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['enrollments'] = page_obj
         context['status_filter'] = status
         context['payment_status_filter'] = payment_status
         context['search_query'] = search_query
+        
+        # آمار وضعیت ثبت‌نام‌ها برای نمودار
+        enrollment_stats = {
+            'confirmed': Enrollment.objects.filter(status='confirmed').count(),
+            'pending': Enrollment.objects.filter(status='pending').count(),
+            'cancelled': Enrollment.objects.filter(status='cancelled').count(),
+            'completed': Enrollment.objects.filter(status='completed').count(),
+        }
+        context['enrollment_stats'] = enrollment_stats
+        
+        # داده‌های نمودار ثبت‌نام‌های ماهانه (12 ماه گذشته)
+        monthly_data = []
+        for i in range(11, -1, -1):
+            month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30*i)
+            month_end = month_start + timedelta(days=30)
+            
+            count = Enrollment.objects.filter(
+                enrolled_at__gte=month_start,
+                enrolled_at__lt=month_end
+            ).count()
+            
+            monthly_data.append(str(count))
+        
+        context['monthly_enrollment_data'] = ', '.join(monthly_data)
         
         return context
 
@@ -676,7 +742,14 @@ class AdminApplicationsListView(LoginRequiredMixin, UserPassesTestMixin, Templat
         if status != 'all':
             applications = applications.filter(status=status)
         
-        context['applications'] = applications.order_by('-submitted_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        applications_ordered = applications.order_by('-submitted_at')
+        paginator = Paginator(applications_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['applications'] = page_obj
         context['status_filter'] = status
         
         return context
@@ -700,7 +773,14 @@ class AdminCourseRequestsView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         if status != 'all':
             requests = requests.filter(status=status)
         
-        context['requests'] = requests.order_by('-created_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        requests_ordered = requests.order_by('-created_at')
+        paginator = Paginator(requests_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['requests'] = page_obj
         context['status_filter'] = status
         context['pending_count'] = CourseRequest.objects.filter(status='pending').count()
         
@@ -725,7 +805,14 @@ class AdminConsultationRequestsView(LoginRequiredMixin, UserPassesTestMixin, Tem
         if status != 'all':
             requests = requests.filter(status=status)
         
-        context['requests'] = requests.order_by('-created_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        requests_ordered = requests.order_by('-created_at')
+        paginator = Paginator(requests_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['requests'] = page_obj
         context['status_filter'] = status
         context['pending_count'] = ConsultationRequest.objects.filter(status='pending').count()
         
@@ -924,19 +1011,60 @@ class AdminTeacherRegisterView(LoginRequiredMixin, UserPassesTestMixin, Template
             return redirect('dashboard:admin_teacher_register')
 
 
+class AdminStudentRegisterView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """ثبت‌نام دستی زبان‌آموز توسط ادمین"""
+    template_name = 'dashboard/admin_student_register.html'
+    
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email')
+        
+        # بررسی ایمیل تکراری
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'این ایمیل قبلاً ثبت شده است.')
+            return redirect('dashboard:admin_student_register')
+        
+        # ایجاد یوزر و زبان‌آموز
+        try:
+            user = User.objects.create_user(
+                email=email,
+                password=request.POST.get('password'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name'),
+                user_type='student',
+                is_active=True,
+                is_email_verified=True
+            )
+            
+            student = Student.objects.create(
+                user=user,
+                phone_number=request.POST.get('phone', ''),
+                english_level=request.POST.get('current_level', ''),
+                goals=request.POST.get('learning_goal', '')
+            )
+            
+            messages.success(request, f'زبان‌آموز {user.get_full_name()} با موفقیت ثبت شد.')
+            return redirect('dashboard:admin_users')
+            
+        except Exception as e:
+            messages.error(request, f'خطا در ثبت زبان‌آموز: {str(e)}')
+            return redirect('dashboard:admin_student_register')
+
+
 @login_required
-def delete_session(request, pk):
+def delete_session(request, session_key):
     """حذف نشست"""
     if not (request.user.is_superuser or request.user.is_staff):
         messages.error(request, 'دسترسی غیرمجاز.')
-        return redirect('dashboard:admin_dashboard')
+        return redirect('dashboard:admin_calendar')
     
     from django.contrib.sessions.models import Session
     from .models import LoginHistory
     
     try:
-        session = Session.objects.get(pk=pk)
-        session_key = session.session_key
+        session = Session.objects.get(session_key=session_key)
         session.delete()
         
         # بروزرسانی LoginHistory
@@ -1256,7 +1384,14 @@ class AdminLevelAssessmentRequestsView(LoginRequiredMixin, UserPassesTestMixin, 
                 Q(phone__icontains=search_query)
             )
         
-        context['requests'] = requests.order_by('-submitted_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        requests_ordered = requests.order_by('-submitted_at')
+        paginator = Paginator(requests_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['requests'] = page_obj
         context['search_query'] = search_query
         context['total_requests'] = DeterminationRequest.objects.count()
         
@@ -1371,7 +1506,14 @@ class AdminPrivateClassRequestsView(LoginRequiredMixin, UserPassesTestMixin, Tem
         if status != 'all':
             requests = requests.filter(status=status)
         
-        context['requests'] = requests.order_by('-created_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        requests_ordered = requests.order_by('-created_at')
+        paginator = Paginator(requests_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['requests'] = page_obj
         context['status_filter'] = status
         context['pending_count'] = PrivateClassRequest.objects.filter(status='pending').count()
         context['contacted_count'] = PrivateClassRequest.objects.filter(status='contacted').count()
@@ -1429,7 +1571,14 @@ class AdminContactMessagesView(LoginRequiredMixin, UserPassesTestMixin, Template
         if status != 'all':
             messages_qs = messages_qs.filter(status=status)
         
-        context['messages'] = messages_qs.order_by('-created_at')
+        # Pagination
+        from django.core.paginator import Paginator
+        messages_ordered = messages_qs.order_by('-created_at')
+        paginator = Paginator(messages_ordered, 10)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        context['messages'] = page_obj
         context['status_filter'] = status
         context['new_count'] = ContactMessage.objects.filter(status='new').count()
         context['read_count'] = ContactMessage.objects.filter(status='read').count()
@@ -1527,7 +1676,7 @@ class AdminCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'id': f'assignment-{assignment.id}',
                 'title': f'📝 {assignment.title}',
                 'start': assignment.due_date.isoformat(),
-                'color': '#FF9800',
+                'color': '#2196F3',
                 'type': 'assignment',
             })
         
@@ -1591,7 +1740,7 @@ class StudentCalendarView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
                 'id': f'assignment-{assignment.id}',
                 'title': f'📝 {assignment.title} ({assignment.course.title})',
                 'start': assignment.due_date.isoformat(),
-                'color': '#FF9800',
+                'color': '#2196F3',
                 'type': 'assignment',
             })
         
@@ -1621,7 +1770,7 @@ def export_financial_pdf(request):
     """تولید گزارش مالی به صورت PDF"""
     if not request.user.is_superuser:
         messages.error(request, 'شما دسترسی لازم برای این عملیات را ندارید.')
-        return redirect('dashboard:admin_dashboard')
+        return redirect('dashboard:admin_calendar')
     
     from django.template.loader import render_to_string
     from django.http import HttpResponse

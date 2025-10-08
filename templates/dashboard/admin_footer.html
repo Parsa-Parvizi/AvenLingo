@@ -1,0 +1,54 @@
+{% load persian_filters %}
+<footer class="admin-footer" dir="rtl">
+    <div class="admin-footer-content">
+        <div class="footer-left">
+            <p>&copy; {% now "Y"|persian_numbers %} آکادمی زبان آون - تمامی حقوق محفوظ است</p>
+        </div>
+        <div class="footer-center">
+            <p>پنل مدیریت | نسخه ۱.۰.۰</p>
+        </div>
+        <div class="footer-right">
+            <p>طراحی و توسعه با ❤️</p>
+        </div>
+    </div>
+</footer>
+
+<style>
+.admin-footer {
+    background: white;
+    border-top: 2px solid #e9ecef;
+    padding: 20px 0;
+    margin-top: 60px;
+    width: 100%;
+}
+
+.admin-footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.admin-footer p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.footer-center p {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+    .admin-footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
+

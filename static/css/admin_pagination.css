@@ -1,0 +1,58 @@
+/* Admin Pagination Styles */
+html {
+    scroll-behavior: smooth;
+}
+
+.pagination {
+    display: flex !important;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-item {
+    display: inline-block !important;
+}
+
+.page-item .page-link {
+    display: block !important;
+    padding: 10px 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    color: #1F3A93 !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    background: white !important;
+    cursor: pointer;
+    min-width: 45px;
+    text-align: center;
+}
+
+.page-item .page-link:hover {
+    background: #1F3A93 !important;
+    color: white !important;
+    border-color: #1F3A93;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.page-item.active .page-link {
+    background: #1F3A93 !important;
+    color: white !important;
+    border-color: #1F3A93;
+    cursor: default;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d !important;
+    pointer-events: none;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+

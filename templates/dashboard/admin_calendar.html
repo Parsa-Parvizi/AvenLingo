@@ -7,7 +7,7 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
 </style>
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
 {% endblock %}
@@ -18,19 +18,13 @@
     
     <main class="admin-main-content">
         <div class="admin-header">
-            <h1> تقویم مدیریت</h1>
-            <div class="calendar-view-buttons">
-                <button class="btn btn-sm btn-primary" onclick="calendar.changeView('dayGridMonth')">ماهانه</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridWeek')">هفتگی</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="calendar.changeView('timeGridDay')">روزانه</button>
-                <button class="btn btn-sm btn-success" onclick="calendar.today()">امروز</button>
-            </div>
+            <h1>📅 تقویم مدیریت</h1>
         </div>
 
         <!-- Legend -->
         <div class="calendar-legend mb-3">
             <span class="legend-item"><span class="legend-color" style="background: #4CAF50;"></span> کلاس‌ها</span>
-            <span class="legend-item"><span class="legend-color" style="background: #FF9800;"></span> تکالیف</span>
+            <span class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> تکالیف</span>
             <span class="legend-item"><span class="legend-color" style="background: #F44336;"></span> امتحان نهایی</span>
             <span class="legend-item"><span class="legend-color" style="background: #FF5722;"></span> میان‌ترم</span>
             <span class="legend-item"><span class="legend-color" style="background: #9C27B0;"></span> کوییز</span>
@@ -46,11 +40,6 @@
 </div>
 
 <style>
-.calendar-view-buttons {
-    display: flex;
-    gap: 10px;
-}
-
 .calendar-legend {
     display: flex;
     gap: 20px;
@@ -106,6 +95,32 @@
 .fc-col-header-cell-cushion {
     font-family: 'Vazir', sans-serif;
 }
+
+.fc-button {
+    font-family: 'Vazir', sans-serif !important;
+    font-size: 0.9rem !important;
+    padding: 6px 12px !important;
+}
+
+.fc-toolbar {
+    margin-bottom: 1rem !important;
+}
+
+.fc-button-primary {
+    background-color: #1F3A93 !important;
+    border-color: #1F3A93 !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #162d6e !important;
+    border-color: #162d6e !important;
+}
+
+.fc-button-primary:not(:disabled):active,
+.fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #162d6e !important;
+    border-color: #162d6e !important;
+}
 </style>
 {% endblock %}
 
@@ -123,15 +138,17 @@ document.addEventListener('DOMContentLoaded', function() {
         locale: 'fa',
         direction: 'rtl',
         headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            left: 'title',
+            center: '',
+            right: 'prev,next today dayGridMonth,timeGridWeek,timeGridDay'
         },
         buttonText: {
             today: 'امروز',
             month: 'ماهانه',
             week: 'هفتگی',
-            day: 'روزانه'
+            day: 'روزانه',
+            prev: 'قبلی',
+            next: 'بعدی'
         },
         events: events,
         eventClick: function(info) {
@@ -158,4 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
     calendar.render();
 });
 </script>
+
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %}

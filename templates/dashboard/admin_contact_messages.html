@@ -7,105 +7,143 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+<style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
+    }
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+        table-layout: auto;
+    }
+    
+    .table th, .table td {
+        white-space: nowrap;
+        padding: 12px 15px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="admin-dashboard-container">
-    {% include 'dashboard/admin_navbar.html' %}
-    
-    <main class="admin-main-content">
-        <div class="admin-header">
-            <h1> پیام‌های پشتیبانی</h1>
-            <div class="admin-header-actions">
-                <span class="badge bg-warning">{{ new_count|persian_numbers }} جدید</span>
-                <span class="badge bg-info">{{ read_count|persian_numbers }} خوانده شده</span>
-                <span class="badge bg-success">{{ replied_count|persian_numbers }} پاسخ داده شده</span>
-            </div>
-        </div>
+{% include 'dashboard/admin_navbar.html' %}
 
-        <!-- Filters -->
-        <div class="filters-section mb-4">
-            <div class="btn-group" role="group">
-                <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    همه
-                </a>
-                <a href="?status=new" class="btn btn-sm {% if status_filter == 'new' %}btn-warning{% else %}btn-outline-warning{% endif %}">
-                    جدید
-                </a>
-                <a href="?status=read" class="btn btn-sm {% if status_filter == 'read' %}btn-info{% else %}btn-outline-info{% endif %}">
-                    خوانده شده
-                </a>
-                <a href="?status=replied" class="btn btn-sm {% if status_filter == 'replied' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    پاسخ داده شده
-                </a>
-                <a href="?status=archived" class="btn btn-sm {% if status_filter == 'archived' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-                    بایگانی
-                </a>
-            </div>
-        </div>
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">پیام‌های پشتیبانی</h2>
 
-        <!-- Messages Table -->
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>نام</th>
-                                <th>موضوع</th>
-                                <th>ایمیل</th>
-                                <th>تلفن</th>
-                                <th>وضعیت</th>
-                                <th>تاریخ ارسال</th>
-                                <th>عملیات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for msg in messages %}
-                            <tr class="{% if msg.status == 'new' %}table-warning{% endif %}">
-                                <td><strong>{{ msg.name }}</strong></td>
-                                <td>
-                                    {% if msg.subject|length > 40 %}
-                                        {{ msg.subject|slice:":40" }}...
-                                    {% else %}
-                                        {{ msg.subject }}
-                                    {% endif %}
-                                </td>
-                                <td>{{ msg.email }}</td>
-                                <td>{{ msg.phone|persian_numbers|default:"—" }}</td>
-                                <td>
-                                    {% if msg.status == 'new' %}
-                                        <span class="badge bg-warning text-dark">🆕 جدید</span>
-                                    {% elif msg.status == 'read' %}
-                                        <span class="badge bg-info">👁️ خوانده شده</span>
-                                    {% elif msg.status == 'replied' %}
-                                        <span class="badge bg-success">✅ پاسخ داده شده</span>
-                                    {% elif msg.status == 'archived' %}
-                                        <span class="badge bg-secondary">📦 بایگانی</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ msg.created_at|jalali_short }}</td>
-                                <td>
-                                    <a href="{% url 'dashboard:admin_contact_message_detail' msg.id %}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i> مشاهده
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                    <p>پیامی یافت نشد</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-body">
+                    <form method="get" class="filter-row">
+                        <div class="filter-col">
+                            <label class="form-label">وضعیت</label>
+                            <select name="status" class="form-select">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه</option>
+                                <option value="new" {% if status_filter == 'new' %}selected{% endif %}>جدید</option>
+                                <option value="read" {% if status_filter == 'read' %}selected{% endif %}>خوانده شده</option>
+                                <option value="replied" {% if status_filter == 'replied' %}selected{% endif %}>پاسخ داده شده</option>
+                                <option value="archived" {% if status_filter == 'archived' %}selected{% endif %}>بایگانی</option>
+                            </select>
+                        </div>
+                        <div class="filter-col filter-btn">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <!-- لیست پیام‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">لیست پیام‌ها ({{ messages.paginator.count|persian_numbers }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover w-100">
+                            <thead>
+                                <tr>
+                                    <th>نام</th>
+                                    <th>موضوع</th>
+                                    <th>ایمیل</th>
+                                    <th>تلفن</th>
+                                    <th>تاریخ ارسال</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for msg in messages %}
+                                <tr {% if msg.status == 'new' %}class="table-warning"{% endif %}>
+                                    <td><strong>{{ msg.name }}</strong></td>
+                                    <td>
+                                        {% if msg.subject|length > 40 %}
+                                            {{ msg.subject|slice:":40" }}...
+                                        {% else %}
+                                            {{ msg.subject }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ msg.email }}</td>
+                                    <td>{{ msg.phone|persian_numbers|default:"—" }}</td>
+                                    <td>{{ msg.created_at|jalali_short }}</td>
+                                    <td>
+                                        {% if msg.status == 'new' %}
+                                            <span class="badge badge-warning">جدید</span>
+                                        {% elif msg.status == 'read' %}
+                                            <span class="badge badge-info">خوانده شده</span>
+                                        {% elif msg.status == 'replied' %}
+                                            <span class="badge badge-success">پاسخ داده شده</span>
+                                        {% elif msg.status == 'archived' %}
+                                            <span class="badge badge-secondary">بایگانی</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'dashboard:admin_contact_message_detail' msg.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> مشاهده
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">پیامی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %}

@@ -1,4 +1,5 @@
 from django.urls import path
+from django.shortcuts import redirect
 from . import views
 
 app_name = 'dashboard'
@@ -8,8 +9,8 @@ urlpatterns = [
     path('student/', views.StudentDashboardView.as_view(), name='student_dashboard'),
     path('teacher/', views.TeacherDashboardView.as_view(), name='teacher_dashboard'),
     
-    # Admin Dashboard URLs
-    path('admin/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
+    # Admin Dashboard URLs - Redirect to Calendar
+    path('admin/', lambda request: redirect('dashboard:admin_calendar'), name='admin_dashboard'),
     path('admin/users/', views.AdminUsersListView.as_view(), name='admin_users'),
     path('admin/users/<uuid:user_id>/', views.AdminUserDetailView.as_view(), name='admin_user_detail'),
     path('admin/courses/', views.AdminCoursesListView.as_view(), name='admin_courses'),
@@ -49,5 +50,6 @@ urlpatterns = [
     
     # Admin Actions
     path('admin/teacher/register/', views.AdminTeacherRegisterView.as_view(), name='admin_teacher_register'),
-    path('admin/session/<int:pk>/delete/', views.delete_session, name='delete_session'),
+    path('admin/student/register/', views.AdminStudentRegisterView.as_view(), name='admin_student_register'),
+    path('admin/session/<str:session_key>/delete/', views.delete_session, name='delete_session'),
 ] 

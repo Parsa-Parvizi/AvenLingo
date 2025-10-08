@@ -6,19 +6,23 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
 </style>
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
 <style>
+    body { padding-top: 0 !important; }
+    .content { margin-top: 0 !important; }
+    
     .page-header {
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
     }
 </style>
 {% endblock %}
@@ -26,11 +30,8 @@
 {% block content %}
 {% include 'dashboard/admin_navbar.html' %}
 
-<div class="container my-4">
-    <div class="page-header">
-        <h2 class="mb-2">ثبت‌نام دستی معلم</h2>
-        <p class="mb-0">ثبت معلم جدید توسط مدیر سیستم</p>
-    </div>
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">ثبت معلم جدید</h2>
 
     <div class="row">
         <div class="col-lg-8 mx-auto">
@@ -104,11 +105,11 @@
                         <!-- دکمه‌ها -->
                         <div class="col-12 mt-4">
                             <div class="d-flex justify-content-between">
-                                <a href="{% url 'dashboard:admin_users' %}" class="btn btn-secondary">
-                                    انصراف
+                                <a href="{% url 'dashboard:admin_users' %}?user_type=teacher" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> انصراف
                                 </a>
                                 <button type="submit" class="btn btn-primary">
-                                    ثبت معلم
+                                    <i class="fas fa-check"></i> ثبت معلم
                                 </button>
                             </div>
                         </div>
@@ -117,9 +118,12 @@
             </div>
 
             <div class="alert alert-info mt-4">
+                <i class="fas fa-info-circle"></i>
                 <strong>نکته:</strong> معلم ثبت شده بلافاصله فعال می‌شود و می‌تواند وارد سیستم شود.
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+{% include 'dashboard/admin_footer.html' %}
+{% endblock %}

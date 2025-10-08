@@ -76,7 +76,7 @@
                         <td>{{ session_item.browser|default:"-" }}</td>
                         <td>{{ session_item.session.expire_date|jalali_datetime }}</td>
                         <td>
-                            <form method="post" action="{% url 'dashboard:delete_session' session_item.session.pk %}" style="display:inline;">
+                            <form method="post" action="{% url 'dashboard:delete_session' session_item.session.session_key %}" style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-danger" 
                                         onclick="return confirm('آیا مطمئن هستید؟')">

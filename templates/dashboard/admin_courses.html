@@ -7,15 +7,23 @@
 {% block extra_meta %}
 <style>
     nav:not(.admin-navbar) { display: none !important; }
-    footer { display: none !important; }
+    footer:not(.admin-footer) { display: none !important; }
 </style>
 {% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
 <style>
+    html {
+        scroll-behavior: smooth;
+    }
+    
     body { padding-top: 0 !important; }
     .content { margin-top: 0 !important; }
+    
+    #courses-list {
+        scroll-margin-top: 100px;
+    }
     
     .page-header {
         color: var(--color-primary);
@@ -39,6 +47,68 @@
     .table th, .table td {
         white-space: nowrap;
         padding: 12px 15px;
+    }
+    
+    .section-title {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--color-background);
+    }
+    
+    .pagination {
+        display: flex !important;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-item {
+        display: inline-block !important;
+    }
+    
+    .page-item .page-link {
+        display: block !important;
+        padding: 10px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        color: #1F3A93 !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        background: white !important;
+        cursor: pointer;
+        min-width: 45px;
+        text-align: center;
+    }
+    
+    .page-item .page-link:hover {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .page-item.active .page-link {
+        background: #1F3A93 !important;
+        color: white !important;
+        border-color: #1F3A93;
+        cursor: default;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d !important;
+        pointer-events: none;
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.5;
     }
 </style>
 {% endblock %}
@@ -103,11 +173,15 @@
     </div>
 
     <!-- لیست دوره‌ها -->
-    <div class="row">
+    <div class="row" id="courses-list">
         <div class="col-12">
             <div class="modern-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">لیست دوره‌ها ({{ courses.count|persian_numbers }})</h5>
+                    <h5 class="card-title mb-0">
+                        لیست دوره‌ها 
+                        ({{ courses.paginator.count|persian_numbers }} دوره - 
+                        صفحه {{ courses.number|persian_numbers }} از {{ courses.paginator.num_pages|persian_numbers }})
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -177,9 +251,132 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    <div class="mt-4 mb-3" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <small style="color: #666; font-weight: 600;">
+                                کل دوره‌ها: {{ courses.paginator.count|persian_numbers }} | 
+                                صفحه فعلی: {{ courses.number|persian_numbers }} | 
+                                کل صفحات: {{ courses.paginator.num_pages|persian_numbers }}
+                            </small>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <ul class="pagination mb-0">
+                            <!-- دکمه اول -->
+                            <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if courses.has_previous %}?page=1{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#courses-list{% else %}#{% endif %}">
+                                    « اول
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه قبلی -->
+                            <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if courses.has_previous %}?page={{ courses.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#courses-list{% else %}#{% endif %}">
+                                    ‹ قبلی
+                                </a>
+                            </li>
+                            
+                            <!-- شماره صفحات -->
+                            {% for num in courses.paginator.page_range %}
+                                {% if num == courses.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num|persian_numbers }}</span>
+                                    </li>
+                                {% elif num <= 3 or num >= courses.paginator.num_pages|add:'-2' or num >= courses.number|add:'-2' and num <= courses.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#courses-list">
+                                            {{ num|persian_numbers }}
+                                        </a>
+                                    </li>
+                                {% elif num == courses.number|add:'-3' or num == courses.number|add:'3' %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- دکمه بعدی -->
+                            <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if courses.has_next %}?page={{ courses.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#courses-list{% else %}#{% endif %}">
+                                    بعدی ›
+                                </a>
+                            </li>
+                            
+                            <!-- دکمه آخر -->
+                            <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if courses.has_next %}?page={{ courses.paginator.num_pages }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if is_active_filter != 'all' %}&is_active={{ is_active_filter }}{% endif %}{% if category_filter != 'all' %}&category={{ category_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}#courses-list{% else %}#{% endif %}">
+                                    آخر »
+                                </a>
+                            </li>
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- محبوب‌ترین دوره‌ها -->
+    <h3 class="section-title mt-5">⭐ محبوب‌ترین دوره‌ها</h3>
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">برترین دوره‌ها بر اساس تعداد ثبت‌نام</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover w-100">
+                            <thead>
+                                <tr>
+                                    <th>رتبه</th>
+                                    <th>عنوان دوره</th>
+                                    <th>معلم</th>
+                                    <th>دسته‌بندی</th>
+                                    <th>تعداد ثبت‌نام</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in popular_courses %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                            🥇
+                                        {% elif forloop.counter == 2 %}
+                                            🥈
+                                        {% elif forloop.counter == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ forloop.counter|persian_numbers }}
+                                        {% endif %}
+                                    </td>
+                                    <td><strong style="color: var(--color-primary);">{{ course.title }}</strong></td>
+                                    <td>{{ course.teacher.user.get_full_name }}</td>
+                                    <td>{{ course.category.name|default:"—" }}</td>
+                                    <td><span class="badge badge-success">{{ course.enrollment_count|persian_numbers }}</span></td>
+                                    <td>
+                                        {% if course.is_active %}
+                                            <span class="badge badge-success">فعال</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">غیرفعال</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">دوره‌ای یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{% include 'dashboard/admin_footer.html' %}
 {% endblock %} 

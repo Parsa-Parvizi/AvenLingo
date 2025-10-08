@@ -252,8 +252,8 @@ X_FRAME_OPTIONS = 'DENY'  # جلوگیری از clickjacking
 
 # Content Security Policy - HTTP only
 CSP_DEFAULT_SRC = ("'self'", "http:", "https:")
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http:", "https:", "cdnjs.cloudflare.com", "code.jquery.com", "cdn.jsdelivr.net")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "fonts.googleapis.com", "cdn.jsdelivr.net")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http:", "https:", "cdnjs.cloudflare.com", "code.jquery.com", "cdn.jsdelivr.net", "unpkg.com")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http:", "https:", "fonts.googleapis.com", "cdn.jsdelivr.net", "unpkg.com")
 CSP_FONT_SRC = ("'self'", "http:", "https:", "fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "http:", "https:", "data:")
 CSP_CONNECT_SRC = ("'self'", "http:", "https:")

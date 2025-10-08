@@ -5,13 +5,12 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"/>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     
     <link rel="preload" href="{% static 'fonts/Vazir.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{% static 'css/framework.css' %}" as="style">
     <link rel="preload" href="{% static 'css/main.css' %}" as="style">
-    <link rel="preload" href="{% static 'js/main.js' %}" as="script">
     
     <meta name="keywords" content="آوان,کلاس زبان,آموزش زبان انگلیسی, دوره‌های زبان, مبینا گرشاسبی"/>
     <meta name="description" content="وبسایت رسمی آموزشگاه آوان - آموزش زبان انگلیسی به صورت تخصصی و کلاس‌های آنلاین"/>
@@ -44,7 +43,7 @@
     <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
     
     <!-- Persian DatePicker -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
 
     {% block extra_meta %}{% endblock %} {% block extra_css %}{% endblock %}
 
@@ -56,16 +55,16 @@
 
     {% include 'footer.html' %}
 
-    <script src="{% static 'js/charts.js' %}" defer></script>
-    <script src="{% static 'js/icon-replacer.js' %}" defer></script>
-    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/charts.js' %}"></script>
+    <script src="{% static 'js/icon-replacer.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     
     <!-- jQuery (required for Persian DatePicker) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <!-- Persian DatePicker -->
-    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
-    <script src="{% static 'js/persian-datepicker-init.js' %}"></script>
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    <script src="{% static 'js/persian-datepicker-init.js' %}" defer></script>
 
     {% block extra_js %}{% endblock %}
   </body>

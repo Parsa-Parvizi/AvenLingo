@@ -75,7 +75,7 @@
                 
                 <!-- Support Form -->
                 <div class="col-lg-8">
-                    <div class="support-form-section">
+                    <div class="support-form-section" id="support-form">
                         <!-- Support Header -->
                         <div class="support-header">
                             <div class="support-icon-wrapper">
@@ -594,6 +594,21 @@ document.querySelector('a[href="#map"]')?.addEventListener('click', function(e) 
     document.getElementById('map')?.scrollIntoView({
         behavior: 'smooth'
     });
+});
+
+// Smooth scroll to support form when page loads with anchor
+window.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#support-form') {
+        setTimeout(function() {
+            const supportForm = document.getElementById('support-form');
+            if (supportForm) {
+                supportForm.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }, 100);
+    }
 });
 </script>
 {% endblock %}

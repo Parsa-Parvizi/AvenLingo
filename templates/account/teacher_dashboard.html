@@ -117,47 +117,24 @@
 
     <!-- آمار سریع -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stats-card primary">
                 <h3>{{ total_courses|persian_numbers }}</h3>
                 <div class="stats-label">دوره‌های فعال</div>
-                <div class="stats-footer">
-                    <a href="{% url 'teacher:teacher_courses' %}" class="text-decoration-none">
-                        مشاهده همه ←
-                    </a>
-                </div>
             </div>
         </div>
         
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stats-card success">
-                <h3>{{ total_students|persian_numbers }}</h3>
-                <div class="stats-label">دانش‌آموزان</div>
-                <div class="stats-footer">
-                    مجموع دانش‌آموزان فعال
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stats-card info">
                 <h3>{{ pending_assignments|persian_numbers }}</h3>
-                <div class="stats-label">تکالیف در انتظار</div>
-                <div class="stats-footer">
-                    <a href="{% url 'teacher:assignments' %}" class="text-decoration-none">
-                        مشاهده تکالیف ←
-                    </a>
-                </div>
+                <div class="stats-label">تکالیف در انتظار بررسی</div>
             </div>
         </div>
         
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stats-card warning">
                 <h3>{{ upcoming_classes|persian_numbers }}</h3>
                 <div class="stats-label">کلاس‌های پیش رو</div>
-                <div class="stats-footer">
-                    این هفته
-                </div>
             </div>
         </div>
     </div>

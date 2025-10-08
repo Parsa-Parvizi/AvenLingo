@@ -60,6 +60,65 @@ class TeacherCourseView(LoginRequiredMixin, View):
         return render(request, 'teacher/teacher_courses.html', context)
 
 
+class TeacherMyStudentsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش تمام زبان‌آموزان معلم در تمام دوره‌ها"""
+    template_name = 'teacher/my_students.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from enrollment.models import Enrollment
+        
+        # فیلترها
+        course_filter = self.request.GET.get('course', '')
+        search_query = self.request.GET.get('search', '')
+        
+        # دوره‌های معلم
+        courses = Course.objects.filter(teacher=teacher, is_active=True)
+        
+        if course_filter:
+            courses = courses.filter(id=course_filter)
+        
+        # زبان‌آموزان به تفکیک دوره
+        students_by_course = []
+        total_students = 0
+        active_students = 0
+        
+        for course in courses:
+            enrollments = Enrollment.objects.filter(course=course).select_related('student__user')
+            
+            if search_query:
+                enrollments = enrollments.filter(
+                    student__user__first_name__icontains=search_query
+                ) | enrollments.filter(
+                    student__user__last_name__icontains=search_query
+                )
+            
+            if enrollments.exists():
+                students_by_course.append({
+                    'course': course,
+                    'students': enrollments.order_by('-enrolled_at')
+                })
+                total_students += enrollments.count()
+                active_students += enrollments.filter(status='confirmed').count()
+        
+        context['students_by_course'] = students_by_course
+        context['total_students'] = total_students
+        context['active_students'] = active_students
+        context['courses'] = Course.objects.filter(teacher=teacher, is_active=True)
+        context['courses_count'] = courses.count()
+        
+        return context
+
+
 class TeacherCourseStudentView(LoginRequiredMixin, View):
     def get(self, request, course_id):
         teacher = get_object_or_404(Teacher, user=request.user)
@@ -214,33 +273,72 @@ class TeacherEditCourseView(View):
 
 # Assignment Views
 @method_decorator(login_required, name='dispatch')
-class TeacherAssignmentsView(View):
+class TeacherAssignmentsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """نمایش لیست تکالیف معلم"""
     template_name = 'teacher/teacher_assignments.html'
-
-    def get(self, request, course_id=None):
-        teacher = get_object_or_404(Teacher, user=request.user)
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import AssignmentSubmission
+        
+        # فیلترها
+        course_filter = self.request.GET.get('course', '')
+        status_filter = self.request.GET.get('status', '')
         
         if course_id:
             # نمایش تکالیف یک دوره خاص
             course = get_object_or_404(Course, id=course_id, teacher=teacher)
             assignments = Assignment.objects.filter(course=course, teacher=teacher).order_by('-created_at')
-            context = {
-                'assignments': assignments,
-                'course': course,
-                'single_course': True
-            }
+            context['course'] = course
+            context['single_course'] = True
         else:
             # نمایش همه تکالیف معلم
             assignments = Assignment.objects.filter(teacher=teacher).select_related('course').order_by('-created_at')
-            courses = Course.objects.filter(teacher=teacher).prefetch_related('assignments')
-            context = {
-                'assignments': assignments,
-                'courses': courses,
-                'single_course': False
-            }
+            
+            if course_filter:
+                assignments = assignments.filter(course_id=course_filter)
+            
+            context['single_course'] = False
         
-        return render(request, self.template_name, context)
+        # اضافه کردن تعداد submissions برای هر تکلیف
+        for assignment in assignments:
+            assignment.graded_count = AssignmentSubmission.objects.filter(
+                assignment=assignment,
+                graded_by__isnull=False
+            ).count()
+        
+        # آمار
+        all_submissions = AssignmentSubmission.objects.filter(assignment__teacher=teacher)
+        
+        if status_filter == 'pending':
+            # فقط تکالیف با ارسالی‌های در انتظار
+            assignments = [a for a in assignments if all_submissions.filter(assignment=a, graded_by__isnull=True).exists()]
+        elif status_filter == 'graded':
+            assignments = [a for a in assignments if all_submissions.filter(assignment=a, graded_by__isnull=False).exists()]
+        
+        context['assignments'] = assignments
+        context['courses'] = Course.objects.filter(teacher=teacher, is_active=True)
+        context['total_assignments'] = Assignment.objects.filter(teacher=teacher).count()
+        context['pending_submissions'] = all_submissions.filter(graded_by__isnull=True).count()
+        context['graded_submissions'] = all_submissions.filter(graded_by__isnull=False).count()
+        context['total_submissions'] = all_submissions.count()
+        
+        # تکالیف در انتظار بررسی (برای جدول جداگانه)
+        context['pending_assignments_list'] = all_submissions.filter(
+            graded_by__isnull=True
+        ).select_related('student__user', 'assignment__course').order_by('-submitted_at')[:10]
+        
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
@@ -474,6 +572,27 @@ class TeacherNotificationsView(LoginRequiredMixin, UserPassesTestMixin, Template
                     'type': 'warning',
                     'is_read': False,
                     'action_url': f'/teachers/exams/{exam.id}/participants/',
+                })
+        
+        # اعلان‌های کلاس پیش رو
+        if filter_type in ['all']:
+            today = timezone.now().date()
+            week_end = today + timezone.timedelta(days=7)
+            upcoming_courses = Course.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                start_date__lte=week_end,
+                end_date__gte=today
+            ).order_by('start_date')[:5]
+            
+            for course in upcoming_courses:
+                notifications.append({
+                    'title': 'کلاس پیش رو',
+                    'message': f'دوره "{course.title}" - {course.enrolled_count} دانش‌آموز ثبت‌نام کرده',
+                    'created_at': timezone.now(),
+                    'type': 'info',
+                    'is_read': False,
+                    'action_url': f'/teachers/courses/{course.id}/students/',
                 })
         
         # فیلتر unread

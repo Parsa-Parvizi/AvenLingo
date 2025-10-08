@@ -4,7 +4,7 @@ from .views import (
     TeacherDetailView, TeacherCreateCourseView, TeacherEditCourseView, TeacherScheduleView, 
     TeacherPerformanceView, TeacherMessagesView, TeacherAssignmentsView, TeacherCreateAssignmentView,
     TeacherEditAssignmentView, TeacherDeleteAssignmentView, TeacherAssignmentDetailView,
-    TeacherActivitiesView, TeacherNotificationsView,
+    TeacherActivitiesView, TeacherNotificationsView, TeacherMyStudentsView,
     TeacherExamsListView, TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
     TeacherExamParticipantsView, TeacherGradeExamView
 )
@@ -15,6 +15,7 @@ urlpatterns = [
     path('detail/<int:teacher_id>/', TeacherDetailView.as_view(), name='detail'),
     path('dashboard/', TeacherDashboardView.as_view(), name='dashboard'),
     path('courses/', TeacherCourseView.as_view(), name='teacher_courses'),
+    path('my-students/', TeacherMyStudentsView.as_view(), name='my_students'),
     path('courses/<int:course_id>/students/', TeacherCourseStudentView.as_view(), name='course-students'),
     path('create-course/', TeacherCreateCourseView.as_view(), name='create-course'),
     path('edit-course/<int:course_id>/', TeacherEditCourseView.as_view(), name='edit-course'),

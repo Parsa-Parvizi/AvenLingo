@@ -295,6 +295,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // اضافه کردن tooltip
             info.el.title = info.event.title;
         },
+        dayCellDidMount: function(info) {
+            // قرمز کردن روزهای جمعه (روز 5 در JavaScript)
+            if (info.date.getDay() === 5) {
+                info.el.style.backgroundColor = '#fff5f5';
+                info.el.style.color = '#dc3545';
+            }
+        },
         height: 'auto',
         aspectRatio: 1.8,
         nowIndicator: true,

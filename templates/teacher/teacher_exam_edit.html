@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Edit Exam{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <h2 class="mb-4">✏️ ویرایش امتحان: {{ exam.title }}</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-body">
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label"><strong>{{ field.label }}</strong></label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> ذخیره تغییرات
+                    </button>
+                    <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-secondary">انصراف</a>
+                    <form method="post" action="{% url 'teacher:delete_exam' exam.id %}" class="d-inline" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

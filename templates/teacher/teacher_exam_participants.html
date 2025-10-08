@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Exam Participants{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 شرکت‌کنندگان: {{ exam.title }}</h2>
+        <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت
+        </a>
+    </div>
+
+    <!-- آمار -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_participants|persian_numbers }}</h3>
+                    <p class="mb-0">کل شرکت‌کنندگان</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3>{{ submitted_count|persian_numbers }}</h3>
+                    <p class="mb-0">ارسال شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ graded_count|persian_numbers }}</h3>
+                    <p class="mb-0">نمره‌دهی شده</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست شرکت‌کنندگان -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>دانشجو</th>
+                            <th>زمان شروع</th>
+                            <th>زمان ارسال</th>
+                            <th>مدت</th>
+                            <th>وضعیت</th>
+                            <th>نمره</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participation in participations %}
+                        <tr>
+                            <td><strong>{{ participation.student.user.get_full_name }}</strong></td>
+                            <td>{{ participation.started_at|jalali_datetime }}</td>
+                            <td>{{ participation.submitted_at|jalali_datetime|default:"—" }}</td>
+                            <td>{{ participation.duration_taken|default:"—"|persian_numbers }} دقیقه</td>
+                            <td>
+                                {% if participation.status == 'started' %}<span class="badge bg-primary">شروع شده</span>
+                                {% elif participation.status == 'submitted' %}<span class="badge bg-warning">ارسال شده</span>
+                                {% elif participation.status == 'graded' %}<span class="badge bg-success">نمره‌دهی شده</span>
+                                {% endif %}
+                                {% if participation.is_late %}<span class="badge bg-danger">دیرهنگام</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if participation.score %}
+                                    <strong>{{ participation.score|persian_numbers }}/{{ exam.total_points|persian_numbers }}</strong>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if participation.status != 'started' %}
+                                    <a href="{% url 'teacher:grade_exam' exam.id participation.id %}" class="btn btn-sm btn-primary">
+                                        {% if participation.status == 'graded' %}مشاهده{% else %}نمره‌دهی{% endif %}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">در حال انجام</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                هنوز کسی در این امتحان شرکت نکرده است
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Create Exam{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <h2 class="mb-4">📊 ایجاد امتحان جدید - {{ course.title }}</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-body">
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label"><strong>{{ field.label }}</strong></label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> ذخیره امتحان
+                    </button>
+                    <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-secondary">انصراف</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

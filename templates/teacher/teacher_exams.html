@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Teacher - Exams{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 امتحانات دوره: {{ course.title }}</h2>
+        <div class="btn-group">
+            <a href="{% url 'teacher:create_exam' course.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> ایجاد امتحان جدید
+            </a>
+            <a href="{% url 'teacher:teacher_courses' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    <!-- امتحان نهایی -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> امتحان نهایی</h5>
+        </div>
+        <div class="card-body">
+            {% if final_exam %}
+                <div class="exam-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6><strong>{{ final_exam.title }}</strong></h6>
+                            <p class="mb-1"><i class="fas fa-clock"></i> زمان: {{ final_exam.scheduled_start|jalali_datetime }}</p>
+                            <p class="mb-0"><i class="fas fa-hourglass-half"></i> مدت: {{ final_exam.duration_minutes|persian_numbers }} دقیقه</p>
+                        </div>
+                        <div class="col-md-3">
+                            {% if final_exam.status == 'draft' %}
+                                <span class="badge bg-secondary">پیش‌نویس</span>
+                            {% elif final_exam.status == 'scheduled' %}
+                                <span class="badge bg-primary">زمان‌بندی شده</span>
+                            {% elif final_exam.status == 'active' %}
+                                <span class="badge bg-success">در حال برگزاری</span>
+                            {% elif final_exam.status == 'ended' %}
+                                <span class="badge bg-warning">پایان یافته</span>
+                            {% elif final_exam.status == 'graded' %}
+                                <span class="badge bg-info">نمره‌دهی شده</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'teacher:exam_participants' final_exam.id %}" class="btn btn-outline-primary">شرکت‌کنندگان</a>
+                                <a href="{% url 'teacher:edit_exam' final_exam.id %}" class="btn btn-outline-warning">ویرایش</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">امتحان نهایی تعریف نشده است. <a href="{% url 'teacher:create_exam' course.id %}">ایجاد امتحان نهایی</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- امتحان میان‌ترم -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-file-alt"></i> امتحان میان‌ترم</h5>
+        </div>
+        <div class="card-body">
+            {% if midterm_exam %}
+                <div class="exam-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6><strong>{{ midterm_exam.title }}</strong></h6>
+                            <p class="mb-1"><i class="fas fa-clock"></i> زمان: {{ midterm_exam.scheduled_start|jalali_datetime }}</p>
+                            <p class="mb-0"><i class="fas fa-hourglass-half"></i> مدت: {{ midterm_exam.duration_minutes|persian_numbers }} دقیقه</p>
+                        </div>
+                        <div class="col-md-3">
+                            {% if midterm_exam.status == 'draft' %}
+                                <span class="badge bg-secondary">پیش‌نویس</span>
+                            {% elif midterm_exam.status == 'scheduled' %}
+                                <span class="badge bg-primary">زمان‌بندی شده</span>
+                            {% elif midterm_exam.status == 'active' %}
+                                <span class="badge bg-success">در حال برگزاری</span>
+                            {% elif midterm_exam.status == 'ended' %}
+                                <span class="badge bg-warning">پایان یافته</span>
+                            {% elif midterm_exam.status == 'graded' %}
+                                <span class="badge bg-info">نمره‌دهی شده</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'teacher:exam_participants' midterm_exam.id %}" class="btn btn-outline-primary">شرکت‌کنندگان</a>
+                                <a href="{% url 'teacher:edit_exam' midterm_exam.id %}" class="btn btn-outline-warning">ویرایش</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">امتحان میان‌ترم تعریف نشده است. <a href="{% url 'teacher:create_exam' course.id %}">ایجاد امتحان میان‌ترم</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- کوییزها -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-question-circle"></i> کوییزها</h5>
+        </div>
+        <div class="card-body">
+            {% if quizzes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>عنوان</th>
+                                <th>زمان شروع</th>
+                                <th>مدت</th>
+                                <th>وضعیت</th>
+                                <th>شرکت‌کنندگان</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in quizzes %}
+                            <tr>
+                                <td><strong>{{ quiz.title }}</strong></td>
+                                <td>{{ quiz.scheduled_start|jalali_short }}</td>
+                                <td>{{ quiz.duration_minutes|persian_numbers }} دقیقه</td>
+                                <td>
+                                    {% if quiz.status == 'draft' %}<span class="badge bg-secondary">پیش‌نویس</span>
+                                    {% elif quiz.status == 'scheduled' %}<span class="badge bg-primary">زمان‌بندی شده</span>
+                                    {% elif quiz.status == 'active' %}<span class="badge bg-success">در حال برگزاری</span>
+                                    {% elif quiz.status == 'ended' %}<span class="badge bg-warning">پایان یافته</span>
+                                    {% elif quiz.status == 'graded' %}<span class="badge bg-info">نمره‌دهی شده</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ quiz.participations.count|persian_numbers }} نفر</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'teacher:exam_participants' quiz.id %}" class="btn btn-outline-primary btn-sm">نمره‌دهی</a>
+                                        <a href="{% url 'teacher:edit_exam' quiz.id %}" class="btn btn-outline-warning btn-sm">ویرایش</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">کوییزی تعریف نشده است. <a href="{% url 'teacher:create_exam' course.id %}">ایجاد کوییز جدید</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.exam-item {
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+</style>
+{% endblock %}

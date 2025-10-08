@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | Grade Exam{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>💯 نمره‌دهی: {{ student.user.get_full_name }}</h2>
+        <a href="{% url 'teacher:exam_participants' exam.id %}" class="btn btn-secondary">بازگشت</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- اطلاعات امتحان -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📋 جزئیات امتحان</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>عنوان:</strong> {{ exam.title }}</p>
+                    <p><strong>نوع:</strong> {{ exam.get_exam_type_display }}</p>
+                    <p><strong>زمان شروع:</strong> {{ participation.started_at|jalali_datetime }}</p>
+                    <p><strong>زمان ارسال:</strong> {{ participation.submitted_at|jalali_datetime|default:"ارسال نشده" }}</p>
+                    <p class="mb-0"><strong>مدت:</strong> {{ participation.duration_taken|persian_numbers|default:"—" }} دقیقه</p>
+                </div>
+            </div>
+
+            <!-- پاسخ‌های دانشجو -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📝 پاسخ‌های دانشجو</h5>
+                </div>
+                <div class="card-body">
+                    {% if participation.answer_file %}
+                        <p><strong>فایل پاسخ:</strong></p>
+                        <a href="{{ participation.answer_file.url }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-download"></i> دانلود فایل پاسخ
+                        </a>
+                    {% endif %}
+                    
+                    {% if participation.answer_text %}
+                        <p class="mt-3"><strong>پاسخ متنی:</strong></p>
+                        <div class="p-3 bg-light rounded">{{ participation.answer_text|linebreaks }}</div>
+                    {% endif %}
+                    
+                    {% if not participation.answer_file and not participation.answer_text %}
+                        <p class="text-muted">پاسخی ارسال نشده است.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- نمره‌دهی -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">💯 ثبت نمره</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><strong>نمره (از {{ exam.total_points|persian_numbers }}):</strong></label>
+                                <input type="number" name="score" class="form-control" min="0" max="{{ exam.total_points }}" 
+                                       value="{{ participation.score|default:'' }}" step="0.5" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label"><strong>بازخورد برای دانشجو:</strong></label>
+                                <textarea name="feedback" class="form-control" rows="4">{{ participation.feedback }}</textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> ثبت نمره
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- اطلاعات دانشجو -->
+            <div class="card mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">👤 اطلاعات دانشجو</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>نام:</strong> {{ student.user.get_full_name }}</p>
+                    <p><strong>ایمیل:</strong> {{ student.user.email }}</p>
+                    <p class="mb-0"><strong>تلاش شماره:</strong> {{ participation.attempt_number|persian_numbers }}</p>
+                </div>
+            </div>
+
+            {% if participation.is_late %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>دیرهنگام!</strong>
+                {% if exam.late_penalty_percent > 0 %}
+                    <p class="mb-0">جریمه: {{ exam.late_penalty_percent|persian_numbers }}%</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

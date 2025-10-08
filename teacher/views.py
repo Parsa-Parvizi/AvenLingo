@@ -420,3 +420,245 @@ class TeacherNotificationsView(View):
 
 
 # These are defined earlier in the file - keeping for backwards compatibility
+
+# Exam Views
+class TeacherExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست امتحانات یک دوره"""
+    template_name = 'teacher/teacher_exams.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import Exam
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        exams = Exam.objects.filter(course=course).order_by('-scheduled_start')
+        
+        context['course'] = course
+        context['exams'] = exams
+        context['final_exam'] = exams.filter(exam_type='final').first()
+        context['midterm_exam'] = exams.filter(exam_type='midterm').first()
+        context['quizzes'] = exams.filter(exam_type='quiz')
+        
+        return context
+
+
+class TeacherCreateExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """ایجاد امتحان جدید"""
+    template_name = 'teacher/teacher_exam_create.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        
+        from course.forms import ExamForm
+        if self.request.method == 'POST':
+            form = ExamForm(self.request.POST, self.request.FILES, teacher=teacher, course=course)
+        else:
+            form = ExamForm(teacher=teacher, course=course)
+        
+        context['course'] = course
+        context['form'] = form
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        course_id = kwargs.get('course_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            messages.error(request, 'شما مجاز به انجام این عملیات نیستید.')
+            return redirect('dashboard:teacher_dashboard')
+        
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        
+        from course.forms import ExamForm
+        form = ExamForm(request.POST, request.FILES, teacher=teacher, course=course)
+        
+        if form.is_valid():
+            exam = form.save()
+            messages.success(request, f'امتحان "{exam.title}" با موفقیت ایجاد شد.')
+            return redirect('teacher:course_exams', course_id=course.id)
+        else:
+            messages.error(request, 'خطا در ایجاد امتحان. لطفاً اطلاعات را بررسی کنید.')
+            return self.get(request, *args, **kwargs)
+
+
+class TeacherEditExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """ویرایش امتحان"""
+    template_name = 'teacher/teacher_exam_edit.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        exam_id = kwargs.get('exam_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import Exam
+        exam = get_object_or_404(Exam, id=exam_id, teacher=teacher)
+        
+        from course.forms import ExamForm
+        if self.request.method == 'POST':
+            form = ExamForm(self.request.POST, self.request.FILES, instance=exam, teacher=teacher, course=exam.course)
+        else:
+            form = ExamForm(instance=exam, teacher=teacher, course=exam.course)
+        
+        context['exam'] = exam
+        context['course'] = exam.course
+        context['form'] = form
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        exam_id = kwargs.get('exam_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            messages.error(request, 'شما مجاز به انجام این عملیات نیستید.')
+            return redirect('dashboard:teacher_dashboard')
+        
+        from course.models import Exam
+        exam = get_object_or_404(Exam, id=exam_id, teacher=teacher)
+        
+        from course.forms import ExamForm
+        form = ExamForm(request.POST, request.FILES, instance=exam, teacher=teacher, course=exam.course)
+        
+        if form.is_valid():
+            exam = form.save()
+            messages.success(request, f'امتحان "{exam.title}" با موفقیت بروزرسانی شد.')
+            return redirect('teacher:course_exams', course_id=exam.course.id)
+        else:
+            messages.error(request, 'خطا در بروزرسانی امتحان. لطفاً اطلاعات را بررسی کنید.')
+            return self.get(request, *args, **kwargs)
+
+
+class TeacherDeleteExamView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """حذف امتحان"""
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def post(self, request, exam_id):
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            messages.error(request, 'شما مجاز به انجام این عملیات نیستید.')
+            return redirect('dashboard:teacher_dashboard')
+        
+        from course.models import Exam
+        exam = get_object_or_404(Exam, id=exam_id, teacher=teacher)
+        course_id = exam.course.id
+        exam_title = exam.title
+        
+        exam.delete()
+        messages.success(request, f'امتحان "{exam_title}" با موفقیت حذف شد.')
+        return redirect('teacher:course_exams', course_id=course_id)
+
+
+class TeacherExamParticipantsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """لیست شرکت‌کنندگان و نمره‌دهی"""
+    template_name = 'teacher/teacher_exam_participants.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        exam_id = kwargs.get('exam_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import Exam, ExamParticipation
+        exam = get_object_or_404(Exam, id=exam_id, teacher=teacher)
+        participations = ExamParticipation.objects.filter(exam=exam).select_related('student__user').order_by('-started_at')
+        
+        context['exam'] = exam
+        context['course'] = exam.course
+        context['participations'] = participations
+        context['total_participants'] = participations.count()
+        context['submitted_count'] = participations.filter(status='submitted').count()
+        context['graded_count'] = participations.filter(status='graded').count()
+        
+        return context
+
+
+class TeacherGradeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمره‌دهی یک شرکت‌کننده"""
+    template_name = 'teacher/teacher_exam_grade.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participation_id = kwargs.get('participation_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            return context
+        
+        from course.models import ExamParticipation
+        participation = get_object_or_404(ExamParticipation, id=participation_id, exam__teacher=teacher)
+        
+        context['participation'] = participation
+        context['exam'] = participation.exam
+        context['student'] = participation.student
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        participation_id = kwargs.get('participation_id')
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            messages.error(request, 'شما مجاز به انجام این عملیات نیستید.')
+            return redirect('dashboard:teacher_dashboard')
+        
+        from course.models import ExamParticipation
+        participation = get_object_or_404(ExamParticipation, id=participation_id, exam__teacher=teacher)
+        
+        score = request.POST.get('score')
+        feedback = request.POST.get('feedback', '')
+        
+        if score:
+            try:
+                participation.score = float(score)
+                participation.feedback = feedback
+                participation.status = 'graded'
+                participation.graded_by = teacher
+                participation.graded_at = timezone.now()
+                participation.save()
+                
+                messages.success(request, f'نمره {participation.student.user.get_full_name()} با موفقیت ثبت شد.')
+            except ValueError:
+                messages.error(request, 'نمره وارد شده معتبر نیست.')
+        
+        return redirect('teacher:exam_participants', exam_id=participation.exam.id)

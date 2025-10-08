@@ -250,23 +250,35 @@ class TeacherMessagesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         user = self.request.user
         today = date.today()
         
-        # پیام‌های ارسال شده توسط این معلم
-        sent_messages = ContactMessage.objects.filter(
-            email=user.email
+        # پیام‌های ارسال شده به پشتیبانی (از معلم به ادمین)
+        admin_messages = ContactMessage.objects.filter(
+            email=user.email,
+            subject__startswith='[معلم]'
         ).order_by('-created_at')
         
         # تعداد پیام‌های ارسال شده امروز
         messages_today = ContactMessage.objects.filter(
             email=user.email,
+            subject__startswith='[معلم]',
             created_at__date=today
         ).count()
         
         # تعداد پیام‌های باقی‌مانده
         remaining_messages = max(0, 3 - messages_today)
         
-        context['sent_messages'] = sent_messages
+        # تعداد پیام‌های خوانده نشده از ادمین
+        unread_admin_messages = admin_messages.filter(status='replied').count()
+        
+        # پیام‌های زبان‌آموزان (شبیه‌سازی - در آینده از مدل واقعی استفاده شود)
+        # می‌توان از یک مدل TeacherStudentMessage استفاده کرد
+        student_messages = []
+        
+        context['admin_messages'] = admin_messages
+        context['student_messages'] = student_messages
         context['remaining_messages'] = remaining_messages
         context['messages_today'] = messages_today
+        context['unread_admin_messages'] = unread_admin_messages
+        context['unread_student_messages'] = 0
         
         return context
 

@@ -46,4 +46,6 @@ urlpatterns = [
     path('performance/', TeacherPerformanceView.as_view(), name='performance'), # Placeholder
     path('messages/', TeacherMessagesView.as_view(), name='messages'),
     path('messages/send/', teacher_send_message, name='send_message'),
+    path('messages/student/<int:message_id>/reply/', TeacherMessagesView.as_view(), name='reply_student_message'),
+    path('messages/student/<int:message_id>/read/', TeacherMessagesView.as_view(), name='mark_message_read'),
 ]

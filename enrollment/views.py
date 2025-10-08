@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import ValidationError
@@ -359,4 +359,104 @@ class QuickEnrollView(StudentRequiredMixin, CreateView):
                 'success': False,
                 'message': 'خطایی رخ داد. لطفاً دوباره تلاش کنید.'
             })
+
+
+class StudentMessagesView(LoginRequiredMixin, StudentRequiredMixin, TemplateView):
+    """صفحه پیام‌رسانی زبان‌آموز به معلمان"""
+    template_name = 'account/student_messages.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        from core.models import StudentTeacherMessage
+        from datetime import date
+        
+        student = get_object_or_404(Student, user=self.request.user)
+        today = date.today()
+        
+        # دوره‌های تأیید شده برای ارسال پیام
+        my_teachers = Enrollment.objects.filter(
+            student=student,
+            status='confirmed'
+        ).select_related('course__teacher__user', 'course')
+        
+        # پیام‌های ارسال شده
+        sent_messages = StudentTeacherMessage.objects.filter(
+            student=student
+        ).select_related('teacher__user', 'course').order_by('-created_at')
+        
+        # تعداد پیام‌های امروز
+        messages_today = StudentTeacherMessage.objects.filter(
+            student=student,
+            created_at__date=today
+        ).count()
+        
+        # تعداد باقی‌مانده
+        remaining_messages = max(0, 3 - messages_today)
+        
+        context['my_teachers'] = my_teachers
+        context['sent_messages'] = sent_messages
+        context['remaining_messages'] = remaining_messages
+        context['messages_today'] = messages_today
+        
+        return context
+
+
+@login_required
+def send_message_to_teacher(request):
+    """ارسال پیام زبان‌آموز به معلم با محدودیت روزانه"""
+    if request.method != 'POST':
+        return redirect('enrollment:student_messages')
+    
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    from core.models import StudentTeacherMessage
+    from datetime import date
+    
+    student = get_object_or_404(Student, user=request.user)
+    today = date.today()
+    
+    # بررسی محدودیت روزانه
+    messages_today = StudentTeacherMessage.objects.filter(
+        student=student,
+        created_at__date=today
+    ).count()
+    
+    if messages_today >= 3:
+        messages.error(request, 'شما امروز سقف مجاز ارسال پیام (3 پیام) را استفاده کرده‌اید.')
+        return redirect('enrollment:student_messages')
+    
+    # دریافت اطلاعات
+    course_id = request.POST.get('course', '')
+    subject = request.POST.get('subject', '')
+    message_text = request.POST.get('message', '')
+    
+    if not course_id or not subject or not message_text:
+        messages.error(request, 'لطفاً تمام فیلدها را پر کنید.')
+        return redirect('enrollment:student_messages')
+    
+    # بررسی ثبت‌نام تأیید شده
+    try:
+        enrollment = Enrollment.objects.get(
+            student=student,
+            course_id=course_id,
+            status='confirmed'
+        )
+    except Enrollment.DoesNotExist:
+        messages.error(request, 'شما در این دوره ثبت‌نام تأیید شده ندارید.')
+        return redirect('enrollment:student_messages')
+    
+    # ایجاد پیام
+    StudentTeacherMessage.objects.create(
+        student=student,
+        teacher=enrollment.course.teacher,
+        course=enrollment.course,
+        subject=subject,
+        message=message_text
+    )
+    
+    messages.success(request, f'پیام شما به {enrollment.course.teacher.user.get_full_name()} ارسال شد.')
+    return redirect('enrollment:student_messages')
 

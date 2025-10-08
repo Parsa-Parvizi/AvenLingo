@@ -158,6 +158,42 @@ class ContactMessage(models.Model):
             self.save()
 
 
+class StudentTeacherMessage(models.Model):
+    """مدل برای پیام‌های زبان‌آموز به معلم"""
+    student = models.ForeignKey(
+        'account.Student',
+        on_delete=models.CASCADE,
+        related_name='messages_to_teacher',
+        verbose_name="زبان‌آموز"
+    )
+    teacher = models.ForeignKey(
+        'account.Teacher',
+        on_delete=models.CASCADE,
+        related_name='messages_from_students',
+        verbose_name="معلم"
+    )
+    course = models.ForeignKey(
+        'course.Course',
+        on_delete=models.CASCADE,
+        related_name='student_messages',
+        verbose_name="دوره"
+    )
+    subject = models.CharField(max_length=200, verbose_name="موضوع")
+    message = models.TextField(verbose_name="پیام")
+    is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
+    teacher_reply = models.TextField(blank=True, verbose_name="پاسخ معلم")
+    replied_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ پاسخ")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ارسال")
+    
+    class Meta:
+        verbose_name = "پیام زبان‌آموز به معلم"
+        verbose_name_plural = "پیام‌های زبان‌آموز به معلم"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} به {self.teacher.user.get_full_name()} - {self.subject}"
+
+
 class PrivateClassRequest(models.Model):
     """مدل برای ذخیره درخواست‌های کلاس خصوصی"""
     STATUS_CHOICES = [

@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | پیام‌ها{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+    .page-header {
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--color-accent);
+    }
+    
+    .message-form-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 2px solid #dee2e6;
+    }
+    
+    .remaining-messages {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border-right: 4px solid #28a745;
+        margin-bottom: 20px;
+    }
+    
+    .remaining-messages.warning {
+        border-right-color: #ffc107;
+    }
+    
+    .remaining-messages.danger {
+        border-right-color: #dc3545;
+    }
+    
+    .message-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+    
+    .message-card:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .message-title {
+        font-weight: 600;
+        color: var(--color-primary);
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .message-time {
+        color: #999;
+        font-size: 0.85rem;
+    }
+    
+    .message-body {
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    .teacher-reply {
+        background: #d4edda;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border-right: 3px solid #28a745;
+    }
+    
+    .teacher-reply-header {
+        font-weight: 600;
+        color: #28a745;
+        margin-bottom: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/student_navbar.html' %}
+
+<div class="container-fluid py-4" dir="rtl">
+    <h2 class="page-header">💬 پیام به معلمان</h2>
+
+    <!-- فرم ارسال پیام جدید -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="message-form-card">
+                <h4 class="mb-3">
+                    <i class="fas fa-envelope"></i> ارسال پیام جدید به معلم
+                </h4>
+                
+                <!-- نمایش تعداد پیام‌های باقی‌مانده -->
+                <div class="remaining-messages {% if remaining_messages <= 1 %}danger{% elif remaining_messages == 2 %}warning{% endif %}">
+                    <strong>
+                        <i class="fas fa-info-circle"></i>
+                        تعداد پیام‌های باقی‌مانده امروز: {{ remaining_messages|persian_numbers }} از ۳
+                    </strong>
+                </div>
+                
+                {% if remaining_messages > 0 and my_teachers %}
+                <form method="post" action="{% url 'enrollment:send_message_to_teacher' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">انتخاب معلم و دوره *</label>
+                            <select name="course" class="form-select" required>
+                                <option value="">انتخاب کنید...</option>
+                                {% for enrollment in my_teachers %}
+                                <option value="{{ enrollment.course.id }}">
+                                    {{ enrollment.course.title }} - {{ enrollment.course.teacher.user.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">فقط می‌توانید به معلمان دوره‌های تأیید شده خود پیام بفرستید</small>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">موضوع *</label>
+                            <input type="text" name="subject" class="form-control" required 
+                                   placeholder="موضوع پیام خود را وارد کنید...">
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">پیام *</label>
+                            <textarea name="message" class="form-control" rows="6" required 
+                                      placeholder="متن پیام خود را وارد کنید..."></textarea>
+                        </div>
+                        
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> ارسال پیام
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% elif not my_teachers %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>توجه:</strong> شما در هیچ دوره‌ای ثبت‌نام تأیید شده ندارید. 
+                    برای ارسال پیام به معلم، ابتدا باید در یک دوره ثبت‌نام کنید.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>توجه:</strong> شما امروز سقف مجاز ارسال پیام (3 پیام) را استفاده کرده‌اید. 
+                    لطفاً فردا دوباره تلاش کنید.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- پیام‌های ارسال شده -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="modern-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">📨 پیام‌های ارسال شده ({{ sent_messages.count|persian_numbers }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if sent_messages %}
+                        {% for msg in sent_messages %}
+                        <div class="message-card">
+                            <div class="message-header">
+                                <div>
+                                    <h5 class="message-title">{{ msg.subject }}</h5>
+                                    <p class="text-muted mb-0 small">
+                                        <i class="fas fa-chalkboard-teacher"></i> معلم: {{ msg.teacher.user.get_full_name }}
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-book"></i> دوره: {{ msg.course.title }}
+                                    </p>
+                                </div>
+                                <span class="message-time">{{ msg.created_at|jalali_datetime }}</span>
+                            </div>
+                            
+                            <div class="message-body">
+                                {{ msg.message }}
+                            </div>
+                            
+                            {% if msg.teacher_reply %}
+                            <div class="teacher-reply">
+                                <div class="teacher-reply-header">
+                                    <i class="fas fa-reply"></i> پاسخ معلم:
+                                </div>
+                                <div>{{ msg.teacher_reply }}</div>
+                                {% if msg.replied_at %}
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-clock"></i> {{ msg.replied_at|jalali_datetime }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="mt-3">
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-clock"></i> در انتظار پاسخ معلم
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+                        <h5 class="mb-3">پیامی ارسال نکرده‌اید</h5>
+                        <p class="text-muted">می‌توانید از فرم بالا برای ارسال پیام به معلمان خود استفاده کنید.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

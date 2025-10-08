@@ -17,4 +17,7 @@ urlpatterns = [
     path('cancel/<int:enrollment_id>/', views.cancel_enrollment, name='cancel-enrollment'),
     path('certificate/<int:enrollment_id>/', views.enrollment_certificate, name='certificate'),
     
+    # Student-Teacher messaging
+    path('messages/', views.StudentMessagesView.as_view(), name='student_messages'),
+    path('messages/send/', views.send_message_to_teacher, name='send_message_to_teacher'),
 ]

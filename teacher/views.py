@@ -267,18 +267,26 @@ class TeacherMessagesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
         remaining_messages = max(0, 3 - messages_today)
         
         # تعداد پیام‌های خوانده نشده از ادمین
-        unread_admin_messages = admin_messages.filter(status='replied').count()
+        unread_admin_messages = admin_messages.filter(status='replied', reply__isnull=False).exclude(reply='').count()
         
-        # پیام‌های زبان‌آموزان (شبیه‌سازی - در آینده از مدل واقعی استفاده شود)
-        # می‌توان از یک مدل TeacherStudentMessage استفاده کرد
-        student_messages = []
+        # پیام‌های زبان‌آموزان
+        from core.models import StudentTeacherMessage
+        try:
+            teacher = Teacher.objects.get(user=user)
+            student_messages = StudentTeacherMessage.objects.filter(
+                teacher=teacher
+            ).select_related('student__user', 'course').order_by('-created_at')
+            unread_student_messages = student_messages.filter(is_read=False).count()
+        except Teacher.DoesNotExist:
+            student_messages = []
+            unread_student_messages = 0
         
         context['admin_messages'] = admin_messages
         context['student_messages'] = student_messages
         context['remaining_messages'] = remaining_messages
         context['messages_today'] = messages_today
         context['unread_admin_messages'] = unread_admin_messages
-        context['unread_student_messages'] = 0
+        context['unread_student_messages'] = unread_student_messages
         
         return context
 
@@ -333,6 +341,64 @@ def teacher_send_message(request):
     )
     
     messages.success(request, 'پیام شما با موفقیت ارسال شد. پشتیبانی به زودی پاسخ خواهد داد.')
+    return redirect('teacher:messages')
+
+
+@login_required
+def teacher_reply_student_message(request, message_id):
+    """پاسخ معلم به پیام زبان‌آموز"""
+    if request.method != 'POST':
+        return redirect('teacher:messages')
+    
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'teacher':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    from core.models import StudentTeacherMessage
+    from django.utils import timezone
+    
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+        msg = get_object_or_404(StudentTeacherMessage, id=message_id, teacher=teacher)
+        
+        reply_text = request.POST.get('reply', '')
+        
+        if not reply_text:
+            messages.error(request, 'لطفاً متن پاسخ را وارد کنید.')
+            return redirect('teacher:messages')
+        
+        msg.teacher_reply = reply_text
+        msg.replied_at = timezone.now()
+        msg.is_read = True
+        msg.save()
+        
+        messages.success(request, 'پاسخ شما با موفقیت ارسال شد.')
+    except Teacher.DoesNotExist:
+        messages.error(request, 'حساب معلم یافت نشد.')
+    
+    return redirect('teacher:messages')
+
+
+@login_required
+def teacher_mark_message_read(request, message_id):
+    """علامت‌گذاری پیام به عنوان خوانده شده"""
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'teacher':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    from core.models import StudentTeacherMessage
+    
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+        msg = get_object_or_404(StudentTeacherMessage, id=message_id, teacher=teacher)
+        
+        msg.is_read = True
+        msg.save()
+        
+        messages.success(request, 'پیام به عنوان خوانده شده علامت‌گذاری شد.')
+    except Teacher.DoesNotExist:
+        messages.error(request, 'حساب معلم یافت نشد.')
+    
     return redirect('teacher:messages')
 
 

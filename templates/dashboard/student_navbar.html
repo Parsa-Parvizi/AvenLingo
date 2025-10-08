@@ -10,6 +10,7 @@
             <ul class="student-nav-menu">
                 <li><a href="{% url 'dashboard:student_dashboard' %}" class="{% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">🏠 داشبورد</a></li>
                 <li><a href="{% url 'dashboard:student_calendar' %}" class="{% if request.resolver_match.url_name == 'student_calendar' %}active{% endif %}">📅 تقویم</a></li>
+                <li><a href="{% url 'enrollment:student_messages' %}" class="{% if request.resolver_match.url_name == 'student_messages' %}active{% endif %}">💬 پیام به معلمان</a></li>
                 <li><a href="{% url 'course:student_exams' %}" class="{% if 'exam' in request.resolver_match.url_name %}active{% endif %}">📝 امتحانات</a></li>
                 <li><a href="#" class="{% if 'assignment' in request.resolver_match.url_name %}active{% endif %}">📋 تکالیف</a></li>
                 <li><a href="#" class="{% if 'grade' in request.resolver_match.url_name %}active{% endif %}">📊 نمرات</a></li>

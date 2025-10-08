@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     TeacherDashboardView, TeacherCourseStudentView, TeacherCourseView, AllTeacherView, 
     TeacherDetailView, TeacherCreateCourseView, TeacherEditCourseView, TeacherScheduleView, 
-    TeacherPerformanceView, TeacherMessagesView, teacher_send_message, TeacherAssignmentsView, TeacherCreateAssignmentView,
+    TeacherPerformanceView, TeacherMessagesView, teacher_send_message, teacher_reply_student_message,
+    teacher_mark_message_read, TeacherAssignmentsView, TeacherCreateAssignmentView,
     TeacherEditAssignmentView, TeacherDeleteAssignmentView, TeacherAssignmentDetailView,
     TeacherActivitiesView, TeacherNotificationsView, TeacherMyStudentsView,
     TeacherExamsListView, TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
@@ -46,6 +47,6 @@ urlpatterns = [
     path('performance/', TeacherPerformanceView.as_view(), name='performance'), # Placeholder
     path('messages/', TeacherMessagesView.as_view(), name='messages'),
     path('messages/send/', teacher_send_message, name='send_message'),
-    path('messages/student/<int:message_id>/reply/', TeacherMessagesView.as_view(), name='reply_student_message'),
-    path('messages/student/<int:message_id>/read/', TeacherMessagesView.as_view(), name='mark_message_read'),
+    path('messages/student/<int:message_id>/reply/', teacher_reply_student_message, name='reply_student_message'),
+    path('messages/student/<int:message_id>/read/', teacher_mark_message_read, name='mark_message_read'),
 ]

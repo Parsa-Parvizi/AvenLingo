@@ -314,12 +314,14 @@
                                 {% if student_messages %}
                                     {% for msg in student_messages %}
                                     <div class="message-card {% if not msg.is_read %}unread{% endif %}">
-                                        <div class="student-info">
-                                            <i class="fas fa-user-circle"></i>
-                                            <span>{{ msg.student_name }}</span>
-                                            <small class="text-muted">
-                                                <i class="fas fa-book"></i> {{ msg.course_name }}
-                                            </small>
+                                        <div class="student-message">
+                                            <div class="student-info">
+                                                <i class="fas fa-user-circle"></i>
+                                                <span>{{ msg.student.user.get_full_name }}</span>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-book"></i> {{ msg.course.title }}
+                                                </small>
+                                            </div>
                                         </div>
                                         
                                         <div class="message-header">
@@ -342,15 +344,65 @@
                                             {{ msg.message }}
                                         </div>
                                         
-                                        <div class="mt-3">
-                                            <a href="{% url 'teacher:reply_student_message' msg.id %}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-reply"></i> پاسخ دادن
-                                            </a>
-                                            {% if not msg.is_read %}
-                                            <a href="{% url 'teacher:mark_message_read' msg.id %}" class="btn btn-sm btn-outline-secondary">
-                                                <i class="fas fa-check"></i> علامت به عنوان خوانده شده
-                                            </a>
+                                        {% if msg.teacher_reply %}
+                                        <div class="admin-reply" style="background: #d4edda; border-right-color: #28a745;">
+                                            <div class="admin-reply-header" style="color: #28a745;">
+                                                <i class="fas fa-reply"></i> پاسخ شما:
+                                            </div>
+                                            <div>{{ msg.teacher_reply }}</div>
+                                            {% if msg.replied_at %}
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="fas fa-clock"></i> {{ msg.replied_at|jalali_datetime }}
+                                            </small>
                                             {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="mt-3">
+                                            {% if not msg.teacher_reply %}
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#replyModal{{ msg.id }}">
+                                                <i class="fas fa-reply"></i> پاسخ دادن
+                                            </button>
+                                            {% endif %}
+                                            {% if not msg.is_read %}
+                                            <form method="post" action="{% url 'teacher:mark_message_read' msg.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-check"></i> علامت به عنوان خوانده شده
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Modal پاسخ -->
+                                    <div class="modal fade" id="replyModal{{ msg.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">پاسخ به {{ msg.student.user.get_full_name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'teacher:reply_student_message' msg.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">پیام زبان‌آموز:</label>
+                                                            <div class="p-3" style="background: #f8f9fa; border-radius: 8px;">
+                                                                {{ msg.message }}
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">پاسخ شما:</label>
+                                                            <textarea name="reply" class="form-control" rows="5" required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                                                        <button type="submit" class="btn btn-primary">ارسال پاسخ</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                     {% endfor %}

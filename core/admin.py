@@ -8,7 +8,8 @@ from account.models import Teacher
 from django.core.mail import send_mail
 from django.utils.safestring import mark_safe
 from .models import (
-    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage, PrivateClassRequest, CalendarEvent
+    AdviceRequest, DeterminationRequest, CollabrateRequest, RequestCourse, ContactMessage, 
+    StudentTeacherMessage, PrivateClassRequest, CalendarEvent
 )
 
 User = get_user_model()
@@ -292,6 +293,28 @@ class ContactMessageAdmin(admin.ModelAdmin):
             return ['name', 'email', 'phone', 'subject', 'message', 'created_at', 'updated_at']
         return ['created_at', 'updated_at']
 
+
+
+@admin.register(StudentTeacherMessage)
+class StudentTeacherMessageAdmin(admin.ModelAdmin):
+    """مدیریت پیام‌های زبان‌آموز به معلم"""
+    list_display = ['student_name', 'teacher_name', 'course_name', 'subject', 'is_read', 'created_at']
+    list_filter = ['is_read', 'created_at', 'course']
+    search_fields = ['student__user__first_name', 'student__user__last_name', 'teacher__user__first_name', 'subject', 'message']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at']
+    
+    def student_name(self, obj):
+        return obj.student.user.get_full_name()
+    student_name.short_description = 'زبان‌آموز'
+    
+    def teacher_name(self, obj):
+        return obj.teacher.user.get_full_name()
+    teacher_name.short_description = 'معلم'
+    
+    def course_name(self, obj):
+        return obj.course.title
+    course_name.short_description = 'دوره'
 
 
 @admin.register(PrivateClassRequest)

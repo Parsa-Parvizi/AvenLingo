@@ -6,7 +6,7 @@
 
 {% block content %}
 <section class="course-detail-page">
-  <div class="course-hero">
+  <div class="course-hero{% if course.is_featured %} featured{% endif %}">
     {% if course.image %}
       <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-hero-image">
     {% else %}

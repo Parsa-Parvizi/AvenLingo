@@ -385,6 +385,11 @@
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   }
   
+  .course-hero.featured {
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
+  }
+  
   .course-hero-image {
     width: 100%;
     height: 400px;

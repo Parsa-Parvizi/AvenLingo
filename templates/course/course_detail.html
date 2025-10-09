@@ -51,14 +51,6 @@
             <p>{{ course.get_course_type_display }}</p>
           </div>
           <div class="info-card">
-            <h3>وضعیت دوره</h3>
-            <p>
-              {% if course.is_featured %}ویژه{% endif %}
-              {% if course.is_featured and course.is_free %} و {% endif %}
-              {% if course.is_free %}رایگان{% endif %}
-            </p>
-          </div>
-          <div class="info-card">
             <h3>صندلی‌های خالی</h3>
             <p>{{ course.available_seats }} نفر</p>
           </div>

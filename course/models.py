@@ -148,7 +148,9 @@ class Course(models.Model):
 
     start_date = models.DateField("تاریخ شروع", default=date.today)
     end_date = models.DateField("تاریخ پایان", null=True, blank=True)
-    duration = models.CharField("ساعت برگزاری", max_length=50, null=True, blank=True)
+    duration = models.CharField("روز و ساعت برگزاری", max_length=50, null=True, blank=True, help_text="مثال: شنبه-سه‌شنبه 18:00-19:30")
+    schedule_days = models.CharField("روزهای برگزاری", max_length=100, null=True, blank=True, help_text="مثال: شنبه-سه‌شنبه یا جمعه‌ها")
+    schedule_time = models.CharField("ساعت برگزاری", max_length=50, null=True, blank=True, help_text="مثال: 18:00-19:30")
     class_time = models.CharField("طول کلاس", max_length=50, null=True, blank=True, default=0)
     total_hours = models.PositiveIntegerField("تعداد جلسات", default=10)  #type: ignore
 

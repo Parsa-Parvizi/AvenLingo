@@ -45,14 +45,33 @@
             <p>{{ course.end_date|jalali_short|default:"تعیین نشده" }}</p>
           </div>
           <div class="info-card">
-            <h3>ساعت برگزاری</h3>
-            <p>{{ course.duration|format_class_time|default:"تعیین نشده" }}</p>
+            <h3>روزهای برگزاری</h3>
+            <p>{{ course.schedule_days|default:course.duration|default:"تعیین نشده" }}</p>
           </div>
           
+          <div class="info-card">
+            <h3>ساعت برگزاری</h3>
+            <p>{{ course.schedule_time|default:"تعیین نشده" }}</p>
+          </div>
           <div class="info-card">
             <h3>نوع برگزاری</h3>
             <p>{{ course.get_course_type_display }}</p>
           </div>
+          <div class="info-card">
+            <h3>دسته‌بندی</h3>
+            <p>
+              {% if course.categories.all %}
+                {% for cat in course.categories.all %}
+                  {{ cat.name }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} و {% else %}، {% endif %}{% endif %}
+                {% endfor %}
+              {% elif course.category %}
+                {{ course.category.name }}
+              {% else %}
+                عمومی
+              {% endif %}
+            </p>
+          </div>
+          
           <div class="info-card">
             <h3>نوع کلاس</h3>
             <p>

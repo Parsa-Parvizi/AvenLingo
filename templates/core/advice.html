@@ -119,31 +119,10 @@ textarea.form-control {
     margin-bottom: 3px;
 }
 
-.btn-submit {
+.btn-primary {
     width: 100%;
-    background: var(--color-accent, #FFD700);
-    color: #333;
-    border: 2px solid var(--color-accent, #FFD700);
     padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-submit:hover {
-    background: white;
-    color: var(--color-primary, #1F3A93);
-    border-color: var(--color-accent, #FFD700);
-}
-
-.btn-submit:active {
-    transform: translateY(0);
+    font-size: 1rem;
 }
 
 .info-box {
@@ -325,7 +304,7 @@ textarea.form-control {
                         {% endif %}
                     </div>
 
-                    <button type="submit" class="btn-submit">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-paper-plane"></i>
                         ارسال درخواست مشاوره
                     </button>

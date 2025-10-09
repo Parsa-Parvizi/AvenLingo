@@ -16,16 +16,6 @@
     <div class="course-hero-content">
       <!-- Badges دسته‌بندی و نوع -->
       <div class="course-badges-hero" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
-        {% if course.is_featured %}
-          <span class="badge" style="background: #f59e0b; color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">
-            <i class="fas fa-star"></i> ویژه
-          </span>
-        {% endif %}
-        {% if course.is_free %}
-          <span class="badge" style="background: #10b981; color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">
-            <i class="fas fa-gift"></i> رایگان
-          </span>
-        {% endif %}
         
       </div>
       
@@ -68,7 +58,7 @@
             <p>
               {% if course.class_types.all %}
                 {% for ct in course.class_types.all %}
-                  {{ ct.name }}{% if not forloop.last %}، {% endif %}
+                  {{ ct.name }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} و {% else %}، {% endif %}{% endif %}
                 {% endfor %}
               {% elif course.class_type %}
                 {{ course.get_class_type_display }}

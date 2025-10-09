@@ -1,305 +1,432 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load persian_filters %}
-{% block title %} | Collaboration Request{% endblock %}
-{% block content %}
-<style>
-* { 
-    font-family: 'Vazir', sans-serif !important; 
-} 
 
-.page-section {
-    background: white;
-    min-height: 100vh;
-    padding: 40px 20px;
-    color: #333;
+{% block title %} | درخواست همکاری{% endblock %}
+
+{% block extra_css %}
+<style>
+.collaborate-page {
+    padding: 24px 0;
+    background: #fff;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
 }
 
-.page-section h1 {
-    color: #2c3e50;
+.collaborate-container {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.collaborate-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.collaborate-header {
+    background: transparent;
+    color: #111;
+    padding: 20px 24px 0 24px;
     text-align: center;
-    margin-bottom: 30px;
-    font-size: 2.5rem;
+}
+
+.collaborate-header h1 {
+    font-size: 1.4rem;
+    margin: 0;
     font-weight: 700;
 }
 
-.collabrate-form { 
-    direction: rtl; 
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 30px;
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-} 
-
-.collabrate-form .btn-primary { 
-    display: block; 
-    margin: 20px auto;
-    width: 100%;
-    padding: 14px 24px;
-    font-size: 1rem;
+.collaborate-header p {
+    margin: 6px 0 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
 }
 
-.success-message { 
-    color: #198754; 
-    text-align: center; 
-    margin-top: 18px; 
-    font-size: 1.1rem; 
-    font-family: 'Vazir', sans-serif; 
+.collaborate-body {
+    padding: 24px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.step-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.step-header h3 {
+    margin: 0;
+    color: var(--color-primary, #1F3A93);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
 .form-group {
     margin-bottom: 20px;
+    position: relative;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #2c3e50;
-    font-size: 14px;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.form-group label .required {
+    color: #dc3545;
+    margin-right: 3px;
 }
 
 .form-control {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e1e8ed;
-    border-radius: 8px;
-    font-size: 14px;
-    direction: rtl;
-    background: #fff;
-    color: #333;
-    transition: all 0.3s ease;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fafafa;
 }
 
 .form-control:focus {
-    border-color: #667eea;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: #fff;
-}
-
-.form-control::placeholder {
-    color: #999;
+    border-color: var(--color-primary, #1F3A93);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.1);
 }
 
 textarea.form-control {
-    min-height: 100px;
     resize: vertical;
+    min-height: 100px;
 }
 
-.file-upload-info {
-    font-size: 12px;
+.help-text {
+    font-size: 0.85rem;
     color: #666;
     margin-top: 5px;
 }
 
-.file-preview {
-    margin-top: 10px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-    display: none;
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    color: #dc3545;
+    font-size: 0.9rem;
 }
 
-.file-info {
+.errorlist li {
+    margin-bottom: 3px;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 1rem;
+}
+
+.info-box {
+    background: #e7f3ff;
+    border: 1px solid #b8daff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.info-box h4 {
+    color: var(--color-primary, #1F3A93);
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
+    font-size: 1.1rem;
 }
 
-.btn-remove {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    cursor: pointer;
+.info-box p {
+    margin: 0;
+    color: #004085;
+    line-height: 1.6;
+    font-size: 0.95rem;
 }
 
-/* Error messages */
-.form-group .text-danger {
-    color: #dc3545 !important;
-    font-size: 12px;
+.info-box ul {
+    margin: 10px 0 0 0;
+    padding-right: 20px;
+    color: #004085;
+    line-height: 1.8;
+}
+
+.info-box ul li {
+    margin-bottom: 5px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.file-upload-wrapper {
+    position: relative;
+}
+
+.file-upload-info {
+    font-size: 0.85rem;
+    color: #666;
     margin-top: 5px;
-    display: block;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-    .collabrate-form {
-        margin: 0 10px;
+    .collaborate-page {
+        padding: 20px 0;
+    }
+    
+    .collaborate-container {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+    
+    .collaborate-header {
         padding: 20px;
     }
     
-    .page-section h1 {
-        font-size: 2rem;
+    .collaborate-body {
+        padding: 24px 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }
 </style>
-<div class="page-section">
-  <h1>درخواست همکاری</h1>
-  <form method="post" enctype="multipart/form-data" class="collabrate-form" id="collaborationForm">
-    {% csrf_token %}
-    
-    <div class="form-group">
-        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-        {{ form.first_name }}
-        {% if form.first_name.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.first_name.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-        {{ form.last_name }}
-        {% if form.last_name.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.last_name.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-        {{ form.email }}
-        {% if form.email.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.email.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
-        {{ form.phone_number }}
-        {% if form.phone_number.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.phone_number.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.education.id_for_label }}">{{ form.education.label }}</label>
-        {{ form.education }}
-        {% if form.education.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.education.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.experience.id_for_label }}">{{ form.experience.label }}</label>
-        {{ form.experience }}
-        {% if form.experience.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.experience.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.certifications.id_for_label }}">{{ form.certifications.label }}</label>
-        {{ form.certifications }}
-        {% if form.certifications.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.certifications.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.specialties.id_for_label }}">{{ form.specialties.label }}</label>
-        {{ form.specialties }}
-        {% if form.specialties.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.specialties.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.motivation.id_for_label }}">{{ form.motivation.label }}</label>
-        {{ form.motivation }}
-        {% if form.motivation.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.motivation.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div class="form-group">
-        <label for="{{ form.cv_file.id_for_label }}">{{ form.cv_file.label }}</label>
-        {{ form.cv_file }}
-        <div class="file-upload-info">
-            فرمت مجاز: PDF | حداکثر حجم: 5 مگابایت
-        </div>
-        <div class="file-preview" id="filePreview">
-            <div class="file-info">
-                <span id="fileName"></span>
-                <button type="button" class="btn-remove" onclick="removeFile()">حذف</button>
+{% endblock %}
+
+{% block content %}
+<div class="collaborate-page">
+    <div class="collaborate-container">
+        <div class="collaborate-card">
+            <div class="collaborate-header">
+                <h1>🤝 درخواست همکاری</h1>
+                <p>به تیم اساتید ما بپیوندید</p>
+            </div>
+
+            <div class="collaborate-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="info-box">
+                    <h4>
+                        <i class="fas fa-info-circle"></i>
+                        شرایط همکاری
+                    </h4>
+                    <p>
+                        ما به دنبال اساتید مجرب و علاقه‌مند به تدریس زبان انگلیسی هستیم.
+                    </p>
+                    <ul>
+                        <li>✅ تسلط کامل به زبان انگلیسی</li>
+                        <li>✅ تجربه تدریس</li>
+                        <li>✅ مدارک و گواهینامه‌های معتبر</li>
+                        <li>✅ انگیزه و علاقه به آموزش</li>
+                    </ul>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- اطلاعات فردی -->
+                    <div class="form-section">
+                        <div class="step-header">
+                            <h3>
+                                <i class="fas fa-user"></i>
+                                اطلاعات فردی
+                            </h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="{{ form.first_name.id_for_label }}">
+                                    {{ form.first_name.label }}
+                                    <span class="required">*</span>
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.last_name.id_for_label }}">
+                                    {{ form.last_name.label }}
+                                    <span class="required">*</span>
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}">
+                                    {{ form.email.label }}
+                                    <span class="required">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.phone_number.id_for_label }}">
+                                    {{ form.phone_number.label }}
+                                    <span class="required">*</span>
+                                </label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger">{{ form.phone_number.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- اطلاعات تحصیلی و تجربه -->
+                    <div class="form-section">
+                        <div class="step-header">
+                            <h3>
+                                <i class="fas fa-graduation-cap"></i>
+                                اطلاعات تحصیلی و تجربه
+                            </h3>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.education.id_for_label }}">
+                                {{ form.education.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.education }}
+                            <div class="help-text">مدرک تحصیلی، رشته، دانشگاه و سال فارغ‌التحصیلی</div>
+                            {% if form.education.errors %}
+                                <div class="text-danger">{{ form.education.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.experience.id_for_label }}">
+                                {{ form.experience.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.experience }}
+                            <div class="help-text">سابقه تدریس، محل تدریس و نوع دوره‌های تدریس شده</div>
+                            {% if form.experience.errors %}
+                                <div class="text-danger">{{ form.experience.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.certifications.id_for_label }}">
+                                {{ form.certifications.label }}
+                            </label>
+                            {{ form.certifications }}
+                            <div class="help-text">مثال: IELTS, TOEFL, CELTA, TTC (اختیاری)</div>
+                            {% if form.certifications.errors %}
+                                <div class="text-danger">{{ form.certifications.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.specialties.id_for_label }}">
+                                {{ form.specialties.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.specialties }}
+                            <div class="help-text">مثال: مکالمه، گرامر، آیلتس، تافل</div>
+                            {% if form.specialties.errors %}
+                                <div class="text-danger">{{ form.specialties.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.motivation.id_for_label }}">
+                                {{ form.motivation.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.motivation }}
+                            <div class="help-text">چرا می‌خواهید با ما همکاری کنید؟</div>
+                            {% if form.motivation.errors %}
+                                <div class="text-danger">{{ form.motivation.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.cv_file.id_for_label }}">
+                                {{ form.cv_file.label }}
+                                <span class="required">*</span>
+                            </label>
+                            <div class="file-upload-wrapper">
+                                {{ form.cv_file }}
+                                <div class="file-upload-info">
+                                    فرمت مجاز: PDF | حداکثر حجم: 5 مگابایت
+                                </div>
+                            </div>
+                            {% if form.cv_file.errors %}
+                                <div class="text-danger">{{ form.cv_file.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        ارسال درخواست همکاری
+                    </button>
+                </form>
             </div>
         </div>
-        {% if form.cv_file.errors %}
-            <div style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ form.cv_file.errors.0 }}</div>
-        {% endif %}
     </div>
-    
-    <button type="submit" class="btn btn-primary">ارسال درخواست</button>
-  </form>
-  {% if message %}
-    <div class="success-message">{{ message }}</div>
-  {% endif %}
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('{{ form.cv_file.id_for_label }}');
-    const filePreview = document.getElementById('filePreview');
-    const fileName = document.getElementById('fileName');
-    
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // بررسی نوع فایل
-                if (!file.name.toLowerCase().endsWith('.pdf')) {
-                    alert('فقط فایل‌های PDF مجاز هستند.');
-                    this.value = '';
-                    return;
-                }
-                
-                // بررسی حجم فایل (5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('حجم فایل نباید بیشتر از 5 مگابایت باشد.');
-                    this.value = '';
-                    return;
-                }
-                
-                // نمایش پیش‌نمایش فایل
-                fileName.textContent = file.name;
-                filePreview.style.display = 'block';
-            } else {
-                filePreview.style.display = 'none';
-            }
-        });
-    }
-});
-
-function removeFile() {
-    const fileInput = document.getElementById('{{ form.cv_file.id_for_label }}');
-    const filePreview = document.getElementById('filePreview');
-    
-    fileInput.value = '';
-    filePreview.style.display = 'none';
-}
-
-// Form validation
-document.getElementById('collaborationForm').addEventListener('submit', function(e) {
-    const requiredFields = this.querySelectorAll('[required]');
-    let isValid = true;
-    
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            isValid = false;
-            field.style.borderColor = '#dc3545';
-        } else {
-            field.style.borderColor = '#ddd';
-        }
-    });
-    
-    if (!isValid) {
-        e.preventDefault();
-        alert('لطفاً تمام فیلدهای الزامی را پر کنید.');
-    }
-});
-</script>
-{% endblock %} 
+{% endblock %}

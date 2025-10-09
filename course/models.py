@@ -98,6 +98,33 @@ class Category(models.Model):
         super().save(*args, **kwargs)
 
 
+class ClassType(models.Model):
+    """مدل برای انواع کلاس (مکالمه، گرامر، آیلتس و غیره)"""
+    
+    name = models.CharField("نام نوع کلاس", max_length=100, unique=True)
+    slug = models.SlugField("اسلاگ", max_length=100, unique=True, blank=True)
+    code = models.CharField("کد", max_length=20, unique=True, help_text="کد منحصر به فرد (مثل: speaking, grammar, ielts)")
+    description = models.TextField("توضیحات", blank=True)
+    icon = models.CharField("آیکون", max_length=50, blank=True, help_text="کلاس Font Awesome یا ایموجی")
+    color = models.CharField("رنگ", max_length=7, default="#667eea", help_text="کد رنگ hex")
+    is_active = models.BooleanField("فعال است؟", default=True)
+    order = models.PositiveIntegerField("ترتیب نمایش", default=0)
+    created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "نوع کلاس"
+        verbose_name_plural = "انواع کلاس"
+        ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_slug(self.name)
+        super().save(*args, **kwargs)
+
+
 class Course(models.Model):
     
     status = models.CharField(
@@ -113,7 +140,10 @@ class Course(models.Model):
     short_description = models.CharField("توضیحات کوتاه", max_length=200, blank=True)
 
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, related_name='courses')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses', verbose_name="دسته‌بندی")
+    # تغییر به ManyToMany برای پشتیبانی از چندین دسته‌بندی
+    categories = models.ManyToManyField(Category, blank=True, related_name='courses', verbose_name="دسته‌بندی‌ها")
+    # نگه‌داشتن category قدیمی برای سازگاری با backward
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses_old', verbose_name="دسته‌بندی اصلی")
     students = models.ManyToManyField(Student, related_name='enrolled_courses')
 
     start_date = models.DateField("تاریخ شروع", default=date.today)
@@ -124,7 +154,10 @@ class Course(models.Model):
 
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True, blank=True)
     age_group = models.CharField(max_length=20, choices=AGE_GROUP_CHOICES, null=True, blank=True)
-    class_type = models.CharField("نوع کلاس", max_length=20, choices=CLASS_TYPE_CHOICES, default='general')
+    # تغییر به ManyToMany برای پشتیبانی از چندین نوع کلاس
+    class_types = models.ManyToManyField(ClassType, blank=True, related_name='courses', verbose_name="انواع کلاس")
+    # نگه‌داشتن class_type قدیمی برای سازگاری
+    class_type = models.CharField("نوع کلاس (قدیمی)", max_length=20, choices=CLASS_TYPE_CHOICES, default='general', blank=True, null=True)
     exam_type = models.CharField("نوع آزمون خاص", max_length=20, blank=True, null=True)
 
     capacity = models.PositiveIntegerField("ظرفیت", default=20) #type: ignore

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import Course, Category, Assignment, AssignmentSubmission, Exam, ExamParticipation, CourseResource, CourseVideo
+from .models import Course, Category, ClassType, Assignment, AssignmentSubmission, Exam, ExamParticipation, CourseResource, CourseVideo
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -10,6 +10,24 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
     ordering = ('name',)
+
+
+@admin.register(ClassType)
+class ClassTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'color_display', 'icon', 'order', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'code', 'description')
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ('order', 'name')
+    list_editable = ('order', 'is_active')
+    
+    def color_display(self, obj):
+        """نمایش رنگ با نمونه"""
+        return format_html(
+            '<div style="background: {}; width: 30px; height: 20px; border-radius: 4px; border: 1px solid #ddd;"></div>',
+            obj.color
+        )
+    color_display.short_description = 'رنگ'
 
 
 @admin.register(Course)
@@ -21,13 +39,17 @@ class CourseAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('enrolled_count', 'created_at', 'updated_at')
     ordering = ('-created_at',)
+    filter_horizontal = ('categories', 'class_types')
     
     fieldsets = (
         ('اطلاعات اصلی', {
             'fields': ('title', 'slug', 'description', 'short_description', 'image')
         }),
         ('استاد و دسته‌بندی', {
-            'fields': ('teacher', 'category')
+            'fields': ('teacher', 'categories', 'category')
+        }),
+        ('انواع کلاس', {
+            'fields': ('class_types', 'class_type')
         }),
         ('زمان‌بندی', {
             'fields': ('start_date', 'end_date', 'duration', 'total_hours')

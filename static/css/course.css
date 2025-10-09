@@ -502,6 +502,94 @@
     color: #333;
   }
   
+  /* Prerequisites Section */
+  .prerequisites-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 2px solid #e9ecef;
+  }
+  
+  .prerequisites-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .prerequisite-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+  
+  .prerequisite-item:hover {
+    border-color: var(--color-primary);
+    transform: translateX(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .prerequisite-item.guest {
+    border-color: #cbd5e0;
+  }
+  
+  .prereq-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 100px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  
+  .prereq-status i {
+    font-size: 1.5rem;
+  }
+  
+  .prereq-status.completed {
+    background: #d1f4e0;
+    color: #10b981;
+    border: 2px solid #10b981;
+  }
+  
+  .prereq-status.not-completed {
+    background: #fee;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+  }
+  
+  .prereq-info {
+    flex: 1;
+  }
+  
+  .prereq-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+  }
+  
+  .prereq-info h4 a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .prereq-info h4 a:hover {
+    color: var(--color-secondary);
+    text-decoration: underline;
+  }
+  
+  .prereq-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
   .course-info-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

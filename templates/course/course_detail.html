@@ -32,6 +32,53 @@
           {{ course.description|linebreaks }}
         </div>
       </div>
+      
+      {% if course.prerequisites.all %}
+      <div class="course-section prerequisites-section">
+        <h2>
+          <i class="fas fa-graduation-cap"></i>
+          پیش‌نیازهای دوره
+        </h2>
+        <div class="prerequisites-content">
+          {% if user.is_authenticated and user.user_type == 'student' %}
+            {% for prereq in course.prerequisites.all %}
+              <div class="prerequisite-item">
+                {% if prereq in user.student_profile.enrolled_courses.all %}
+                  <div class="prereq-status completed">
+                    <i class="fas fa-check-circle"></i>
+                    <span>گذرانده شده</span>
+                  </div>
+                {% else %}
+                  <div class="prereq-status not-completed">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>گذرانده نشده</span>
+                  </div>
+                {% endif %}
+                
+                <div class="prereq-info">
+                  <h4>
+                    <a href="{% url 'course:detail' prereq.slug %}">{{ prereq.title }}</a>
+                  </h4>
+                  <p>{{ prereq.short_description|default:prereq.description|truncatewords:20 }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-center">برای مشاهده وضعیت پیش‌نیازها، لطفاً وارد شوید.</p>
+            {% for prereq in course.prerequisites.all %}
+              <div class="prerequisite-item guest">
+                <div class="prereq-info">
+                  <h4>
+                    <a href="{% url 'course:detail' prereq.slug %}">{{ prereq.title }}</a>
+                  </h4>
+                  <p>{{ prereq.short_description|default:prereq.description|truncatewords:20 }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
 
       <div class="course-section">
         <h2>اطلاعات دوره</h2>
@@ -101,6 +148,35 @@
           <div class="info-card">
             <h3>تعداد جلسات</h3>
             <p>{{ course.total_hours }} جلسه</p>
+          </div>
+          <div class="info-card">
+            <h3>پیش‌نیاز</h3>
+            <p>
+              {% if course.prerequisites.all %}
+                {% for prereq in course.prerequisites.all %}
+                  {% if user.is_authenticated and user.user_type == 'student' %}
+                    {% if prereq in user.student_profile.enrolled_courses.all %}
+                      <span style="color: #10b981; display: flex; align-items: center; gap: 5px; justify-content: center;">
+                        <i class="fas fa-check-circle"></i>
+                        <a href="{% url 'course:detail' prereq.slug %}" style="color: #10b981; text-decoration: underline;">{{ prereq.title }}</a>
+                      </span>
+                    {% else %}
+                      <a href="{% url 'course:detail' prereq.slug %}" style="color: #dc3545; display: flex; align-items: center; gap: 5px; justify-content: center;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ prereq.title }}
+                      </a>
+                    {% endif %}
+                  {% else %}
+                    <a href="{% url 'course:detail' prereq.slug %}">{{ prereq.title }}</a>
+                  {% endif %}
+                  {% if not forloop.last %}<br>{% endif %}
+                {% endfor %}
+              {% else %}
+                <span style="color: #10b981;">
+                  <i class="fas fa-check"></i> پیش‌نیازی ندارد
+                </span>
+              {% endif %}
+            </p>
           </div>
         </div>
       </div>

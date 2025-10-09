@@ -145,6 +145,9 @@ class Course(models.Model):
     # نگه‌داشتن category قدیمی برای سازگاری با backward
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses_old', verbose_name="دسته‌بندی اصلی")
     students = models.ManyToManyField(Student, related_name='enrolled_courses')
+    
+    # پیش‌نیازهای دوره
+    prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='next_courses', verbose_name="دوره‌های پیش‌نیاز")
 
     start_date = models.DateField("تاریخ شروع", default=date.today)
     end_date = models.DateField("تاریخ پایان", null=True, blank=True)
@@ -213,6 +216,46 @@ class Course(models.Model):
     def is_offline(self):
         """آیا دوره آفلاین است"""
         return self.course_type == 'offline'
+    
+    def has_completed_prerequisites(self, student):
+        """بررسی اینکه آیا دانشجو پیش‌نیازها را گذرانده است"""
+        if not self.prerequisites.exists():
+            return True
+        
+        from enrollment.models import Enrollment
+        
+        for prereq in self.prerequisites.all():
+            # بررسی اینکه آیا دانشجو در دوره پیش‌نیاز ثبت‌نام کرده و آن را با موفقیت گذرانده
+            enrollment = Enrollment.objects.filter(
+                student=student,
+                course=prereq,
+                status='confirmed'
+            ).first()
+            
+            if not enrollment:
+                return False
+        
+        return True
+    
+    def get_incomplete_prerequisites(self, student):
+        """دریافت لیست پیش‌نیازهای تکمیل نشده"""
+        if not self.prerequisites.exists():
+            return []
+        
+        from enrollment.models import Enrollment
+        
+        incomplete = []
+        for prereq in self.prerequisites.all():
+            enrollment = Enrollment.objects.filter(
+                student=student,
+                course=prereq,
+                status='confirmed'
+            ).first()
+            
+            if not enrollment:
+                incomplete.append(prereq)
+        
+        return incomplete
 
     class Meta:
         verbose_name = "کلاس"

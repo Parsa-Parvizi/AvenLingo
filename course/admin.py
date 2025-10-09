@@ -39,7 +39,7 @@ class CourseAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('enrolled_count', 'created_at', 'updated_at')
     ordering = ('-created_at',)
-    filter_horizontal = ('categories', 'class_types')
+    filter_horizontal = ('categories', 'class_types', 'prerequisites')
     
     fieldsets = (
         ('اطلاعات اصلی', {
@@ -50,6 +50,10 @@ class CourseAdmin(admin.ModelAdmin):
         }),
         ('انواع کلاس', {
             'fields': ('class_types', 'class_type')
+        }),
+        ('پیش‌نیازها', {
+            'fields': ('prerequisites',),
+            'description': 'دوره‌هایی که باید قبل از این دوره گذرانده شوند'
         }),
         ('زمان‌بندی', {
             'fields': ('start_date', 'end_date', 'duration', 'total_hours')

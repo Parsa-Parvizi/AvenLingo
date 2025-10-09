@@ -72,9 +72,7 @@
             <p>
               {% if course.class_types.all %}
                 {% for ct in course.class_types.all %}
-                  <span class="badge-class-type" style="background: {{ ct.color }}; color: white; padding: 5px 12px; border-radius: 15px; display: inline-block; margin: 3px;">
-                    <i class="{{ ct.icon }}"></i> {{ ct.name }}
-                  </span>
+                  {{ ct.name }}{% if not forloop.last %}، {% endif %}
                 {% endfor %}
               {% elif course.class_type %}
                 {{ course.get_class_type_display }}

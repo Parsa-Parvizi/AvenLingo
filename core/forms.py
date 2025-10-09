@@ -28,14 +28,40 @@ class DeterminationRequestForm(forms.ModelForm):
             'name': 'نام و نام خانوادگی',
             'email': 'ایمیل',
             'phone': 'شماره تماس',
-            'message': 'متن درخواست تعیین سطح',
+            'message': 'توضیحات تکمیلی',
         }
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'placeholder': 'نام و نام خانوادگی'})
-        self.fields['email'].widget.attrs.update({'placeholder': 'ایمیل'})
-        self.fields['phone'].widget.attrs.update({'placeholder': 'شماره تماس'})
-        self.fields['message'].widget.attrs.update({'placeholder': 'متن درخواست تعیین سطح'})
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام و نام خانوادگی خود را وارد کنید',
+                'required': True
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'آدرس ایمیل خود را وارد کنید',
+                'required': True
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789',
+                'pattern': '[0-9]{11}',
+                'required': True
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'در صورت نیاز، توضیحات تکمیلی خود را بنویسید (اختیاری)'
+            })
+        }
+    
+    def clean_phone(self):
+        """اعتبارسنجی شماره تلفن"""
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('شماره تلفن باید فقط شامل اعداد باشد.')
+        if phone and len(phone) != 11:
+            raise forms.ValidationError('شماره تلفن باید 11 رقم باشد.')
+        return phone
 
 
 class CollabrateRequestForm(forms.ModelForm):

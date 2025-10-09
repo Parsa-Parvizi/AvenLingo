@@ -99,15 +99,35 @@ def search_view(request):
 
 
 def determination(request):
-    # درخواست تعیین سطح
+    """صفحه درخواست تعیین سطح"""
     if request.method == 'POST':
         form = DeterminationRequestForm(request.POST)
         if form.is_valid():
+            # ذخیره درخواست
             form.save()
-            return render(request, 'core/application_success.html', {'message': 'درخواست تعیین سطح با موفقیت ثبت شد.'})
+            
+            # نمایش پیام موفقیت
+            messages.success(
+                request,
+                'درخواست تعیین سطح شما با موفقیت ثبت شد! کارشناسان ما در اسرع وقت با شما تماس خواهند گرفت.'
+            )
+            
+            # Redirect برای جلوگیری از ارسال مجدد فرم
+            return redirect('core:determination')
+        else:
+            # نمایش پیام خطا
+            messages.error(
+                request,
+                'خطا در ثبت درخواست. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+            )
     else:
         form = DeterminationRequestForm()
-    return render(request, 'core/determination.html', {'form': form})
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'core/determination.html', context)
 
 
 def advice(request):

@@ -94,7 +94,6 @@
 
 .modern-footer .contact-quick .contact-item:hover {
     color: var(--color-accent, #F4D03F);
-    transform: translateX(5px);
 }
 
 .modern-footer .contact-quick .contact-item i {
@@ -226,7 +225,6 @@
 
 .modern-footer .contact-info .contact-item:hover {
     color: #ffffff;
-    transform: translateX(5px);
 }
 
 .modern-footer .contact-info .contact-item i {

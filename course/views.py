@@ -13,7 +13,9 @@ from .models import Course, Category, Assignment, AssignmentSubmission, LANGUAGE
 from account.models import Teacher
 from .forms import AssignmentForm, AssignmentSubmissionForm, AssignmentGradingForm
 import re
-
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import TemplateView
+from django.views import View
 
 def all_courses_view(request):
     """نمایش همه کلاس‌ها با جستجو و فیلتر پیشرفته"""
@@ -63,10 +65,7 @@ def all_courses_view(request):
                     Q(level__icontains=term) |
                     
                     # گروه سنی (وزن متوسط)
-                    Q(age_group__icontains=term) |
-                    
-                    # محل برگزاری (وزن پایین)
-                    Q(location__icontains=term)
+                    Q(age_group__icontains=term)
                 )
                 
                 search_queries &= term_query
@@ -312,45 +311,49 @@ def course_detail_view(request, course_slug):
     """نمایش جزئیات کلاس"""
     course = get_object_or_404(Course, slug=course_slug, is_active=True)
     
-    # کلاس‌های مشابه (همیشه 3 تا)
+    # کلاس‌های مشابه (حداکثر 6 تا برای اسلایدر)
     similar_courses = []
     
     # اول از همان دسته‌بندی بگیریم
     category_courses = Course.objects.filter( # type: ignore
         is_active=True,
         category=course.category
-    ).exclude(id=course.id).order_by('-is_featured', '-created_at')[:3]  # type: ignore
+    ).exclude(id=course.id).order_by('-is_featured', '-created_at')[:6]  # type: ignore
     similar_courses.extend(list(category_courses))
     
-    # اگر کمتر از 3 تا بود، از همان سطح بگیریم
-    if len(similar_courses) < 3:
+    # اگر کمتر از 6 تا بود، از همان سطح بگیریم
+    if len(similar_courses) < 6:
         level_courses = Course.objects.filter( # type: ignore
             is_active=True,
             level=course.level
         ).exclude(
             id__in=[course.id] + [c.id for c in similar_courses]
-        ).order_by('-is_featured', '-created_at')[:(3 - len(similar_courses))]  # type: ignore
+        ).order_by('-is_featured', '-created_at')[:(6 - len(similar_courses))]  # type: ignore
         similar_courses.extend(list(level_courses))
     
-    # اگر هنوز کمتر از 3 تا است، از همه دوره‌های فعال بگیریم
-    if len(similar_courses) < 3:
+    # اگر هنوز کمتر از 6 تا است، از همه دوره‌های فعال بگیریم
+    if len(similar_courses) < 6:
         other_courses = Course.objects.filter( # type: ignore
             is_active=True
         ).exclude(
             id__in=[course.id] + [c.id for c in similar_courses]
-        ).order_by('-is_featured', '-created_at')[:(3 - len(similar_courses))]  # type: ignore
+        ).order_by('-is_featured', '-created_at')[:(6 - len(similar_courses))]  # type: ignore
         similar_courses.extend(list(other_courses))
     
-    # دیگر دوره‌های استاد (بهترین دوره‌ها)
-    teacher_other_courses = Course.objects.filter( # type: ignore
-        is_active=True,
-        teacher=course.teacher,
-        status='published'
-    ).exclude(id=course.id).order_by( # type: ignore
-        '-is_featured',  # اولویت با دوره‌های ویژه
-        '-enrollments__status',  # سپس بر اساس تعداد ثبت‌نام
-        '-created_at'  # و در نهایت جدیدترین
-    )[:3]  # type: ignore
+    # دیگر دوره‌های استاد
+    teacher_other_courses = []
+    if course.teacher:
+        teacher_other_courses = Course.objects.filter( # type: ignore
+            is_active=True,
+            teacher=course.teacher,
+            status='published'
+        ).exclude(id=course.id).distinct().order_by( # type: ignore
+            '-is_featured',  # اولویت با دوره‌های ویژه
+            '-created_at'  # و در نهایت جدیدترین
+        )  # type: ignore
+        
+        # تبدیل به لیست برای جلوگیری از تکرار
+        teacher_other_courses = list(teacher_other_courses)
     
     # Check if user is enrolled in this course
     user_enrollment = None
@@ -755,13 +758,6 @@ def download_submission_file(request, submission_id):
     return response
 
 
-
-
-# Student Exam Views
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import TemplateView
-from django.views import View
-
 class StudentExamsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """لیست امتحانات دانشجو"""
     template_name = 'course/student_exams.html'
@@ -1041,6 +1037,65 @@ class StudentAssignmentsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         context['submitted_assignments'] = submitted
         context['overdue_assignments'] = overdue
         
+        return context
+
+
+class StudentMyCoursesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """صفحه دوره‌های من برای زبان‌آموز"""
+    template_name = 'course/student_my_courses.html'
+    
+    def test_func(self):
+        return hasattr(self.request.user, 'user_type') and self.request.user.user_type == 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from account.models import Student
+        from enrollment.models import Enrollment
+        from course.models import Assignment, AssignmentSubmission, Exam, ExamParticipation
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            return context
+        
+        # دوره‌های تأیید شده
+        enrollments = Enrollment.objects.filter(
+            student=student, 
+            status='confirmed'
+        ).select_related('course', 'course__teacher', 'course__category').order_by('-enrolled_at')
+        
+        # آمار هر دوره
+        courses_data = []
+        for enrollment in enrollments:
+            course = enrollment.course
+            
+            # تعداد تکالیف و امتحانات
+            total_assignments = Assignment.objects.filter(course=course, is_active=True).count()
+            total_exams = Exam.objects.filter(course=course, is_active=True).count()
+            
+            # تکالیف و امتحانات تکمیل شده
+            completed_assignments = AssignmentSubmission.objects.filter(
+                assignment__course=course,
+                student=student,
+                status__in=['submitted', 'graded']
+            ).count()
+            
+            completed_exams = ExamParticipation.objects.filter(
+                exam__course=course,
+                student=student,
+                status__in=['submitted', 'graded']
+            ).count()
+            
+            courses_data.append({
+                'enrollment': enrollment,
+                'course': course,
+                'total_assignments': total_assignments,
+                'completed_assignments': completed_assignments,
+                'total_exams': total_exams,
+                'completed_exams': completed_exams,
+            })
+        
+        context['courses_data'] = courses_data
         return context
 
 

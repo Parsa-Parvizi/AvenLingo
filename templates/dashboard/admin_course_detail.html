@@ -242,11 +242,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">ساعت برگزاری:</span>
-                    <span class="info-value">{{ course.duration|default:"—"|persian_numbers }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">محل برگزاری:</span>
-                    <span class="info-value">آنلاین</span>
+                    <span class="info-value">{{ course.duration|format_class_time|default:"—" }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">ظرفیت:</span>

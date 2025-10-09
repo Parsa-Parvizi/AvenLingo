@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | دوره‌های من{% endblock %}
+
+{% block content %}
+{% include 'dashboard/student_navbar.html' %}
+
+<div class="container-fluid px-3 px-md-4 py-4" dir="rtl">
+    <div class="page-header mb-4">
+        <h2>📚 دوره‌های من</h2>
+        <p class="text-muted">تمام دوره‌های ثبت‌نام شده شما</p>
+    </div>
+
+    {% if courses_data %}
+    <div class="row">
+        {% for data in courses_data %}
+        <div class="col-12 mb-4">
+            <div class="course-card">
+                <div class="course-card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1">{{ data.course.title }}</h4>
+                            <p class="text-muted mb-0 small">
+                                <i class="fas fa-user-tie"></i> 
+                                استاد: {{ data.course.teacher.full_name }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-success">فعال</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="course-card-body">
+                    <div class="course-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ data.course.start_date|jalali_short }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ data.course.duration|format_class_time }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-tasks"></i>
+                            <span>تکالیف: {{ data.completed_assignments|persian_numbers }}/{{ data.total_assignments|persian_numbers }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-file-alt"></i>
+                            <span>امتحانات: {{ data.completed_exams|persian_numbers }}/{{ data.total_exams|persian_numbers }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="course-actions mt-3">
+                        <a href="{% url 'course:student-course-detail' data.course.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-book-open"></i> مشاهده دوره
+                        </a>
+                        <a href="{% url 'course:student_assignments' %}?course={{ data.course.id }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-tasks"></i> تکالیف
+                        </a>
+                        <a href="{% url 'course:student_exams' %}?course={{ data.course.id }}" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-file-alt"></i> امتحانات
+                        </a>
+                        <a href="{% url 'course:student_grades' %}?course={{ data.course.id }}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-chart-bar"></i> نمرات
+                        </a>
+                        {% if data.course.class_room_link and data.course.is_online %}
+                        <a href="{{ data.course.class_room_link }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-video"></i> کلاس آنلاین
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="empty-state text-center py-5">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
+                <h4 class="mb-3">شما هنوز در دوره‌ای ثبت‌نام نکرده‌اید</h4>
+                <p class="text-muted mb-4">دوره‌های متنوع ما را مشاهده کنید و در آن‌ها ثبت‌نام کنید</p>
+                <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                    مشاهده دوره‌ها
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header h2 {
+    color: #1F3A93;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.course-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+    margin-bottom: 20px;
+}
+
+.course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.course-card-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #dee2e6;
+}
+
+.course-card-header h4 {
+    color: #1F3A93;
+    font-weight: 600;
+}
+
+.course-card-body {
+    padding: 20px;
+}
+
+.course-info-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin: 15px 0;
+}
+
+.course-info-grid .info-item {
+    flex: 1 1 200px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.info-item i {
+    color: #28a745;
+    width: 20px;
+}
+
+.course-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.course-actions .btn {
+    flex: 0 0 auto;
+}
+
+.empty-state {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 768px) {
+    .course-info-grid {
+        gap: 15px;
+    }
+    
+    .course-info-grid .info-item {
+        flex: 1 1 150px;
+    }
+    
+    .course-actions {
+        flex-direction: column;
+    }
+    
+    .course-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+

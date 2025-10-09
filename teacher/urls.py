@@ -7,7 +7,10 @@ from .views import (
     TeacherEditAssignmentView, TeacherDeleteAssignmentView, TeacherAssignmentDetailView,
     TeacherActivitiesView, TeacherNotificationsView, TeacherMyStudentsView,
     TeacherExamsListView, TeacherExamsView, TeacherCreateExamView, TeacherEditExamView, TeacherDeleteExamView,
-    TeacherExamParticipantsView, TeacherGradeExamView
+    TeacherExamParticipantsView, TeacherGradeExamView,
+    TeacherCourseVideosView, TeacherCreateVideoView, TeacherEditVideoView, TeacherDeleteVideoView,
+    TeacherCourseResourcesView, TeacherCreateResourceView, TeacherEditResourceView, TeacherDeleteResourceView,
+    TeacherCourseGradesView
 )
 app_name = 'teacher'
 
@@ -37,6 +40,21 @@ urlpatterns = [
     path('exams/<int:exam_id>/delete/', TeacherDeleteExamView.as_view(), name='delete_exam'),
     path('exams/<int:exam_id>/participants/', TeacherExamParticipantsView.as_view(), name='exam_participants'),
     path('exams/<int:exam_id>/grade/<int:participation_id>/', TeacherGradeExamView.as_view(), name='grade_exam'),
+    
+    # Video URLs
+    path('courses/<int:course_id>/videos/', TeacherCourseVideosView.as_view(), name='course_videos'),
+    path('courses/<int:course_id>/videos/create/', TeacherCreateVideoView.as_view(), name='create_video'),
+    path('videos/<int:video_id>/edit/', TeacherEditVideoView.as_view(), name='edit_video'),
+    path('videos/<int:video_id>/delete/', TeacherDeleteVideoView.as_view(), name='delete_video'),
+    
+    # Resource URLs
+    path('courses/<int:course_id>/resources/', TeacherCourseResourcesView.as_view(), name='course_resources'),
+    path('courses/<int:course_id>/resources/create/', TeacherCreateResourceView.as_view(), name='create_resource'),
+    path('resources/<int:resource_id>/edit/', TeacherEditResourceView.as_view(), name='edit_resource'),
+    path('resources/<int:resource_id>/delete/', TeacherDeleteResourceView.as_view(), name='delete_resource'),
+    
+    # Grades URLs
+    path('courses/<int:course_id>/grades/', TeacherCourseGradesView.as_view(), name='course_grades'),
     
     # Additional URLs
     path('activities/', TeacherActivitiesView.as_view(), name='activities'),

@@ -193,7 +193,7 @@
                                             {% if enrollment.course.duration %}
                                                 <span class="feature-tag">
                                                     <i class="fas fa-clock me-1"></i>
-                                                    {{ enrollment.course.duration|persian_numbers }}
+                                                    {{ enrollment.course.duration|format_class_time }}
                                                 </span>
                                             {% endif %}
                                         </div>
@@ -549,7 +549,6 @@
     background: #f8f9fa;
     padding: 10px;
     border-radius: 8px;
-    border-left: 3px solid #007bff;
 }
 
 .progress-section .progress {

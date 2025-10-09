@@ -55,91 +55,130 @@
 
 <section class="featured-courses">
   <h2>دوره‌های ویژه</h2>
-  <div class="course-grid">
-    {% for course in featured_courses %}
-      <div class="course-card featured">
-        {% if course.image %}
-          <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
-        {% else %}
-          <div class="course-image-placeholder"></div>
-        {% endif %}
-        <div class="course-content">
-          <h3>{{ course.title }}</h3>
-          <p class="course-description">{{ course.short_description|default:course.description|truncatewords:15 }}</p>
-          <div class="course-meta">
-            <span class="teacher">استاد: {{ course.teacher.full_name }}</span>
-            <span class="level">سطح: {{ course.get_level_display }}</span>
-            <span class="age-group">سن: {{ course.get_age_group_display }}</span>
+  
+  {% if featured_courses %}
+  <div class="courses-slider-wrapper">
+    <button class="slider-btn slider-btn-prev" onclick="moveFeaturedSlide(-1)">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <button class="slider-btn slider-btn-next" onclick="moveFeaturedSlide(1)">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="courses-slider">
+      <div class="courses-slider-track" id="featuredSliderTrack">
+        {% for course in featured_courses %}
+          <div class="course-card slider-item">
+            {% if course.image %}
+              <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+            {% else %}
+              <div class="course-image-placeholder"></div>
+            {% endif %}
+            <div class="course-content">
+              <h3>{{ course.title }}</h3>
+              <p class="course-description">{{ course.short_description|default:course.description|truncatewords:15 }}</p>
+              <div class="course-meta">
+                <span class="teacher">استاد: {{ course.teacher.full_name }}</span>
+                <span class="level">سطح: {{ course.get_level_display }}</span>
+              </div>
+              <div class="course-footer">
+                <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
+                {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+              </div>
+            </div>
           </div>
-          <div class="course-footer">
-            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
-            {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
-          </div>
-        </div>
+        {% endfor %}
       </div>
-    {% empty %}
-      <p>هنوز دوره ویژه‌ای ثبت نشده است.</p>
-    {% endfor %}
+    </div>
   </div>
+  {% else %}
+    <p class="text-center text-muted">هنوز دوره ویژه‌ای ثبت نشده است.</p>
+  {% endif %}
 </section>
 
 <section class="latest-courses">
   <h2>جدیدترین دوره‌ها</h2>
-  <div class="course-grid">
-    {% for course in latest_courses|slice:":3" %}
-      <div class="course-card">
-        {% if course.image %}
-          <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
-        {% else %}
-          <div class="course-image-placeholder"></div>
-        {% endif %}
-        <div class="course-content">
-          <h3>{{ course.title }}</h3>
-          <p class="course-description">{{ course.short_description|default:course.description|truncatewords:15 }}</p>
-          <div class="course-meta">
-            <span class="teacher">استاد: {{ course.teacher.full_name }}</span>
-            <span class="level">سطح: {{ course.get_level_display }}</span>
-            <span class="age-group">سن: {{ course.get_age_group_display }}</span>
+  
+  {% if latest_courses %}
+  <div class="courses-slider-wrapper">
+    <button class="slider-btn slider-btn-prev" onclick="moveLatestSlide(-1)">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <button class="slider-btn slider-btn-next" onclick="moveLatestSlide(1)">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="courses-slider">
+      <div class="courses-slider-track" id="latestSliderTrack">
+        {% for course in latest_courses %}
+          <div class="course-card slider-item">
+            {% if course.image %}
+              <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+            {% else %}
+              <div class="course-image-placeholder"></div>
+            {% endif %}
+            <div class="course-content">
+              <h3>{{ course.title }}</h3>
+              <p class="course-description">{{ course.short_description|default:course.description|truncatewords:15 }}</p>
+              <div class="course-meta">
+                <span class="teacher">استاد: {{ course.teacher.full_name }}</span>
+                <span class="level">سطح: {{ course.get_level_display }}</span>
+              </div>
+              <div class="course-footer">
+                <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
+                {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+              </div>
+            </div>
           </div>
-          <div class="course-footer">
-            <span class="price">{% if course.is_free %}رایگان{% else %}{{ course.price|persian_numbers }} تومان{% endif %}</span>
-            {% if course.slug %}<a href="{% url 'course:detail' course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
-          </div>
-        </div>
+        {% endfor %}
       </div>
-    {% empty %}
-      <p>هنوز دوره‌ای ثبت نشده است.</p>
-    {% endfor %}
+    </div>
   </div>
+  {% else %}
+    <p class="text-center text-muted">هنوز دوره‌ای ثبت نشده است.</p>
+  {% endif %}
 </section>
 
 <section class="course-categories">
   <h2>دسته‌بندی دوره‌ها</h2>
-  <div class="category-grid">
-    {% for category in categories %}
-      <a href="{% url 'course:category' category.slug %}" class="category-card">
-        {% if category.image %}
-          <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-image">
-        {% else %}
-          <div class="category-image-placeholder"></div>
-        {% endif %}
-        <div class="category-content">
-          <h3>{{ category.name }}</h3>
-          <p>{{ category.description|truncatewords:10 }}</p>
-          <span class="course-count">{{ category.courses.count|persian_numbers }} دوره</span>
-        </div>
-      </a>
-    {% empty %}
-      <p>هنوز دسته‌بندی‌ای ثبت نشده است.</p>
-    {% endfor %}
+  
+  {% if categories %}
+  <div class="courses-slider-wrapper">
+    <button class="slider-btn slider-btn-prev" onclick="moveCategorySlide(-1)">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <button class="slider-btn slider-btn-next" onclick="moveCategorySlide(1)">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="courses-slider">
+      <div class="courses-slider-track" id="categorySliderTrack">
+        {% for category in categories %}
+          <a href="{% url 'course:category' category.slug %}" class="category-card slider-item">
+            {% if category.image %}
+              <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-image">
+            {% else %}
+              <div class="category-image-placeholder"></div>
+            {% endif %}
+            <div class="category-content">
+              <h3>{{ category.name }}</h3>
+              <p>{{ category.description|truncatewords:10 }}</p>
+              <span class="course-count">{{ category.courses.count|persian_numbers }} دوره</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
   </div>
+  {% else %}
+    <p class="text-center text-muted">هنوز دسته‌بندی‌ای ثبت نشده است.</p>
+  {% endif %}
 </section>
 
-<section class="all-requests-section" style="margin: 80px 0; padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);">
+<section class="all-requests-section" style="padding: 60px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15);">
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="text-align: center; margin-bottom: 50px;">
       <h2 style="color: white; font-size: 2.5rem; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-        <i class="fas fa-handshake"></i>
         خدمات و درخواست‌ها
       </h2>
       <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin: 0; line-height: 1.8;">
@@ -165,7 +204,7 @@
       <!-- کارت تعیین سطح -->
       <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
         <div style="background: linear-gradient(135deg, #f093fb, #f5576c); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);">
-          <i class="fas fa-chart-line" style="font-size: 2rem; color: white;"></i>
+          <i style="font-size: 2rem; color: white;"></i>
         </div>
         <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">تعیین سطح</h3>
         <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
@@ -179,7 +218,7 @@
       <!-- کارت مشاوره -->
       <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
         <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4);">
-          <i class="fas fa-comments" style="font-size: 2rem; color: white;"></i>
+          <i style="font-size: 2rem; color: white;"></i>
         </div>
         <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">مشاوره آموزشی</h3>
         <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
@@ -207,7 +246,7 @@
       <!-- کارت همکاری -->
       <div style="background: white; border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)'">
         <div style="background: linear-gradient(135deg, #fa709a, #fee140); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 5px 20px rgba(250, 112, 154, 0.4);">
-          <i class="fas fa-handshake" style="font-size: 2rem; color: white;"></i>
+          <i style="font-size: 2rem; color: white;"></i>
         </div>
         <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 15px; font-weight: bold;">همکاری با ما</h3>
         <p style="color: #666; font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px;">
@@ -290,39 +329,429 @@
 
 <section class="teachers">
   <h2>اساتید ما</h2>
-  <div class="teacher-list row">
-    {% for teacher in teachers %}
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-2">
-      <div class="card teacher-card border-0 shadow-sm rounded-lg overflow-hidden h-100">
-        <div class="text-center p-2">
-          <a href="{% url 'teacher:detail' teacher.id %}">
-            {% if teacher.image %}
-              <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="teacher-profile-img rounded-circle mb-2 border border-3 border-light">
-            {% else %}
-              <div class="teacher-profile-img placeholder-image rounded-circle mb-2 d-flex align-items-center justify-content-center border border-3 border-light">
-                <i class="fas fa-user-tie fa-2x"></i>
+  
+  {% if teachers %}
+  <div class="courses-slider-wrapper">
+    <button class="slider-btn slider-btn-prev" onclick="moveTeacherSlide(-1)">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <button class="slider-btn slider-btn-next" onclick="moveTeacherSlide(1)">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <div class="courses-slider">
+      <div class="courses-slider-track" id="teacherSliderTrack">
+        {% for teacher in teachers %}
+          <div class="teacher-card slider-item">
+            <a href="{% url 'teacher:detail' teacher.id %}" class="teacher-link">
+              {% if teacher.image %}
+                <img src="{{ teacher.image.url }}" alt="{{ teacher.full_name }}" class="teacher-profile-img">
+              {% else %}
+                <div class="teacher-profile-img placeholder-image">
+                  <i class="fas fa-user-tie fa-2x"></i>
+                </div>
+              {% endif %}
+            </a>
+            <div class="teacher-content">
+              <h5>{{ teacher.full_name|default:"مدرس" }}</h5>
+              {% if teacher.expertise %}
+                <p class="teacher-expertise">{{ teacher.expertise }}</p>
+              {% endif %}
+              <p class="teacher-bio">{{ teacher.bio|default:""|truncatewords:15 }}</p>
+              <div class="social-icons-compact">
+                {% if teacher.linkedin %}<a href="{{ teacher.linkedin }}" target="_blank" class="social-icon linkedin"><i class="fab fa-linkedin"></i></a>{% endif %}
+                {% if teacher.instagram %}<a href="{{ teacher.instagram }}" target="_blank" class="social-icon instagram"><i class="fab fa-instagram"></i></a>{% endif %}
+                {% if teacher.website %}<a href="{{ teacher.website }}" target="_blank" class="social-icon website"><i class="fas fa-globe"></i></a>{% endif %}
               </div>
-            {% endif %}
-          </a>
-          <h5 class="card-title mb-0 mt-2">{{ teacher.full_name|default:"مدرس" }}</h5>
-          {% if teacher.expertise %}
-            <p class="text-muted small mb-2">{{ teacher.expertise }}</p>
-          {% endif %}
-        </div>
-        <div class="card-body d-flex flex-column align-items-center text-center pt-0 pb-2">
-          <p class="card-text text-muted mb-2 flex-grow-1">{{ teacher.bio|default:""|truncatewords:15 }}</p>
-          <div class="social-icons-compact mb-2">
-            {% if teacher.linkedin %}<a href="{{ teacher.linkedin }}" target="_blank" class="social-icon linkedin"><i class="fab fa-linkedin"></i></a>{% endif %}
-            {% if teacher.instagram %}<a href="{{ teacher.instagram }}" target="_blank" class="social-icon instagram"><i class="fab fa-instagram"></i></a>{% endif %}
-            {% if teacher.website %}<a href="{{ teacher.website }}" target="_blank" class="social-icon website"><i class="fas fa-globe"></i></a>{% endif %}
+              <a href="{% url 'teacher:detail' teacher.id %}" class="btn btn-sm btn-outline-primary">مشاهده پروفایل</a>
+            </div>
           </div>
-          <a href="{% url 'teacher:detail' teacher.id %}" class="btn btn-sm btn-outline-primary mt-auto">مشاهده پروفایل</a>
-        </div>
+        {% endfor %}
       </div>
     </div>
-    {% empty %}
-    <p>فعلاً استادی فعال نیست.</p>
-    {% endfor %}
   </div>
+  {% else %}
+    <p class="text-center text-muted">فعلاً استادی فعال نیست.</p>
+  {% endif %}
 </section>
+
+<style>
+/* Slider Styles */
+.courses-slider-wrapper {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.courses-slider {
+  overflow: hidden;
+  position: relative;
+}
+
+.courses-slider-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  gap: 25px;
+}
+
+.courses-slider-track .slider-item {
+  min-width: calc(33% - 17px);
+  max-width: calc(33% - 17px);
+  flex-shrink: 0;
+  flex-grow: 0;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.courses-slider-track .slider-item:hover {
+  transform: translateY(-4px);
+  border-color: #e5e7eb;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Slider Buttons */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.slider-btn:hover {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-color: #3b82f6;
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slider-btn i {
+  font-size: 1.2rem;
+  color: #3b82f6;
+  transition: color 0.3s ease;
+}
+
+.slider-btn:hover i {
+  color: white;
+}
+
+.slider-btn-prev {
+  right: 0;
+}
+
+.slider-btn-next {
+  left: 0;
+}
+
+/* Teacher Card Styles */
+.teacher-card.slider-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+}
+
+.teacher-profile-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 15px;
+  border: 4px solid #f8fafc;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-profile-img.placeholder-image {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.teacher-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.teacher-content h5 {
+  color: #1f2937;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.teacher-expertise {
+  color: #3b82f6;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.teacher-bio {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  flex: 1;
+}
+
+.social-icons-compact {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.social-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.social-icon.linkedin {
+  background: #0077b5;
+  color: white;
+}
+
+.social-icon.instagram {
+  background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+  color: white;
+}
+
+.social-icon.website {
+  background: #6c757d;
+  color: white;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Category Card Styles */
+.category-card.slider-item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 20px;
+  text-align: center;
+}
+
+.category-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.category-image-placeholder {
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #64748b;
+}
+
+.category-content h3 {
+  color: #1f2937;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.category-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.course-count {
+  display: inline-block;
+  background: #eff6ff;
+  color: #3b82f6;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .courses-slider-track .slider-item {
+    min-width: calc(50% - 13px);
+    max-width: calc(50% - 13px);
+  }
+}
+
+@media (max-width: 768px) {
+  .courses-slider-wrapper {
+    padding: 0 50px 40px;
+  }
+  
+  .courses-slider-track .slider-item {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  
+  .slider-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .slider-btn i {
+    font-size: 1rem;
+  }
+}
+</style>
+
+<script>
+// Slider configurations
+const sliders = {
+  featured: {
+    track: document.getElementById('featuredSliderTrack'),
+    currentIndex: 0,
+    interval: null
+  },
+  latest: {
+    track: document.getElementById('latestSliderTrack'),
+    currentIndex: 0,
+    interval: null
+  },
+  category: {
+    track: document.getElementById('categorySliderTrack'),
+    currentIndex: 0,
+    interval: null
+  },
+  teacher: {
+    track: document.getElementById('teacherSliderTrack'),
+    currentIndex: 0,
+    interval: null
+  }
+};
+
+// Common functions
+function getItemsPerView() {
+  if (window.innerWidth <= 768) return 1;
+  if (window.innerWidth <= 1024) return 2;
+  return 3;
+}
+
+function getTotalSlides(track) {
+  if (!track) return 0;
+  const totalItems = track.children.length;
+  const itemsPerView = getItemsPerView();
+  return Math.max(0, totalItems - itemsPerView + 1);
+}
+
+function updateSlider(sliderName) {
+  const slider = sliders[sliderName];
+  if (!slider.track) return;
+  
+  const itemsPerView = getItemsPerView();
+  const itemWidth = 100 / itemsPerView;
+  const offset = slider.currentIndex * itemWidth;
+  
+  slider.track.style.transform = `translateX(${offset}%)`;
+}
+
+function moveSlide(sliderName, direction) {
+  const slider = sliders[sliderName];
+  const totalSlides = getTotalSlides(slider.track);
+  
+  slider.currentIndex += direction;
+  
+  if (slider.currentIndex >= totalSlides) {
+    slider.currentIndex = 0;
+  } else if (slider.currentIndex < 0) {
+    slider.currentIndex = totalSlides - 1;
+  }
+  
+  updateSlider(sliderName);
+  resetAutoSlide(sliderName);
+}
+
+function startAutoSlide(sliderName) {
+  const slider = sliders[sliderName];
+  slider.interval = setInterval(() => {
+    moveSlide(sliderName, 1);
+  }, 3000);
+}
+
+function resetAutoSlide(sliderName) {
+  clearInterval(sliders[sliderName].interval);
+  startAutoSlide(sliderName);
+}
+
+// Individual slider functions
+function moveFeaturedSlide(direction) {
+  moveSlide('featured', direction);
+}
+
+function moveLatestSlide(direction) {
+  moveSlide('latest', direction);
+}
+
+function moveCategorySlide(direction) {
+  moveSlide('category', direction);
+}
+
+function moveTeacherSlide(direction) {
+  moveSlide('teacher', direction);
+}
+
+// Initialize all sliders
+document.addEventListener('DOMContentLoaded', () => {
+  Object.keys(sliders).forEach(sliderName => {
+    if (sliders[sliderName].track && sliders[sliderName].track.children.length > 0) {
+      updateSlider(sliderName);
+      startAutoSlide(sliderName);
+      
+      // Pause on hover
+      const wrapper = sliders[sliderName].track.closest('.courses-slider-wrapper');
+      if (wrapper) {
+        wrapper.addEventListener('mouseenter', () => {
+          clearInterval(sliders[sliderName].interval);
+        });
+        
+        wrapper.addEventListener('mouseleave', () => {
+          startAutoSlide(sliderName);
+        });
+      }
+    }
+  });
+});
+
+// Handle resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    Object.keys(sliders).forEach(sliderName => {
+      sliders[sliderName].currentIndex = 0;
+      updateSlider(sliderName);
+    });
+  }, 250);
+});
+</script>
+
 {% endblock %}

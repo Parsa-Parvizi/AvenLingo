@@ -28,7 +28,6 @@
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-top: 3px solid;
         transition: all 0.3s;
     }
     
@@ -85,6 +84,8 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         transition: all 0.3s;
         margin-bottom: 20px;
+        width: 100%;
+        display: block;
     }
     
     .course-card:hover {
@@ -103,10 +104,14 @@
     }
     
     .course-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
         margin: 15px 0;
+    }
+    
+    .course-info-grid .info-item {
+        flex: 1 1 200px;
     }
     
     .info-item {
@@ -126,6 +131,31 @@
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    
+    .course-actions .btn {
+        flex: 0 0 auto;
+    }
+    
+    .btn-outline-purple {
+        color: #6f42c1;
+        border: 1px solid #6f42c1;
+    }
+    
+    .btn-outline-purple:hover {
+        background: #6f42c1;
+        color: white;
+    }
+    
+    .btn-outline-teal {
+        color: #20c997;
+        border: 1px solid #20c997;
+    }
+    
+    .btn-outline-teal:hover {
+        background: #20c997;
+        color: white;
     }
     
     .table-responsive {
@@ -136,13 +166,52 @@
     .table {
         width: 100%;
     }
+    
+    /* Make cards full width */
+    .container-fluid {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    
+    .row {
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+    
+    .col-12 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .course-card {
+        max-width: 100%;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .course-info-grid {
+            gap: 15px;
+        }
+        
+        .course-info-grid .info-item {
+            flex: 1 1 150px;
+        }
+        
+        .course-actions {
+            flex-direction: column;
+        }
+        
+        .course-actions .btn {
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 {% include 'dashboard/teacher_navbar.html' %}
 
-<div class="container-fluid py-4" dir="rtl">
+<div class="container-fluid px-2 py-4" dir="rtl" style="max-width: 100%;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="page-header mb-0">📚 دوره‌های من</h2>
         <a href="{% url 'teacher:create-course' %}" class="btn-create-course">
@@ -220,7 +289,7 @@
     {% if courses %}
     <div class="row">
         {% for course in courses %}
-        <div class="col-lg-6 mb-4">
+        <div class="col-12 mb-4">
             <div class="course-card">
                 <div class="course-card-header">
                     <div class="d-flex justify-content-between align-items-start">
@@ -253,7 +322,7 @@
                         </div>
                         <div class="info-item">
                             <i class="fas fa-clock"></i>
-                            <span>{{ course.duration|persian_numbers }} ساعت</span>
+                            <span>{{ course.duration|format_class_time }}</span>
                         </div>
                         <div class="info-item">
                             <i class="fas fa-money-bill-wave"></i>
@@ -265,11 +334,20 @@
                         <a href="{% url 'teacher:course-students' course.id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-users"></i> دانش‌آموزان
                         </a>
+                        <a href="{% url 'teacher:course_grades' course.id %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-chart-bar"></i> نمرات
+                        </a>
                         <a href="{% url 'teacher:course_assignments' course.id %}" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-tasks"></i> تکالیف
                         </a>
                         <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-sm btn-outline-danger">
                             <i class="fas fa-file-alt"></i> امتحانات
+                        </a>
+                        <a href="{% url 'teacher:course_videos' course.id %}" class="btn btn-sm btn-outline-purple">
+                            <i class="fas fa-video"></i> ویدیوها
+                        </a>
+                        <a href="{% url 'teacher:course_resources' course.id %}" class="btn btn-sm btn-outline-teal">
+                            <i class="fas fa-book"></i> منابع
                         </a>
                         <a href="{% url 'teacher:edit-course' course.id %}" class="btn btn-sm btn-outline-warning">
                             <i class="fas fa-edit"></i> ویرایش

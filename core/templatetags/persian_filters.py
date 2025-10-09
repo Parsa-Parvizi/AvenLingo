@@ -146,3 +146,63 @@ def jalali_long(value):
     """
     return jalali_date(value, '%d %B %Y')
 
+
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """
+    دریافت مقدار از dictionary با key
+    
+    استفاده:
+    {{ my_dict|get_item:key_variable }}
+    """
+    if dictionary is None:
+        return None
+    return dictionary.get(key)
+
+
+@register.filter(name='format_class_time')
+def format_class_time(value):
+    """
+    فرمت کردن زمان کلاس به شکل زیبا
+    
+    ورودی: دوشنبه-پنج‌شنبه ۱۰:۰۰-۱۱:۳۰ ساعت
+    خروجی: دوشنبه و پنج‌شنبه ساعت: ۱۰:۰۰ تا ۱۱:۳۰
+    """
+    if not value:
+        return value
+    
+    # تبدیل به رشته
+    text = str(value).strip()
+    
+    # جایگزینی - بین روزها با "و"
+    # ابتدا زمان را جدا می‌کنیم
+    import re
+    
+    # الگوی زمان: HH:MM-HH:MM یا HH:MM - HH:MM
+    time_pattern = r'(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})'
+    time_match = re.search(time_pattern, text)
+    
+    if time_match:
+        start_time = time_match.group(1)
+        end_time = time_match.group(2)
+        
+        # حذف قسمت زمان از متن اصلی
+        days_part = text[:time_match.start()].strip()
+        
+        # جایگزینی - با "و" در قسمت روزها
+        days_part = days_part.replace('-', ' و ')
+        
+        # ساخت فرمت جدید
+        formatted = f"{days_part} ساعت: {start_time} تا {end_time}"
+        
+        # تبدیل اعداد به فارسی
+        formatted = persian_numbers(formatted)
+        
+        return formatted
+    
+    # اگر الگوی زمان پیدا نشد، فقط - را با "و" جایگزین می‌کنیم
+    text = text.replace('-', ' و ')
+    text = text.replace('ساعت', 'ساعت:')
+    
+    return persian_numbers(text)
+

@@ -14,22 +14,29 @@ from account.forms import TeacherApplicationForm
 
 
 def home_view(request):
-    """Basic home view for development"""
+    """صفحه اصلی با اسلایدرها"""
     
-    # Basic queries for development
-    courses_queryset = Course.objects.filter(is_active=True).order_by('-created_at')
+    # دوره‌های ویژه (حداکثر 9 تا از بهترین‌ها)
+    featured_courses = Course.objects.filter(
+        is_active=True, 
+        is_featured=True,
+        status='published'
+    ).select_related('teacher', 'category').order_by('-created_at')[:9]
     
-    # Get courses
-    latest_courses = courses_queryset[:4]
-    featured_courses = courses_queryset.filter(is_featured=True)[:3]
+    # جدیدترین دوره‌ها (حداکثر 9 تا)
+    latest_courses = Course.objects.filter(
+        is_active=True,
+        status='published'
+    ).select_related('teacher', 'category').order_by('-created_at')[:9]
     
-    # Basic teacher query
+    # تمام دسته‌بندی‌های فعال
+    categories = Category.objects.filter(is_active=True).order_by('name')
+    
+    # حداکثر 9 استاد فعال و تأیید شده
     active_teachers = Teacher.objects.filter(
-        is_active=True, is_verified=True
-    )[:10]
-    
-    # Basic categories query
-    categories = Category.objects.filter(is_active=True).order_by('name')[:6]
+        is_active=True, 
+        is_verified=True
+    ).order_by('user__first_name')[:9]
     
     # Prepare context data
     context_data = {

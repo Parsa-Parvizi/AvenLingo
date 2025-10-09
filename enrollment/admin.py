@@ -26,7 +26,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
         ('confirmed_at', DateFieldListFilter),
         'course__level',
         'course__class_type',
-        'course__is_online',
+        'course__course_type',
     ]
     
     search_fields = [

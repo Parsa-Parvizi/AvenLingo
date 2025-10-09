@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | مدیریت منابع{% endblock %}
+
+{% block content %}
+{% include 'dashboard/teacher_navbar.html' %}
+
+<div class="container py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>📚 منابع آموزشی</h2>
+            <p class="text-muted mb-0">دوره: {{ course.title }}</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher:create_resource' course.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> افزودن منبع
+            </a>
+            <a href="{% url 'teacher:teacher_courses' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if resources %}
+    <div class="row">
+        {% for resource in resources %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ resource.title }}</h5>
+                        {% if resource.is_active %}
+                            <span class="badge bg-success">فعال</span>
+                        {% else %}
+                            <span class="badge bg-secondary">غیرفعال</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if resource.description %}
+                        <p class="card-text text-muted small">{{ resource.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <div class="resource-info mb-3">
+                        <span class="badge bg-primary">
+                            {{ resource.get_resource_type_display }}
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-sort"></i> ترتیب: {{ resource.order|persian_numbers }}
+                        </span>
+                    </div>
+                    
+                    {% if resource.link %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-link"></i> لینک خارجی
+                            </small>
+                        </div>
+                    {% elif resource.file %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-file"></i> فایل آپلود شده
+                            </small>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'teacher:edit_resource' resource.id %}" class="btn btn-sm btn-outline-warning flex-fill">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <form method="post" action="{% url 'teacher:delete_resource' resource.id %}" class="flex-fill" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size: 4rem; margin-bottom: 20px;">📖</div>
+        <h4 class="mb-3">هنوز منبعی اضافه نکرده‌اید</h4>
+        <p class="text-muted mb-4">منابع آموزشی (PDF، فایل، لینک) را برای دوره خود اضافه کنید</p>
+        <a href="{% url 'teacher:create_resource' course.id %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> افزودن اولین منبع
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | مدیریت ویدیوها{% endblock %}
+
+{% block content %}
+{% include 'dashboard/teacher_navbar.html' %}
+
+<div class="container py-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>🎬 ویدیوهای آموزشی</h2>
+            <p class="text-muted mb-0">دوره: {{ course.title }}</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher:create_video' course.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> افزودن ویدیو
+            </a>
+            <a href="{% url 'teacher:teacher_courses' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if videos %}
+    <div class="row">
+        {% for video in videos %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ video.title }}</h5>
+                        <div>
+                            {% if video.is_active %}
+                                <span class="badge bg-success">فعال</span>
+                            {% else %}
+                                <span class="badge bg-secondary">غیرفعال</span>
+                            {% endif %}
+                            {% if video.is_free_preview %}
+                                <span class="badge bg-info">پیش‌نمایش رایگان</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if video.description %}
+                        <p class="card-text text-muted small">{{ video.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <div class="video-info mb-3">
+                        {% if video.duration %}
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-clock"></i> {{ video.duration }}
+                            </span>
+                        {% endif %}
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-sort"></i> ترتیب: {{ video.order|persian_numbers }}
+                        </span>
+                    </div>
+                    
+                    {% if video.video_url %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-link"></i> لینک ویدیو موجود است
+                            </small>
+                        </div>
+                    {% elif video.video_file %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-file-video"></i> فایل ویدیو آپلود شده
+                            </small>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'teacher:edit_video' video.id %}" class="btn btn-sm btn-outline-warning flex-fill">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <form method="post" action="{% url 'teacher:delete_video' video.id %}" class="flex-fill" onsubmit="return confirm('آیا مطمئن هستید؟');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size: 4rem; margin-bottom: 20px;">🎥</div>
+        <h4 class="mb-3">هنوز ویدیویی اضافه نکرده‌اید</h4>
+        <p class="text-muted mb-4">ویدیوهای آموزشی را برای دوره خود اضافه کنید</p>
+        <a href="{% url 'teacher:create_video' course.id %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> افزودن اولین ویدیو
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

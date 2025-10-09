@@ -224,7 +224,6 @@
     .history-item {
         position: relative;
         padding: 15px 0 15px 40px;
-        border-left: 3px solid #e2e8f0;
     }
 
     .history-item:last-child {
@@ -337,11 +336,7 @@
             </div>
             <div class="info-box">
                 <h3><i class="fas fa-clock me-1"></i>ساعت برگزاری</h3>
-                <p>{{ enrollment.course.duration|default:"تعیین نشده"|persian_numbers }}</p>
-            </div>
-            <div class="info-box">
-                <h3><i class="fas fa-map-marker-alt me-1"></i>محل برگزاری</h3>
-                <p>{{ enrollment.course.location|default:"آنلاین" }}</p>
+                <p>{{ enrollment.course.duration|format_class_time|default:"تعیین نشده" }}</p>
             </div>
         </div>
 

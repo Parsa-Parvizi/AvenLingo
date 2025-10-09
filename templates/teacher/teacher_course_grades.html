@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | نمرات دوره{% endblock %}
+
+{% block extra_css %}
+<style>
+.grades-container {
+    padding: 20px;
+    direction: rtl;
+}
+
+.grades-header {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+}
+
+.grades-header h2 {
+    color: #1F3A93;
+    margin-bottom: 10px;
+}
+
+.grades-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.grades-table {
+    width: 100%;
+    margin: 0;
+}
+
+.grades-table thead {
+    background: linear-gradient(135deg, #1F3A93, #2c5aa0);
+    color: white;
+}
+
+.grades-table th {
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+}
+
+.grades-table td {
+    padding: 12px 10px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.grades-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #1F3A93;
+    text-align: right !important;
+    padding-right: 15px !important;
+}
+
+.grade-cell {
+    font-weight: 600;
+}
+
+.grade-excellent {
+    color: #28a745;
+    background: #d4edda;
+}
+
+.grade-good {
+    color: #17a2b8;
+    background: #d1ecf1;
+}
+
+.grade-average {
+    color: #ffc107;
+    background: #fff3cd;
+}
+
+.grade-poor {
+    color: #dc3545;
+    background: #f8d7da;
+}
+
+.grade-na {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.average-cell {
+    background: #e9ecef;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.no-data-message i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.legend {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+@media (max-width: 992px) {
+    .grades-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .grades-table {
+        min-width: 800px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/teacher_navbar.html' %}
+
+<div class="grades-container">
+    <div class="grades-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2>📊 نمرات دوره</h2>
+                <p class="text-muted mb-0">{{ course.title }}</p>
+            </div>
+            <a href="{% url 'teacher:teacher_courses' %}" class="btn-back">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت
+            </a>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-color grade-excellent"></span>
+                <span>عالی (۸۰-۱۰۰)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color grade-good"></span>
+                <span>خوب (۶۰-۷۹)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color grade-average"></span>
+                <span>متوسط (۴۰-۵۹)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color grade-poor"></span>
+                <span>ضعیف (۰-۳۹)</span>
+            </div>
+        </div>
+    </div>
+
+    {% if grades_data %}
+    <div class="grades-table-wrapper">
+        <table class="grades-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">نام دانش‌آموز</th>
+                    {% if exams %}
+                    <th colspan="{{ exams.count }}">امتحانات</th>
+                    <th rowspan="2">میانگین امتحانات</th>
+                    {% endif %}
+                    {% if assignments %}
+                    <th colspan="{{ assignments.count }}">تکالیف</th>
+                    <th rowspan="2">میانگین تکالیف</th>
+                    {% endif %}
+                    <th rowspan="2">میانگین کل</th>
+                </tr>
+                <tr>
+                    {% for exam in exams %}
+                    <th>{{ exam.title|truncatewords:3 }}</th>
+                    {% endfor %}
+                    {% for assignment in assignments %}
+                    <th>{{ assignment.title|truncatewords:3 }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in grades_data %}
+                <tr>
+                    <td class="student-name">{{ data.student.user.get_full_name }}</td>
+                    
+                    {% for exam in exams %}
+                    {% with grade=data.exam_grades|get_item:exam.id %}
+                    <td class="grade-cell 
+                        {% if grade %}
+                            {% if grade.percentage >= 80 %}grade-excellent
+                            {% elif grade.percentage >= 60 %}grade-good
+                            {% elif grade.percentage >= 40 %}grade-average
+                            {% else %}grade-poor{% endif %}
+                        {% endif %}">
+                        {% if grade %}
+                            {{ grade.score|persian_numbers }}/{{ grade.total|persian_numbers }}
+                            <br>
+                            <small>({{ grade.percentage|floatformat:0|persian_numbers }}%)</small>
+                        {% else %}
+                            <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                    {% endwith %}
+                    {% endfor %}
+                    
+                    {% if exams %}
+                    <td class="average-cell {% if data.exam_average >= 80 %}grade-excellent
+                        {% elif data.exam_average >= 60 %}grade-good
+                        {% elif data.exam_average >= 40 %}grade-average
+                        {% elif data.exam_average > 0 %}grade-poor{% endif %}">
+                        {% if data.exam_average > 0 %}
+                            {{ data.exam_average|floatformat:1|persian_numbers }}%
+                        {% else %}
+                            <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    
+                    {% for assignment in assignments %}
+                    {% with grade=data.assignment_grades|get_item:assignment.id %}
+                    <td class="grade-cell 
+                        {% if grade %}
+                            {% if grade.percentage >= 80 %}grade-excellent
+                            {% elif grade.percentage >= 60 %}grade-good
+                            {% elif grade.percentage >= 40 %}grade-average
+                            {% else %}grade-poor{% endif %}
+                        {% endif %}">
+                        {% if grade %}
+                            {{ grade.score|persian_numbers }}/{{ grade.total|persian_numbers }}
+                            <br>
+                            <small>({{ grade.percentage|floatformat:0|persian_numbers }}%)</small>
+                        {% else %}
+                            <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                    {% endwith %}
+                    {% endfor %}
+                    
+                    {% if assignments %}
+                    <td class="average-cell {% if data.assignment_average >= 80 %}grade-excellent
+                        {% elif data.assignment_average >= 60 %}grade-good
+                        {% elif data.assignment_average >= 40 %}grade-average
+                        {% elif data.assignment_average > 0 %}grade-poor{% endif %}">
+                        {% if data.assignment_average > 0 %}
+                            {{ data.assignment_average|floatformat:1|persian_numbers }}%
+                        {% else %}
+                            <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    
+                    <td class="average-cell {% if data.overall_average >= 80 %}grade-excellent
+                        {% elif data.overall_average >= 60 %}grade-good
+                        {% elif data.overall_average >= 40 %}grade-average
+                        {% elif data.overall_average > 0 %}grade-poor{% endif %}">
+                        {% if data.overall_average > 0 %}
+                            {{ data.overall_average|floatformat:1|persian_numbers }}%
+                        {% else %}
+                            <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="grades-table-wrapper">
+        <div class="no-data-message">
+            <i class="fas fa-clipboard-list"></i>
+            <h4>دانش‌آموزی در این دوره ثبت‌نام نکرده است</h4>
+            <p class="text-muted">پس از ثبت‌نام دانش‌آموزان، نمرات آن‌ها در اینجا نمایش داده می‌شود</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

@@ -310,7 +310,7 @@
                         <i class="fas fa-clock"></i>
                         <div>
                             <div class="summary-label">ساعت برگزاری</div>
-                            <div class="summary-value">{{ course.duration|default:"تعیین نشده"|persian_numbers }}</div>
+                            <div class="summary-value">{{ course.duration|format_class_time|default:"تعیین نشده" }}</div>
                         </div>
                     </div>
                     <div class="summary-item">
@@ -336,10 +336,6 @@
                     </div>
                     <div class="summary-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <div class="summary-label">محل برگزاری</div>
-                            <div class="summary-value">{{ course.location|default:"آنلاین" }}</div>
-                        </div>
                     </div>
                 </div>
             </div>

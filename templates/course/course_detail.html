@@ -43,11 +43,12 @@
           </div>
           <div class="info-card">
             <h3>ساعت برگزاری</h3>
-            <p>{{ course.duration|default:"تعیین نشده"|persian_numbers }}</p>
+            <p>{{ course.duration|format_class_time|default:"تعیین نشده" }}</p>
           </div>
+          
           <div class="info-card">
-            <h3>محل برگزاری</h3>
-            <p>{{ course.location|default:"تعیین نشده" }}</p>
+            <h3>نوع برگزاری</h3>
+            <p>{{ course.get_course_type_display }}</p>
           </div>
           <div class="info-card">
             <h3>وضعیت دوره</h3>
@@ -55,7 +56,6 @@
               {% if course.is_featured %}ویژه{% endif %}
               {% if course.is_featured and course.is_free %} و {% endif %}
               {% if course.is_free %}رایگان{% endif %}
-              {% if course.is_featured or course.is_free %} و {% endif %}آنلاین
             </p>
           </div>
           <div class="info-card">
@@ -237,31 +237,48 @@
   {% if similar_courses %}
   <div class="similar-courses">
     <h2>دوره‌های مشابه</h2>
-    <div class="course-grid">
-      {% for similar_course in similar_courses %}
-        <div class="course-card">
-          {% if similar_course.image %}
-            <img src="{{ similar_course.image.url }}" alt="{{ similar_course.title }}" class="course-image">
-          {% else %}
-            <div class="course-image-placeholder"></div>
-          {% endif %}
-          
-          <div class="course-content">
-            <h3>{{ similar_course.title }}</h3>
-            <p class="course-description">{{ similar_course.short_description|default:similar_course.description|truncatewords:15 }}</p>
-            <div class="course-meta">
-              <span class="teacher">استاد: {{ similar_course.teacher.full_name }}</span>
-              <span class="level">سطح: {{ similar_course.get_level_display }}</span>
+    
+    <div class="courses-slider-wrapper">
+      <!-- دکمه‌های کنترل -->
+      <button class="slider-btn slider-btn-prev" onclick="moveSlide(-1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button class="slider-btn slider-btn-next" onclick="moveSlide(1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <!-- اسلایدر -->
+      <div class="courses-slider">
+        <div class="courses-slider-track" id="sliderTrack">
+          {% for similar_course in similar_courses %}
+            <div class="course-card slider-item">
+              {% if similar_course.image %}
+                <img src="{{ similar_course.image.url }}" alt="{{ similar_course.title }}" class="course-image">
+              {% else %}
+                <div class="course-image-placeholder"></div>
+              {% endif %}
+              
+              <div class="course-content">
+                <h3>{{ similar_course.title }}</h3>
+                <p class="course-description">{{ similar_course.short_description|default:similar_course.description|truncatewords:15 }}</p>
+                <div class="course-meta">
+                  <span class="teacher">استاد: {{ similar_course.teacher.full_name }}</span>
+                  <span class="level">سطح: {{ similar_course.get_level_display }}</span>
+                </div>
+                <div class="course-footer">
+                  <span class="price">
+                    {% if similar_course.is_free %}رایگان{% else %}{{ similar_course.price|floatformat:0|persian_numbers }} تومان{% endif %}
+                  </span>
+                  {% if similar_course.slug %}<a href="{% url 'course:detail' similar_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
+                </div>
+              </div>
             </div>
-            <div class="course-footer">
-              <span class="price">
-                {% if similar_course.is_free %}رایگان{% else %}{{ similar_course.price|floatformat:0|persian_numbers }} تومان{% endif %}
-              </span>
-              {% if similar_course.slug %}<a href="{% url 'course:detail' similar_course.slug %}" class="btn btn-primary">مشاهده جزئیات</a>{% endif %}
-            </div>
-          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
+      
+      <!-- نقاط ناوبری -->
+      <div class="slider-dots" id="sliderDots"></div>
     </div>
   </div>
   {% endif %}
@@ -269,7 +286,7 @@
   {% if teacher_other_courses %}
   <div class="teacher-other-courses">
     <h2>دیگر دوره‌های {{ course.teacher.user.get_full_name }}</h2>
-    <div class="course-grid">
+    <div class="course-grid {% if teacher_other_courses|length == 1 %}single-course{% elif teacher_other_courses|length == 2 %}two-courses{% endif %}">
       {% for teacher_course in teacher_other_courses %}
         <div class="course-card">
           {% if teacher_course.image %}
@@ -301,6 +318,256 @@
 
 {% block extra_css %}
 <style>
+  /* Courses Slider Styles */
+  .similar-courses {
+    margin: 50px 0;
+    padding: 40px 0;
+  }
+  
+  .similar-courses h2 {
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    padding-bottom: 15px;
+  }
+  
+  .similar-courses h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+  }
+  
+  .courses-slider-wrapper {
+    position: relative;
+    padding: 0 60px 80px;
+  }
+  
+  .courses-slider {
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .courses-slider-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    gap: 25px;
+  }
+  
+  .courses-slider-track .slider-item {
+    min-width: calc(33% - 17px);
+    flex-shrink: 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .courses-slider-track .slider-item:hover {
+    transform: translateY(-4px);
+    border-color: #e5e7eb;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .slider-item .course-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .slider-item .course-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 3rem;
+  }
+  
+  .slider-item .course-content {
+    padding: 20px;
+  }
+  
+  .slider-item .course-content h3 {
+    color: #1e293b;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  
+  .slider-item .course-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    min-height: 50px;
+  }
+  
+  .slider-item .course-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .slider-item .course-meta span {
+    color: #475569;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .slider-item .course-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+  }
+  
+  .slider-item .price {
+    color: #059669;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .slider-item .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+  
+  /* Slider Navigation Buttons */
+  .slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .slider-btn:hover {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-color: #3b82f6;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .slider-btn i {
+    font-size: 1.2rem;
+    color: #3b82f6;
+    transition: color 0.3s ease;
+  }
+  
+  .slider-btn:hover i {
+    color: white;
+  }
+  
+  .slider-btn-prev {
+    right: 0;
+  }
+  
+  .slider-btn-next {
+    left: 0;
+  }
+  
+  /* Slider Dots */
+  .slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+  }
+  
+  .slider-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0;
+  }
+  
+  .slider-dot.active {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    width: 30px;
+    border-radius: 6px;
+  }
+  
+  .slider-dot:hover:not(.active) {
+    background: #cbd5e1;
+  }
+  
+  /* Responsive Slider */
+  @media (max-width: 1024px) {
+    .courses-slider-track .slider-item {
+      min-width: calc(50% - 13px);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .courses-slider-wrapper {
+      padding: 0 50px 80px;
+    }
+    
+    .courses-slider-track .slider-item {
+      min-width: 100%;
+    }
+    
+    .slider-btn {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .slider-btn i {
+      font-size: 1rem;
+    }
+    
+    .similar-courses h2 {
+      font-size: 1.5rem;
+    }
+    
+    .slider-item .course-footer {
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+    
+    .slider-item .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
   /* Teacher Card Styles */
   .teacher-card-clickable {
     display: block;
@@ -417,9 +684,25 @@
 
   .teacher-other-courses .course-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 25px;
     margin-top: 20px;
+  }
+  
+  /* وقتی فقط یک دوره وجود دارد */
+  .teacher-other-courses .course-grid.single-course {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* وقتی دو دوره وجود دارد */
+  .teacher-other-courses .course-grid.two-courses {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .teacher-other-courses .course-card {
@@ -548,9 +831,12 @@
       font-size: 1.5rem;
     }
     
-    .teacher-other-courses .course-grid {
+    .teacher-other-courses .course-grid,
+    .teacher-other-courses .course-grid.single-course,
+    .teacher-other-courses .course-grid.two-courses {
       grid-template-columns: 1fr;
       gap: 20px;
+      max-width: 100%;
     }
     
     .teacher-other-courses .course-footer {
@@ -673,5 +959,164 @@
   }
 </style>
 {% endblock %}
+
+<script>
+// Slider Variables
+let currentIndex = 0;
+let autoSlideInterval;
+const sliderTrack = document.getElementById('sliderTrack');
+const sliderDots = document.getElementById('sliderDots');
+
+// Get total slides and items per view based on screen size
+function getItemsPerView() {
+  if (window.innerWidth <= 768) return 1;
+  if (window.innerWidth <= 1024) return 2;
+  return 3;
+}
+
+function getTotalSlides() {
+  if (!sliderTrack) return 0;
+  const totalItems = sliderTrack.children.length;
+  const itemsPerView = getItemsPerView();
+  return Math.max(0, totalItems - itemsPerView + 1);
+}
+
+// Initialize slider dots
+function initDots() {
+  if (!sliderDots) return;
+  
+  sliderDots.innerHTML = '';
+  const totalSlides = getTotalSlides();
+  
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.classList.add('slider-dot');
+    if (i === 0) dot.classList.add('active');
+    dot.setAttribute('aria-label', `اسلاید ${i + 1}`);
+    dot.onclick = () => goToSlide(i);
+    sliderDots.appendChild(dot);
+  }
+}
+
+// Update slider position
+function updateSlider() {
+  if (!sliderTrack) return;
+  
+  const itemsPerView = getItemsPerView();
+  const itemWidth = 100 / itemsPerView;
+  const offset = currentIndex * itemWidth;
+  
+  sliderTrack.style.transform = `translateX(${offset}%)`;
+  
+  // Update dots
+  if (sliderDots) {
+    const dots = sliderDots.querySelectorAll('.slider-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentIndex);
+    });
+  }
+}
+
+// Move slide
+function moveSlide(direction) {
+  const totalSlides = getTotalSlides();
+  
+  currentIndex += direction;
+  
+  // Loop around
+  if (currentIndex >= totalSlides) {
+    currentIndex = 0;
+  } else if (currentIndex < 0) {
+    currentIndex = totalSlides - 1;
+  }
+  
+  updateSlider();
+  resetAutoSlide();
+}
+
+// Go to specific slide
+function goToSlide(index) {
+  currentIndex = index;
+  updateSlider();
+  resetAutoSlide();
+}
+
+// Auto slide every 3 seconds
+function startAutoSlide() {
+  autoSlideInterval = setInterval(() => {
+    moveSlide(1);
+  }, 3000);
+}
+
+function resetAutoSlide() {
+  clearInterval(autoSlideInterval);
+  startAutoSlide();
+}
+
+// Pause on hover
+if (sliderTrack) {
+  const sliderWrapper = sliderTrack.closest('.courses-slider-wrapper');
+  
+  sliderWrapper.addEventListener('mouseenter', () => {
+    clearInterval(autoSlideInterval);
+  });
+  
+  sliderWrapper.addEventListener('mouseleave', () => {
+    startAutoSlide();
+  });
+}
+
+// Initialize slider on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (sliderTrack && sliderTrack.children.length > 0) {
+    initDots();
+    updateSlider();
+    startAutoSlide();
+  }
+});
+
+// Reinitialize on window resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    initDots();
+    currentIndex = 0;
+    updateSlider();
+  }, 250);
+});
+
+// Touch/Swipe support for mobile
+let touchStartX = 0;
+let touchEndX = 0;
+
+if (sliderTrack) {
+  const slider = sliderTrack.closest('.courses-slider');
+  
+  slider.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  
+  slider.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+}
+
+function handleSwipe() {
+  const swipeThreshold = 50;
+  const diff = touchStartX - touchEndX;
+  
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      // Swipe left (next)
+      moveSlide(1);
+    } else {
+      // Swipe right (prev)
+      moveSlide(-1);
+    }
+  }
+}
+</script>
 
 {% endblock %} 

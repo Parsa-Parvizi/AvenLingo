@@ -41,7 +41,6 @@ LEVEL_CHOICES = [
 ONLINE_CHOICES = [
     ('online', 'آنلاین'),
     ('offline', 'آفلاین'),
-    ('hybrid', 'ترکیبی'),
 ]
 
 AGE_GROUP_CHOICES = [
@@ -131,12 +130,11 @@ class Course(models.Model):
     capacity = models.PositiveIntegerField("ظرفیت", default=20) #type: ignore
     enrolled_count = models.PositiveIntegerField("تعداد ثبت‌نام شده", default=0, editable=False)  #type: ignore
     price = models.IntegerField("شهریه", default=0)
-    location = models.CharField("محل برگزاری", max_length=150, null=True, blank=True)
 
     is_active = models.BooleanField("فعال است؟", default=True) #type: ignore
     is_free = models.BooleanField("رایگان است؟", default=False) #type: ignore
     is_featured = models.BooleanField("ویژه است؟", default=False) #type: ignore
-    is_online = models.BooleanField("آنلاین است؟", default=False) #type: ignore
+    course_type = models.CharField("نوع برگزاری", max_length=20, choices=ONLINE_CHOICES, default='online', help_text="نوع برگزاری دوره")
     class_room_link = models.URLField("لینک کلاس آنلاین", blank=True, null=True, help_text="لینک Google Meet یا Zoom کلاس")
 
     image = models.ImageField("تصویر کلاس", upload_to='courses/', null=True, blank=True)
@@ -170,11 +168,77 @@ class Course(models.Model):
     @property
     def is_full(self):
         return self.enrolled_count >= self.capacity
+    
+    @property
+    def is_online(self):
+        """برای سازگاری با کدهای قدیمی"""
+        return self.course_type == 'online'
+    
+    @property
+    def is_offline(self):
+        """آیا دوره آفلاین است"""
+        return self.course_type == 'offline'
 
     class Meta:
         verbose_name = "کلاس"
         verbose_name_plural = "کلاس‌ها"
         ordering = ['-created_at']
+
+
+class CourseResource(models.Model):
+    """منابع آموزشی دوره (فایل‌ها، لینک‌ها، اسناد)"""
+    
+    RESOURCE_TYPE_CHOICES = [
+        ('pdf', 'فایل PDF'),
+        ('video', 'ویدیو'),
+        ('link', 'لینک'),
+        ('document', 'سند'),
+        ('presentation', 'ارائه'),
+        ('other', 'سایر'),
+    ]
+    
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='resources', verbose_name="دوره")
+    title = models.CharField("عنوان منبع", max_length=200)
+    description = models.TextField("توضیحات", blank=True)
+    resource_type = models.CharField("نوع منبع", max_length=20, choices=RESOURCE_TYPE_CHOICES, default='pdf')
+    file = models.FileField("فایل", upload_to='course_resources/', blank=True, null=True)
+    link = models.URLField("لینک", blank=True, null=True, help_text="لینک خارجی منبع")
+    order = models.PositiveIntegerField("ترتیب نمایش", default=0)
+    is_active = models.BooleanField("فعال است؟", default=True)
+    created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
+    updated_at = models.DateTimeField("تاریخ بروزرسانی", auto_now=True)
+    
+    class Meta:
+        verbose_name = "منبع آموزشی"
+        verbose_name_plural = "منابع آموزشی"
+        ordering = ['order', '-created_at']
+    
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"
+
+
+class CourseVideo(models.Model):
+    """ویدیوهای آموزشی دوره (برای دوره‌های آفلاین)"""
+    
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='videos', verbose_name="دوره")
+    title = models.CharField("عنوان ویدیو", max_length=200)
+    description = models.TextField("توضیحات", blank=True)
+    video_file = models.FileField("فایل ویدیو", upload_to='course_videos/', blank=True, null=True)
+    video_url = models.URLField("لینک ویدیو", blank=True, null=True, help_text="لینک یوتیوب، آپارات یا سایر پلتفرم‌ها")
+    duration = models.CharField("مدت زمان", max_length=20, blank=True, help_text="مثال: 45 دقیقه")
+    order = models.PositiveIntegerField("ترتیب نمایش", default=0)
+    is_free_preview = models.BooleanField("پیش‌نمایش رایگان", default=False, help_text="آیا این ویدیو به عنوان پیش‌نمایش رایگان نمایش داده شود؟")
+    is_active = models.BooleanField("فعال است؟", default=True)
+    created_at = models.DateTimeField("تاریخ ایجاد", auto_now_add=True)
+    updated_at = models.DateTimeField("تاریخ بروزرسانی", auto_now=True)
+    
+    class Meta:
+        verbose_name = "ویدیوی آموزشی"
+        verbose_name_plural = "ویدیوهای آموزشی"
+        ordering = ['order', '-created_at']
+    
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"
 
 
 class Assignment(models.Model):

@@ -311,18 +311,6 @@
                             <strong><i class="fas fa-users me-2"></i>ظرفیت:</strong>
                             <span class="text-muted">{{ course.capacity }} نفر</span>
                         </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-map-marker-alt me-2"></i>محل برگزاری:</strong>
-                            <span class="text-muted">
-                                {% if course.is_online %}
-                                    آنلاین
-                                {% elif course.location %}
-                                    {{ course.location }}
-                                {% else %}
-                                    تعیین نشده
-                                {% endif %}
-                            </span>
-                        </div>
                     </div>
                 </div>
             </div>

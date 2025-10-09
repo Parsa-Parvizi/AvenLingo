@@ -6,6 +6,7 @@ from .views import (
     course_detail_view, 
     latest_courses_view,
     student_course_detail_view,
+    StudentMyCoursesView,
     AssignmentCreateView,
     AssignmentListView,
     AssignmentDetailView,
@@ -29,6 +30,7 @@ urlpatterns = [
     path('category/<str:category_slug>/', category_courses_view, name='category'),
     path('detail/<str:course_slug>/', course_detail_view, name='detail'),
     path('student-course/<int:course_id>/', student_course_detail_view, name='student-course-detail'),
+    path('student/my-courses/', StudentMyCoursesView.as_view(), name='student_my_courses'),
     
     # Assignment URLs
     path('course/<int:course_id>/assignments/', AssignmentListView.as_view(), name='assignment_list'),

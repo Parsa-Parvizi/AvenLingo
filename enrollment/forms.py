@@ -5,8 +5,107 @@ from datetime import timedelta
 import re
 
 from .models import Enrollment
-from course.models import Course
+from course.models import Course, LEVEL_CHOICES, AGE_GROUP_CHOICES, CLASS_TYPE_CHOICES
 from account.models import Student
+
+
+def extract_schedule_info(duration_text):
+    """
+    استخراج اطلاعات زمان‌بندی از متن duration
+    برمی‌گرداند: (روزهای هفته، ساعت شروع، ساعت پایان)
+    """
+    if not duration_text:
+        return None, None, None
+    
+    # نرمال‌سازی متن
+    text = duration_text.lower().strip()
+    
+    # استخراج روزهای هفته (فارسی و انگلیسی)
+    # استفاده از word boundary برای جلوگیری از match شدن "شنبه" در "یکشنبه"
+    days_map = [
+        (r'\bچهارشنبه\b', 'wednesday'),
+        (r'\bچهار\s*شنبه\b', 'wednesday'),
+        (r'\bپنج‌شنبه\b', 'thursday'),
+        (r'\bپنج\s*شنبه\b', 'thursday'),
+        (r'\bسه‌شنبه\b', 'tuesday'),
+        (r'\bسه\s*شنبه\b', 'tuesday'),
+        (r'\bیکشنبه\b', 'sunday'),
+        (r'\bدوشنبه\b', 'monday'),
+        (r'\bجمعه\b', 'friday'),
+        (r'\bشنبه\b', 'saturday'),  # با word boundary، فقط "شنبه" standalone را می‌گیرد
+        (r'\bsaturday\b', 'saturday'),
+        (r'\bwednesday\b', 'wednesday'),
+        (r'\bthursday\b', 'thursday'),
+        (r'\btuesday\b', 'tuesday'),
+        (r'\bsunday\b', 'sunday'),
+        (r'\bmonday\b', 'monday'),
+        (r'\bfriday\b', 'friday'),
+    ]
+    
+    found_days = []
+    for pattern, day_english in days_map:
+        if re.search(pattern, text):
+            if day_english not in found_days:
+                found_days.append(day_english)
+    
+    # استخراج ساعات (با پشتیبانی از اعداد فارسی و انگلیسی)
+    # تبدیل اعداد فارسی به انگلیسی
+    persian_to_english = str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789')
+    text = text.translate(persian_to_english)
+    
+    # الگوهای مختلف برای ساعت
+    time_patterns = [
+        r'(\d{1,2}):(\d{2})\s*(?:تا|الی|[-–])\s*(\d{1,2}):(\d{2})',  # 17:00 تا 19:00 (اول چک شود)
+        r'ساعت\s*(\d{1,2})\s*(?:تا|الی|[-–])\s*(\d{1,2})',  # ساعت 17 تا 19
+        r'(\d{1,2})\s*(?:تا|الی|[-–])\s*(\d{1,2})',  # 17 تا 19 یا 17-19
+    ]
+    
+    start_time = None
+    end_time = None
+    
+    for pattern in time_patterns:
+        match = re.search(pattern, text)
+        if match:
+            groups = match.groups()
+            if len(groups) == 4:
+                # Format: HH:MM to HH:MM
+                start_time = float(groups[0]) + float(groups[1]) / 60
+                end_time = float(groups[2]) + float(groups[3]) / 60
+            elif len(groups) == 2:
+                # Format: HH to HH
+                start_time = float(groups[0])
+                end_time = float(groups[1])
+            break
+    
+    return found_days, start_time, end_time
+
+
+def check_time_overlap(duration1, duration2):
+    """
+    بررسی تداخل زمانی بین دو دوره
+    برمی‌گرداند: True اگر تداخل وجود داشته باشد
+    """
+    days1, start1, end1 = extract_schedule_info(duration1)
+    days2, start2, end2 = extract_schedule_info(duration2)
+    
+    # اگر نتوانستیم زمان را extract کنیم، تداخل نداریم
+    if not days1 or not days2 or start1 is None or start2 is None or end1 is None or end2 is None:
+        return False
+    
+    # بررسی تداخل روز
+    common_days = set(days1) & set(days2)
+    if not common_days:
+        return False
+    
+    # بررسی تداخل ساعت
+    # دو بازه زمانی تداخل دارند اگر یکی شروع شود قبل از اینکه دیگری تمام شود
+    # و دیگری شروع شود قبل از اینکه یکی تمام شود
+    # به عبارت دیگر: start1 < end2 AND start2 < end1
+    # اگر دقیقاً مجاور باشند (end1 == start2 یا end2 == start1) تداخل نداریم
+    if start1 < end2 and start2 < end1:
+        return True
+    
+    return False
 
 
 class EnrollmentForm(forms.ModelForm):
@@ -175,6 +274,41 @@ class EnrollmentForm(forms.ModelForm):
             if (self.course.start_date and 
                 timezone.now().date() > self.course.start_date + timedelta(days=7)):
                 raise ValidationError('مهلت ثبت‌نام در این دوره پایان یافته است.')
+            
+            # بررسی تداخل زمانی با دوره‌های دیگر دانش‌آموز
+            existing_enrollments = Enrollment.objects.filter(
+                student=self.student,
+                status__in=['pending', 'confirmed']
+            ).select_related('course')
+            
+            for enrollment in existing_enrollments:
+                if enrollment.course.duration and self.course.duration:
+                    if check_time_overlap(enrollment.course.duration, self.course.duration):
+                        # استخراج اطلاعات برای نمایش پیام بهتر
+                        days1, start1, end1 = extract_schedule_info(enrollment.course.duration)
+                        days2, start2, end2 = extract_schedule_info(self.course.duration)
+                        
+                        # نام روزهای مشترک به فارسی
+                        days_persian = {
+                            'saturday': 'شنبه',
+                            'sunday': 'یکشنبه',
+                            'monday': 'دوشنبه',
+                            'tuesday': 'سه‌شنبه',
+                            'wednesday': 'چهارشنبه',
+                            'thursday': 'پنج‌شنبه',
+                            'friday': 'جمعه',
+                        }
+                        
+                        common_days = list(set(days1) & set(days2))
+                        common_days_persian = [days_persian.get(d, d) for d in common_days]
+                        
+                        error_msg = (
+                            f'تداخل زمانی با دوره "{enrollment.course.title}" وجود دارد. '
+                            f'هر دو دوره در روز(های) {", ".join(common_days_persian)} '
+                            f'برگزار می‌شوند و زمان‌بندی آن‌ها با هم تداخل دارد. '
+                            f'لطفاً یکی از دوره‌ها را انتخاب کنید.'
+                        )
+                        raise ValidationError(error_msg)
         
         # Cross-field validation for emergency contact
         emergency_name = cleaned_data.get('emergency_contact_name')
@@ -216,6 +350,21 @@ class QuickEnrollmentForm(forms.Form):
             status__in=['pending', 'confirmed']
         ).exists():
             raise ValidationError('شما قبلاً در این دوره ثبت‌نام کرده‌اید.')
+        
+        # بررسی تداخل زمانی
+        if self.student and course.duration:
+            existing_enrollments = Enrollment.objects.filter(
+                student=self.student,
+                status__in=['pending', 'confirmed']
+            ).select_related('course')
+            
+            for enrollment in existing_enrollments:
+                if enrollment.course.duration:
+                    if check_time_overlap(enrollment.course.duration, course.duration):
+                        raise ValidationError(
+                            f'تداخل زمانی با دوره "{enrollment.course.title}" وجود دارد. '
+                            f'لطفاً یکی از دوره‌ها را انتخاب کنید.'
+                        )
         
         return course_id
 
@@ -280,21 +429,21 @@ class CourseFilterForm(forms.Form):
     """Form for filtering available courses"""
     
     level = forms.ChoiceField(
-        choices=[('', 'همه سطوح')] + Course.LEVEL_CHOICES,
+        choices=[('', 'همه سطوح')] + list(LEVEL_CHOICES),
         required=False,
         label="سطح",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     class_type = forms.ChoiceField(
-        choices=[('', 'همه انواع')] + Course.CLASS_TYPE_CHOICES,
+        choices=[('', 'همه انواع')] + list(CLASS_TYPE_CHOICES),
         required=False,
         label="نوع کلاس",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     age_group = forms.ChoiceField(
-        choices=[('', 'همه گروه‌های سنی')] + Course.AGE_GROUP_CHOICES,
+        choices=[('', 'همه گروه‌های سنی')] + list(AGE_GROUP_CHOICES),
         required=False,
         label="گروه سنی",
         widget=forms.Select(attrs={'class': 'form-select'})

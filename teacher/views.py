@@ -9,8 +9,8 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.utils import timezone
-from course.models import Course, Assignment, AssignmentSubmission
-from account.models import Teacher
+from course.models import Course, Assignment, AssignmentSubmission, CourseResource, CourseVideo, Exam, ExamParticipation
+from account.models import Teacher, Student
 from course.forms import CourseForm, AssignmentForm
 from enrollment.models import Enrollment
 
@@ -1093,3 +1093,308 @@ class TeacherGradeExamView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
                 messages.error(request, 'نمره وارد شده معتبر نیست.')
         
         return redirect('teacher:exam_participants', exam_id=participation.exam.id)
+
+
+# ============================
+# Course Videos Management
+# ============================
+
+class TeacherCourseVideosView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش لیست ویدیوهای دوره"""
+    template_name = 'teacher/teacher_course_videos.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        videos = CourseVideo.objects.filter(course=course).order_by('order', '-created_at')
+        
+        context['course'] = course
+        context['videos'] = videos
+        return context
+
+
+class TeacherCreateVideoView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """ایجاد ویدیوی جدید برای دوره"""
+    model = CourseVideo
+    fields = ['title', 'description', 'video_file', 'video_url', 'duration', 'order', 'is_free_preview', 'is_active']
+    template_name = 'teacher/teacher_video_form.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def dispatch(self, request, *args, **kwargs):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        self.course = get_object_or_404(Course, id=kwargs['course_id'], teacher=teacher)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.course
+        context['form_title'] = 'افزودن ویدیوی آموزشی'
+        return context
+    
+    def form_valid(self, form):
+        form.instance.course = self.course
+        messages.success(self.request, 'ویدیو با موفقیت اضافه شد.')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('teacher:course_videos', kwargs={'course_id': self.course.id})
+
+
+class TeacherEditVideoView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """ویرایش ویدیوی آموزشی"""
+    model = CourseVideo
+    fields = ['title', 'description', 'video_file', 'video_url', 'duration', 'order', 'is_free_preview', 'is_active']
+    template_name = 'teacher/teacher_video_form.html'
+    pk_url_kwarg = 'video_id'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_queryset(self):
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        return CourseVideo.objects.filter(course__teacher=teacher)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.object.course
+        context['form_title'] = 'ویرایش ویدیوی آموزشی'
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'ویدیو با موفقیت ویرایش شد.')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('teacher:course_videos', kwargs={'course_id': self.object.course.id})
+
+
+class TeacherDeleteVideoView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """حذف ویدیوی آموزشی"""
+    model = CourseVideo
+    pk_url_kwarg = 'video_id'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_queryset(self):
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        return CourseVideo.objects.filter(course__teacher=teacher)
+    
+    def get_success_url(self):
+        messages.success(self.request, 'ویدیو با موفقیت حذف شد.')
+        return reverse_lazy('teacher:course_videos', kwargs={'course_id': self.object.course.id})
+
+
+# ============================
+# Course Resources Management
+# ============================
+
+class TeacherCourseResourcesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش لیست منابع دوره"""
+    template_name = 'teacher/teacher_course_resources.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        resources = CourseResource.objects.filter(course=course).order_by('order', '-created_at')
+        
+        context['course'] = course
+        context['resources'] = resources
+        return context
+
+
+class TeacherCreateResourceView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """ایجاد منبع جدید برای دوره"""
+    model = CourseResource
+    fields = ['title', 'description', 'resource_type', 'file', 'link', 'order', 'is_active']
+    template_name = 'teacher/teacher_resource_form.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def dispatch(self, request, *args, **kwargs):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        self.course = get_object_or_404(Course, id=kwargs['course_id'], teacher=teacher)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.course
+        context['form_title'] = 'افزودن منبع آموزشی'
+        return context
+    
+    def form_valid(self, form):
+        form.instance.course = self.course
+        messages.success(self.request, 'منبع با موفقیت اضافه شد.')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('teacher:course_resources', kwargs={'course_id': self.course.id})
+
+
+class TeacherEditResourceView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """ویرایش منبع آموزشی"""
+    model = CourseResource
+    fields = ['title', 'description', 'resource_type', 'file', 'link', 'order', 'is_active']
+    template_name = 'teacher/teacher_resource_form.html'
+    pk_url_kwarg = 'resource_id'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_queryset(self):
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        return CourseResource.objects.filter(course__teacher=teacher)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.object.course
+        context['form_title'] = 'ویرایش منبع آموزشی'
+        return context
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'منبع با موفقیت ویرایش شد.')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('teacher:course_resources', kwargs={'course_id': self.object.course.id})
+
+
+class TeacherDeleteResourceView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """حذف منبع آموزشی"""
+    model = CourseResource
+    pk_url_kwarg = 'resource_id'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_queryset(self):
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        return CourseResource.objects.filter(course__teacher=teacher)
+    
+    def get_success_url(self):
+        messages.success(self.request, 'منبع با موفقیت حذف شد.')
+        return reverse_lazy('teacher:course_resources', kwargs={'course_id': self.object.course.id})
+
+
+# ============================
+# Course Grades View
+# ============================
+
+class TeacherCourseGradesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش نمرات دانش‌آموزان یک دوره خاص"""
+    template_name = 'teacher/teacher_course_grades.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = kwargs.get('course_id')
+        
+        teacher = get_object_or_404(Teacher, user=self.request.user)
+        course = get_object_or_404(Course, id=course_id, teacher=teacher)
+        
+        # دریافت دانش‌آموزان دوره
+        enrollments = Enrollment.objects.filter(
+            course=course,
+            status='confirmed'
+        ).select_related('student__user').order_by('student__user__first_name')
+        
+        # دریافت امتحانات دوره
+        exams = Exam.objects.filter(course=course).order_by('scheduled_start')
+        
+        # دریافت تکالیف دوره
+        assignments = Assignment.objects.filter(course=course, is_active=True).order_by('due_date')
+        
+        # ساختن جدول نمرات
+        grades_data = []
+        for enrollment in enrollments:
+            student = enrollment.student
+            student_data = {
+                'student': student,
+                'enrollment': enrollment,
+                'exam_grades': {},
+                'assignment_grades': {},
+                'total_exam_score': 0,
+                'total_assignment_score': 0,
+                'exam_average': 0,
+                'assignment_average': 0,
+                'overall_average': 0,
+            }
+            
+            # نمرات امتحانات
+            exam_total_points = 0
+            exam_earned_points = 0
+            for exam in exams:
+                participation = ExamParticipation.objects.filter(
+                    exam=exam,
+                    student=student,
+                    status='graded'
+                ).first()
+                
+                if participation and participation.score is not None:
+                    student_data['exam_grades'][exam.id] = {
+                        'score': participation.score,
+                        'total': exam.total_points,
+                        'percentage': (participation.score / exam.total_points * 100) if exam.total_points else 0
+                    }
+                    exam_earned_points += participation.score
+                    exam_total_points += exam.total_points
+                else:
+                    student_data['exam_grades'][exam.id] = None
+            
+            if exam_total_points > 0:
+                student_data['exam_average'] = (exam_earned_points / exam_total_points * 100)
+            
+            # نمرات تکالیف
+            assignment_total_points = 0
+            assignment_earned_points = 0
+            for assignment in assignments:
+                submission = AssignmentSubmission.objects.filter(
+                    assignment=assignment,
+                    student=student,
+                    status='graded'
+                ).first()
+                
+                if submission and submission.score is not None:
+                    student_data['assignment_grades'][assignment.id] = {
+                        'score': submission.score,
+                        'total': assignment.total_points,
+                        'percentage': (submission.score / assignment.total_points * 100) if assignment.total_points else 0
+                    }
+                    assignment_earned_points += submission.score
+                    assignment_total_points += assignment.total_points
+                else:
+                    student_data['assignment_grades'][assignment.id] = None
+            
+            if assignment_total_points > 0:
+                student_data['assignment_average'] = (assignment_earned_points / assignment_total_points * 100)
+            
+            # میانگین کلی (50% امتحانات + 50% تکالیف)
+            if student_data['exam_average'] > 0 or student_data['assignment_average'] > 0:
+                student_data['overall_average'] = (student_data['exam_average'] * 0.5) + (student_data['assignment_average'] * 0.5)
+            
+            grades_data.append(student_data)
+        
+        context['course'] = course
+        context['enrollments'] = enrollments
+        context['exams'] = exams
+        context['assignments'] = assignments
+        context['grades_data'] = grades_data
+        
+        return context

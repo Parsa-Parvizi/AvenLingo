@@ -185,10 +185,6 @@
     grid-template-columns: 1fr;
   }
   
-  .course-info-grid {
-    grid-template-columns: 1fr;
-  }
-  
   /* Search Results */
   .search-results-page {
     padding: 20px 15px;

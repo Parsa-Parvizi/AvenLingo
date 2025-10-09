@@ -32,11 +32,11 @@ def home_view(request):
     # تمام دسته‌بندی‌های فعال
     categories = Category.objects.filter(is_active=True).order_by('name')
     
-    # حداکثر 9 استاد فعال و تأیید شده
+    # تمام اساتید فعال و تأیید شده
     active_teachers = Teacher.objects.filter(
         is_active=True, 
         is_verified=True
-    ).order_by('user__first_name')[:9]
+    ).order_by('user__first_name')
     
     # Prepare context data
     context_data = {

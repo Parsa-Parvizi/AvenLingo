@@ -131,29 +131,69 @@ def determination(request):
 
 
 def advice(request):
-    # درخواست مشاوره
+    """صفحه درخواست مشاوره"""
     if request.method == 'POST':
         form = AdviceRequestForm(request.POST)
         if form.is_valid():
+            # ذخیره درخواست
             form.save()
-            return render(request, 'core/application_success.html', {'message': 'درخواست مشاوره با موفقیت ثبت شد.'})
+            
+            # نمایش پیام موفقیت
+            messages.success(
+                request,
+                'درخواست مشاوره شما با موفقیت ثبت شد! کارشناسان ما در اسرع وقت با شما تماس خواهند گرفت.'
+            )
+            
+            # Redirect برای جلوگیری از ارسال مجدد فرم
+            return redirect('core:advice')
+        else:
+            # نمایش پیام خطا
+            messages.error(
+                request,
+                'خطا در ثبت درخواست. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+            )
     else:
         form = AdviceRequestForm()
-        
-    return render(request, 'core/advice.html', {'form': form})
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'core/advice.html', context)
 
 
 
 
 def request_course(request):
+    """صفحه درخواست دوره جدید"""
     if request.method == 'POST':
         form = RequestCourseForm(request.POST)
         if form.is_valid():
+            # ذخیره درخواست
             form.save()
-            return render(request, 'request_course_success.html', {'message': 'درخواست شما با موفقیت ثبت شد.'})
+            
+            # نمایش پیام موفقیت
+            messages.success(
+                request,
+                'درخواست دوره شما با موفقیت ثبت شد! ما به زودی دوره مورد نظر شما را بررسی می‌کنیم.'
+            )
+            
+            # Redirect برای جلوگیری از ارسال مجدد فرم
+            return redirect('core:request-course')
+        else:
+            # نمایش پیام خطا
+            messages.error(
+                request,
+                'خطا در ثبت درخواست. لطفاً اطلاعات را بررسی کرده و دوباره تلاش کنید.'
+            )
     else:
         form = RequestCourseForm()
-    return render(request, 'request_course.html', {'form': form})
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'request_course.html', context)
 
 
 def custom_404(request, exception):

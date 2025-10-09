@@ -10,14 +10,41 @@ class AdviceRequestForm(forms.ModelForm):
             'name': 'نام و نام خانوادگی',
             'email': 'ایمیل',
             'phone': 'شماره تماس',
-            'message': 'متن درخواست مشاوره',
+            'message': 'موضوع مشاوره',
         }
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'placeholder': 'نام و نام خانوادگی'})
-        self.fields['email'].widget.attrs.update({'placeholder': 'ایمیل'})
-        self.fields['phone'].widget.attrs.update({'placeholder': 'شماره تماس'})
-        self.fields['message'].widget.attrs.update({'placeholder': 'متن درخواست مشاوره'})
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام و نام خانوادگی خود را وارد کنید',
+                'required': True
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'آدرس ایمیل خود را وارد کنید',
+                'required': True
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '09123456789',
+                'pattern': '[0-9]{11}',
+                'required': True
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'موضوع یا سوالی که می‌خواهید درباره آن مشاوره بگیرید را شرح دهید',
+                'required': True
+            })
+        }
+    
+    def clean_phone(self):
+        """اعتبارسنجی شماره تلفن"""
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('شماره تلفن باید فقط شامل اعداد باشد.')
+        if phone and len(phone) != 11:
+            raise forms.ValidationError('شماره تلفن باید 11 رقم باشد.')
+        return phone
 
 
 class DeterminationRequestForm(forms.ModelForm):
@@ -127,19 +154,24 @@ class RequestCourseForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'نام و نام خانوادگی'
+                'placeholder': 'نام و نام خانوادگی خود را وارد کنید',
+                'required': True
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'آدرس ایمیل'
+                'placeholder': 'آدرس ایمیل خود را وارد کنید',
+                'required': True
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'شماره تماس'
+                'placeholder': '09123456789',
+                'pattern': '[0-9]{11}',
+                'required': True
             }),
             'course_title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'عنوان دوره‌ای که می‌خواهید'
+                'placeholder': 'عنوان دوره‌ای که می‌خواهید برگزار شود',
+                'required': True
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -147,6 +179,15 @@ class RequestCourseForm(forms.ModelForm):
                 'placeholder': 'توضیحات بیشتر درباره دوره مورد نظر'
             })
         }
+    
+    def clean_phone(self):
+        """اعتبارسنجی شماره تلفن"""
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('شماره تلفن باید فقط شامل اعداد باشد.')
+        if phone and len(phone) != 11:
+            raise forms.ValidationError('شماره تلفن باید 11 رقم باشد.')
+        return phone
 
 
 class ContactMessageForm(forms.ModelForm):

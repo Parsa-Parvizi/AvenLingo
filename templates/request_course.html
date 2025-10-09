@@ -1,17 +1,336 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load persian_filters %}
-{% block title %} | Request Course{% endblock %}
+
+{% block title %} | درخواست دوره{% endblock %}
+
+{% block extra_css %}
+<style>
+.request-course-page {
+    padding: 24px 0;
+    background: #fff;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+}
+
+.request-course-container {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.request-course-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.request-course-header {
+    background: transparent;
+    color: #111;
+    padding: 20px 24px 0 24px;
+    text-align: center;
+}
+
+.request-course-header h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.request-course-header p {
+    margin: 6px 0 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
+}
+
+.request-course-body {
+    padding: 24px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.form-group label .required {
+    color: #dc3545;
+    margin-right: 3px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fafafa;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary, #1F3A93);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    color: #dc3545;
+    font-size: 0.9rem;
+}
+
+.errorlist li {
+    margin-bottom: 3px;
+}
+
+.btn-submit {
+    width: 100%;
+    background: var(--color-accent, #FFD700);
+    color: #333;
+    border: 2px solid var(--color-accent, #FFD700);
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    background: white;
+    color: var(--color-primary, #1F3A93);
+    border-color: var(--color-accent, #FFD700);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+.info-box {
+    background: #e7f3ff;
+    border: 1px solid #b8daff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.info-box h4 {
+    color: var(--color-primary, #1F3A93);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.info-box p {
+    margin: 0;
+    color: #004085;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .request-course-page {
+        padding: 20px 0;
+    }
+    
+    .request-course-container {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+    
+    .request-course-header {
+        padding: 20px;
+    }
+    
+    .request-course-body {
+        padding: 24px 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<style>* { font-family: 'Vazir', sans-serif !important; } .collabrate-form { direction: rtl; } .collabrate-form button { display: block; margin: 0 auto; text-align: center; } .success-message { color: #198754; text-align: center; margin-top: 18px; font-size: 1.1rem; font-family: 'Vazir', sans-serif; } </style>
-<div class="page-section">
-  <h1>درخواست دوره</h1>
-  <form method="post" class="collabrate-form">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">ارسال درخواست</button>
-  </form>
-  {% if message %}
-    <div class="success-message">{{ message }}</div>
-  {% endif %}
+<div class="request-course-page">
+    <div class="request-course-container">
+        <div class="request-course-card">
+            <div class="request-course-header">
+                <h1>📚 درخواست دوره جدید</h1>
+                <p>دوره مورد نظر خود را پیشنهاد دهید</p>
+            </div>
+
+            <div class="request-course-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="info-box">
+                    <h4>
+                        <i class="fas fa-lightbulb"></i>
+                        پیشنهاد دوره
+                    </h4>
+                    <p>
+                        دوره‌ای که نیاز دارید را پیدا نکردید؟ درخواست خود را برای ما ارسال کنید. 
+                        ما تمام تلاش خود را می‌کنیم تا دوره‌های مورد نیاز شما را راه‌اندازی کنیم.
+                    </p>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">
+                            {{ form.name.label }}
+                            <span class="required">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.name.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">
+                                {{ form.email.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.email.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}">
+                                {{ form.phone.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.phone.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.course_title.id_for_label }}">
+                            {{ form.course_title.label }}
+                            <span class="required">*</span>
+                        </label>
+                        {{ form.course_title }}
+                        <div class="help-text">مثال: دوره مکالمه پیشرفته، یا IELTS Writing</div>
+                        {% if form.course_title.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.course_title.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        <div class="help-text">جزئیات بیشتر درباره دوره‌ای که می‌خواهید (اختیاری)</div>
+                        {% if form.description.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.description.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        ارسال درخواست دوره
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %} 
+{% endblock %}

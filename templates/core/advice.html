@@ -1,16 +1,337 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load persian_filters %}
-{% block title %} | Consultation Request{% endblock %}
+
+{% block title %} | مشاوره آموزشی{% endblock %}
+
+{% block extra_css %}
+<style>
+.advice-page {
+    padding: 24px 0;
+    background: #fff;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+}
+
+.advice-container {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.advice-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.advice-header {
+    background: transparent;
+    color: #111;
+    padding: 20px 24px 0 24px;
+    text-align: center;
+}
+
+.advice-header h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.advice-header p {
+    margin: 6px 0 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
+}
+
+.advice-body {
+    padding: 24px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.form-group label .required {
+    color: #dc3545;
+    margin-right: 3px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fafafa;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary, #1F3A93);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    color: #dc3545;
+    font-size: 0.9rem;
+}
+
+.errorlist li {
+    margin-bottom: 3px;
+}
+
+.btn-submit {
+    width: 100%;
+    background: var(--color-accent, #FFD700);
+    color: #333;
+    border: 2px solid var(--color-accent, #FFD700);
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    background: white;
+    color: var(--color-primary, #1F3A93);
+    border-color: var(--color-accent, #FFD700);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+.info-box {
+    background: #e7f3ff;
+    border: 1px solid #b8daff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.info-box h4 {
+    color: var(--color-primary, #1F3A93);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.info-box p {
+    margin: 0;
+    color: #004085;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.info-box ul {
+    margin: 10px 0 0 0;
+    padding-right: 20px;
+    color: #004085;
+    line-height: 1.8;
+}
+
+.info-box ul li {
+    margin-bottom: 5px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .advice-page {
+        padding: 20px 0;
+    }
+    
+    .advice-container {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+    
+    .advice-header {
+        padding: 20px;
+    }
+    
+    .advice-body {
+        padding: 24px 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-section">
-  <h1>درخواست مشاوره</h1>
-  <form method="post" enctype="multipart/form-data" class="advice-form">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">ارسال درخواست</button>
-  </form>
-  {% if message %}
-    <div class="success-message">{{ message }}</div>
-  {% endif %}
+<div class="advice-page">
+    <div class="advice-container">
+        <div class="advice-card">
+            <div class="advice-header">
+                <h1>💡 مشاوره آموزشی</h1>
+                <p>راهنمایی رایگان برای انتخاب بهترین مسیر یادگیری</p>
+            </div>
+
+            <div class="advice-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="info-box">
+                    <h4>
+                        <i class="fas fa-info-circle"></i>
+                        خدمات مشاوره
+                    </h4>
+                    <p>
+                        مشاوران مجرب ما آماده‌اند تا بهترین دوره و مسیر یادگیری را برای شما پیشنهاد دهند.
+                    </p>
+                    <ul>
+                        <li>✅ مشاوره کاملاً رایگان</li>
+                        <li>✅ تحلیل نیازها و اهداف شما</li>
+                        <li>✅ پیشنهاد دوره‌های مناسب</li>
+                        <li>✅ برنامه‌ریزی مسیر یادگیری</li>
+                    </ul>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">
+                            {{ form.name.label }}
+                            <span class="required">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.name.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">
+                                {{ form.email.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.email.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}">
+                                {{ form.phone.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.phone.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.message.id_for_label }}">
+                            {{ form.message.label }}
+                            <span class="required">*</span>
+                        </label>
+                        {{ form.message }}
+                        <div class="help-text">مثال: می‌خواهم برای مهاجرت زبان یاد بگیرم، یا دنبال دوره IELTS هستم</div>
+                        {% if form.message.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.message.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        ارسال درخواست مشاوره
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -26,11 +26,7 @@
             <i class="fas fa-gift"></i> رایگان
           </span>
         {% endif %}
-        {% for ct in course.class_types.all %}
-          <span class="badge" style="background: {{ ct.color }}; color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">
-            <i class="{{ ct.icon }}"></i> {{ ct.name }}
-          </span>
-        {% endfor %}
+        
       </div>
       
       <h1>{{ course.title }}</h1>

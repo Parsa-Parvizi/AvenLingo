@@ -745,18 +745,27 @@
 }
 
 .social-link-small {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1rem;
+  color: white !important;
+  font-size: 0.95rem;
   text-decoration: none;
   transition: all 0.3s ease;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.social-link-small i,
+.social-link-small svg {
+  color: white !important;
+  fill: white !important;
+  display: block;
+  line-height: 1;
 }
 
 .social-link-small:hover {
@@ -926,8 +935,8 @@
   }
 
   .social-link-small {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     font-size: 0.9rem;
   }
 }

@@ -403,6 +403,26 @@ class Teacher(models.Model):
         return self.user.get_full_name() or f"{self.user.first_name} {self.user.last_name}".strip() or "نام تعریف نشده"
     
     @property
+    def linkedin(self):
+        """Get LinkedIn profile URL"""
+        if self.linkedin_username:
+            if self.linkedin_username.startswith('http'):
+                return self.linkedin_username
+            return f"https://www.linkedin.com/in/{self.linkedin_username}"
+        return None
+    
+    @property
+    def instagram(self):
+        """Get Instagram profile URL"""
+        if self.instagram_username:
+            if self.instagram_username.startswith('http'):
+                return self.instagram_username
+            # حذف @ اگر وجود داشته باشد
+            username = self.instagram_username.lstrip('@')
+            return f"https://www.instagram.com/{username}"
+        return None
+    
+    @property
     def registration_status(self):
         """Get registration status"""
         if self.is_verified and self.is_active:

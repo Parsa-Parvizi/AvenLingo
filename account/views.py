@@ -958,20 +958,41 @@ class TeacherProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_object(self):
         return get_object_or_404(Teacher, user=self.request.user)
     
+    def form_invalid(self, form):
+        """Handle invalid form submission with detailed error logging"""
+        logger.error(f'Teacher profile form invalid. Errors: {form.errors}')
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(self.request, f'{field}: {error}')
+        return super().form_invalid(form)
+    
+    def post(self, request, *args, **kwargs):
+        """Override post to add logging"""
+        logger.info(f'Teacher profile update POST request received for user: {request.user.email}')
+        logger.debug(f'POST data: {request.POST}')
+        return super().post(request, *args, **kwargs)
+    
     def form_valid(self, form):
         try:
-            # Use service layer for profile updates
+            logger.info(f'Form is valid. Cleaned data: {form.cleaned_data.keys()}')
+            
+            # Save form which updates both user and teacher fields
+            teacher = form.save()
+            logger.info(f'Form saved successfully for teacher: {teacher.id}')
+            
+            # Also update via service layer for additional processing
             teacher = UserProfileService.update_teacher_profile(
-                teacher=self.get_object(),
+                teacher=teacher,
                 **form.cleaned_data
             )
             
             messages.success(self.request, 'پروفایل شما با موفقیت بروزرسانی شد.', extra_tags='profile')
+            logger.info(f'Teacher profile updated successfully: {teacher.user.email}')
             return redirect(self.success_url)
             
         except Exception as e:
-            logger.error(f'Error updating teacher profile: {str(e)}')
-            messages.error(self.request, 'خطا در بروزرسانی پروفایل.')
+            logger.error(f'Error updating teacher profile: {str(e)}', exc_info=True)
+            messages.error(self.request, f'خطا در بروزرسانی پروفایل: {str(e)}')
             return self.form_invalid(form)
     
     def get_context_data(self, **kwargs):

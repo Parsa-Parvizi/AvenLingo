@@ -491,11 +491,23 @@ class UserProfileService:
                 if user_data:
                     for field, value in user_data.items():
                         setattr(teacher.user, field, value)
-                    teacher.user.save(update_fields=user_fields)
+                    teacher.user.save(update_fields=[f for f in user_fields if f in user_data])
                 
-                # Update teacher fields
+                # Update teacher fields - همه فیلدهای قابل ویرایش
                 teacher_fields = [
-                    'bio', 'specialties', 'hourly_rate', 'telegram_username'
+                    # Professional Information
+                    'bio', 'specialties', 'hourly_rate',
+                    # Personal Information
+                    'date_of_birth',
+                    # Social Media
+                    'telegram_username', 'whatsapp_number', 
+                    'instagram_username', 'linkedin_username', 'youtube_username',
+                    # Education
+                    'education_level', 'education_field', 'education_institution',
+                    # Experience
+                    'experience_years', 'experience_description',
+                    # Availability
+                    'availability_days', 'availability_hours'
                 ]
                 teacher_data = {k: v for k, v in data.items() if k in teacher_fields}
                 if teacher_data:

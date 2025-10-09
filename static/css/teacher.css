@@ -738,8 +738,10 @@
   top: 15px;
   left: 15px;
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   z-index: 10;
+  max-width: 200px;
 }
 
 .social-link-small {
@@ -768,6 +770,18 @@
 
 .social-link-small.instagram:hover {
   background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af);
+}
+
+.social-link-small.youtube:hover {
+  background: #FF0000;
+}
+
+.social-link-small.telegram:hover {
+  background: #0088cc;
+}
+
+.social-link-small.whatsapp:hover {
+  background: #25D366;
 }
 
 .social-link-small.website:hover {

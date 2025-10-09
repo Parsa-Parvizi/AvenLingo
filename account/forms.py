@@ -907,7 +907,7 @@ class TeacherProfileForm(forms.ModelForm):
         model = Teacher
         fields = [
             'bio', 'specialties', 'date_of_birth',
-            'telegram_username', 'whatsapp_number', 'instagram_username', 'linkedin_username',
+            'telegram_username', 'whatsapp_number', 'instagram_username', 'linkedin_username', 'youtube_username',
             'education_level', 'education_field', 'education_institution',
             'experience_years', 'experience_description',
             'availability_days', 'availability_hours'
@@ -925,7 +925,8 @@ class TeacherProfileForm(forms.ModelForm):
             }),
             'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control',
-                'type': 'date'
+                'type': 'date',
+                'placeholder': 'YYYY-MM-DD'
             }),
             'telegram_username': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -942,6 +943,10 @@ class TeacherProfileForm(forms.ModelForm):
             'linkedin_username': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '@username یا URL پروفایل'
+            }),
+            'youtube_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '@username'
             }),
             'education_level': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -979,11 +984,12 @@ class TeacherProfileForm(forms.ModelForm):
         labels = {
             'bio': 'بیوگرافی',
             'specialties': 'تخصص‌ها',
-            'date_of_birth': 'تاریخ تولد',
+            'date_of_birth': 'تاریخ تولد (اختیاری)',
             'telegram_username': 'نام کاربری تلگرام',
             'whatsapp_number': 'شماره واتساپ',
             'instagram_username': 'نام کاربری اینستاگرام',
             'linkedin_username': 'نام کاربری لینکدین',
+            'youtube_username': 'نام کاربری یوتیوب',
             'education_level': 'سطح تحصیلات',
             'education_field': 'رشته تحصیلات',
             'education_institution': 'موسسه تحصیلات',
@@ -991,6 +997,9 @@ class TeacherProfileForm(forms.ModelForm):
             'experience_description': 'توضیحات تجربه',
             'availability_days': 'روزهای فعالیت',
             'availability_hours': 'ساعات فعالیت',
+        }
+        help_texts = {
+            'date_of_birth': 'فرمت: سال-ماه-روز (مثال: 1990-01-15) - این فیلد اختیاری است',
         }
     
     def __init__(self, *args, **kwargs):
@@ -1000,6 +1009,12 @@ class TeacherProfileForm(forms.ModelForm):
         if self.instance and self.instance.user:
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
+        
+        # Make date_of_birth optional and add help text
+        self.fields['date_of_birth'].required = False
+        self.fields['date_of_birth'].widget.attrs.update({
+            'placeholder': 'مثال: 1990-01-15'
+        })
     
     def clean_bio(self):
         """اعتبارسنجی بیوگرافی"""
@@ -1016,6 +1031,29 @@ class TeacherProfileForm(forms.ModelForm):
         return specialties
     
     
+    def clean_date_of_birth(self):
+        """اعتبارسنجی تاریخ تولد"""
+        date_of_birth = self.cleaned_data.get('date_of_birth')
+        
+        # اگر خالی است، مشکلی نیست
+        if not date_of_birth:
+            return None
+        
+        # بررسی که تاریخ در گذشته باشد
+        from django.utils import timezone
+        if date_of_birth > timezone.now().date():
+            raise ValidationError('تاریخ تولد نمی‌تواند در آینده باشد.')
+        
+        # بررسی که شخص بالای 15 سال باشد
+        age = (timezone.now().date() - date_of_birth).days / 365.25
+        if age < 15:
+            raise ValidationError('سن باید حداقل 15 سال باشد.')
+        
+        if age > 100:
+            raise ValidationError('لطفاً تاریخ تولد صحیح وارد کنید.')
+        
+        return date_of_birth
+    
     def clean_whatsapp_number(self):
         """اعتبارسنجی شماره واتساپ"""
         whatsapp = self.cleaned_data.get('whatsapp_number', '').strip()
@@ -1026,6 +1064,18 @@ class TeacherProfileForm(forms.ModelForm):
                 raise ValidationError('شماره واتساپ باید بین 10 تا 15 رقم باشد.')
             return whatsapp_clean
         return whatsapp
+    
+    def clean_youtube_username(self):
+        """اعتبارسنجی نام کاربری یوتیوب"""
+        youtube = self.cleaned_data.get('youtube_username', '').strip()
+        if youtube:
+            # حذف @ اگر وجود دارد
+            if youtube.startswith('@'):
+                youtube = youtube[1:]
+            
+            # فقط حذف فاصله‌های اضافی - validation خیلی ساده
+            return youtube.strip()
+        return ''
     
     def save(self, commit=True):
         """ذخیره پروفایل معلم با به‌روزرسانی اطلاعات کاربر"""

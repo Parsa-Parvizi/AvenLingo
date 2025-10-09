@@ -51,20 +51,35 @@
         </div>
       </a>
       
-      {% if teacher.linkedin or teacher.instagram or teacher.website %}
+      {% if teacher.instagram or teacher.telegram_username or teacher.whatsapp_number or teacher.youtube_username or teacher.linkedin or teacher.website %}
       <div class="teacher-social-links">
-        {% if teacher.linkedin %}
-          <a href="{{ teacher.linkedin }}" target="_blank" rel="noopener" class="social-link-small linkedin" title="LinkedIn">
-            <i class="fab fa-linkedin"></i>
-          </a>
-        {% endif %}
         {% if teacher.instagram %}
-          <a href="{{ teacher.instagram }}" target="_blank" rel="noopener" class="social-link-small instagram" title="Instagram">
+          <a href="{{ teacher.instagram }}" target="_blank" rel="noopener" class="social-link-small instagram" onclick="event.stopPropagation();" title="اینستاگرام">
             <i class="fab fa-instagram"></i>
           </a>
         {% endif %}
+        {% if teacher.telegram_username %}
+          <a href="https://t.me/{{ teacher.telegram_username }}" target="_blank" rel="noopener" class="social-link-small telegram" onclick="event.stopPropagation();" title="تلگرام">
+            <i class="fab fa-telegram"></i>
+          </a>
+        {% endif %}
+        {% if teacher.whatsapp_number %}
+          <a href="https://wa.me/{{ teacher.whatsapp_number }}" target="_blank" rel="noopener" class="social-link-small whatsapp" onclick="event.stopPropagation();" title="واتساپ">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        {% endif %}
+        {% if teacher.youtube_username %}
+          <a href="https://www.youtube.com/@{{ teacher.youtube_username }}" target="_blank" rel="noopener" class="social-link-small youtube" onclick="event.stopPropagation();" title="یوتیوب">
+            <i class="fab fa-youtube"></i>
+          </a>
+        {% endif %}
+        {% if teacher.linkedin %}
+          <a href="{{ teacher.linkedin }}" target="_blank" rel="noopener" class="social-link-small linkedin" onclick="event.stopPropagation();" title="لینکدین">
+            <i class="fab fa-linkedin"></i>
+          </a>
+        {% endif %}
         {% if teacher.website %}
-          <a href="{{ teacher.website }}" target="_blank" rel="noopener" class="social-link-small website" title="وب‌سایت">
+          <a href="{{ teacher.website }}" target="_blank" rel="noopener" class="social-link-small website" onclick="event.stopPropagation();" title="وب‌سایت">
             <i class="fas fa-globe"></i>
           </a>
         {% endif %}

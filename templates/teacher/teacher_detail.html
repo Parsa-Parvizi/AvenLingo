@@ -49,7 +49,7 @@
             </span>
           </div>
           
-          {% if teacher.linkedin or teacher.instagram or teacher.website %}
+          {% if teacher.linkedin or teacher.instagram or teacher.website or teacher.youtube_username %}
           <div class="teacher-hero-social">
             {% if teacher.linkedin %}
               <a href="{{ teacher.linkedin }}" target="_blank" rel="noopener" class="hero-social-link linkedin">
@@ -59,6 +59,11 @@
             {% if teacher.instagram %}
               <a href="{{ teacher.instagram }}" target="_blank" rel="noopener" class="hero-social-link instagram">
                 <i class="fab fa-instagram"></i>
+              </a>
+            {% endif %}
+            {% if teacher.youtube_username %}
+              <a href="https://www.youtube.com/@{{ teacher.youtube_username }}" target="_blank" rel="noopener" class="hero-social-link youtube">
+                <i class="fab fa-youtube"></i>
               </a>
             {% endif %}
             {% if teacher.website %}
@@ -522,11 +527,17 @@
 }
 
 .hero-social-link.linkedin:hover {
-  background: #0077b5;
+  background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+  color: white;
 }
 
 .hero-social-link.instagram:hover {
   background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af);
+}
+
+.hero-social-link.youtube:hover {
+  background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+  color: white;
 }
 
 .hero-social-link.website:hover {
@@ -877,6 +888,57 @@
       .social-links-container .social-btn.disabled svg {
         fill: #999 !important;
       }
+      
+      /* Disabled state hover - نمایش رنگ برند */
+      .social-links-container .social-btn.linkedin.disabled:hover {
+        background: linear-gradient(135deg, rgba(0, 119, 181, 0.2) 0%, rgba(0, 88, 133, 0.2) 100%) !important;
+        border-color: rgba(0, 119, 181, 0.3) !important;
+        opacity: 0.5 !important;
+      }
+      
+      .social-links-container .social-btn.linkedin.disabled:hover svg {
+        fill: #0077b5 !important;
+      }
+      
+      .social-links-container .social-btn.instagram.disabled:hover {
+        background: linear-gradient(135deg, rgba(228, 64, 95, 0.2) 0%, rgba(193, 53, 132, 0.2) 100%) !important;
+        border-color: rgba(228, 64, 95, 0.3) !important;
+        opacity: 0.5 !important;
+      }
+      
+      .social-links-container .social-btn.instagram.disabled:hover svg {
+        fill: #E4405F !important;
+      }
+      
+      .social-links-container .social-btn.telegram.disabled:hover {
+        background: rgba(0, 136, 204, 0.2) !important;
+        border-color: rgba(0, 136, 204, 0.3) !important;
+        opacity: 0.5 !important;
+      }
+      
+      .social-links-container .social-btn.telegram.disabled:hover svg {
+        fill: #0088cc !important;
+      }
+      
+      .social-links-container .social-btn.youtube.disabled:hover {
+        background: rgba(255, 0, 0, 0.2) !important;
+        border-color: rgba(255, 0, 0, 0.3) !important;
+        opacity: 0.5 !important;
+      }
+      
+      .social-links-container .social-btn.youtube.disabled:hover svg {
+        fill: #FF0000 !important;
+      }
+      
+      .social-links-container .social-btn.whatsapp.disabled:hover {
+        background: rgba(37, 211, 102, 0.2) !important;
+        border-color: rgba(37, 211, 102, 0.3) !important;
+        opacity: 0.5 !important;
+      }
+      
+      .social-links-container .social-btn.whatsapp.disabled:hover svg {
+        fill: #25D366 !important;
+      }
 
       /* Active state hover */
       .social-links-container .social-btn.active:hover {
@@ -889,7 +951,7 @@
         color: #0077b5 !important;
         background: linear-gradient(135deg, rgba(0, 119, 181, 0.15) 0%, rgba(0, 119, 181, 0.08) 100%) !important;
         border-color: rgba(0, 119, 181, 0.4) !important;
-        box-shadow: 0 4px 15px rgba(0, 119, 181, 0.2) !important;
+        box-shadow: 0 4px 15px rgba(0, 119, 181, 0.25) !important;
       }
 
       .social-links-container .social-btn.linkedin.active svg {
@@ -937,6 +999,11 @@
         box-shadow: 0 4px 15px rgba(228, 64, 95, 0.25) !important;
       }
 
+      .social-links-container .social-btn.instagram.active svg {
+        fill: #E4405F !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+
       .social-links-container .social-btn.instagram.active:hover {
         background: linear-gradient(135deg, #E4405F 0%, #C13584 50%, #833AB4 100%) !important;
         color: #ffffff !important;
@@ -973,6 +1040,11 @@
         background: linear-gradient(135deg, rgba(0, 136, 204, 0.15) 0%, rgba(0, 136, 204, 0.08) 100%) !important;
         border-color: rgba(0, 136, 204, 0.4) !important;
         box-shadow: 0 4px 15px rgba(0, 136, 204, 0.25) !important;
+      }
+
+      .social-links-container .social-btn.telegram.active svg {
+        fill: #0088cc !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
 
       .social-links-container .social-btn.telegram.active:hover {
@@ -1013,6 +1085,11 @@
         box-shadow: 0 4px 15px rgba(255, 0, 0, 0.25) !important;
       }
 
+      .social-links-container .social-btn.youtube.active svg {
+        fill: #FF0000 !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+
       .social-links-container .social-btn.youtube.active:hover {
         background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%) !important;
         color: #ffffff !important;
@@ -1049,6 +1126,11 @@
         background: linear-gradient(135deg, rgba(37, 211, 102, 0.15) 0%, rgba(37, 211, 102, 0.08) 100%) !important;
         border-color: rgba(37, 211, 102, 0.4) !important;
         box-shadow: 0 4px 15px rgba(37, 211, 102, 0.25) !important;
+      }
+
+      .social-links-container .social-btn.whatsapp.active svg {
+        fill: #25D366 !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
 
       .social-links-container .social-btn.whatsapp.active:hover {

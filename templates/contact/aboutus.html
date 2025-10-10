@@ -10,127 +10,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/aboutus.css' %}">
-<style>
-/* وسط چین کردن محتوا */
-.content-centered {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 20px;
-}
-
-.content-centered .about-text h2 {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #111;
-    margin-bottom: 30px;
-}
-
-.content-centered .text-content {
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: #444;
-    text-align: justify;
-}
-
-.content-centered .mvv-section {
-    margin-top: 50px;
-}
-
-/* سؤالی دارید - وسط چین */
-.contact-cta-centered {
-    max-width: 1000px;
-    margin: 50px auto 40px;
-    padding: 50px 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
-}
-
-.contact-cta-centered h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 15px;
-}
-
-.contact-cta-centered p {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 30px;
-    line-height: 1.6;
-}
-
-.cta-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.cta-buttons .btn {
-    padding: 14px 35px;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.cta-buttons .btn-primary {
-    background: white;
-    color: var(--color-primary, #1F3A93);
-    border: 2px solid white;
-}
-
-.cta-buttons .btn-primary:hover {
-    background: var(--color-accent, #FFD700);
-    color: #333;
-    border-color: var(--color-accent, #FFD700);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-}
-
-.cta-buttons .btn-outline {
-    background: transparent;
-    color: white;
-    border: 2px solid white;
-}
-
-.cta-buttons .btn-outline:hover {
-    background: white;
-    color: var(--color-primary, #1F3A93);
-    transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-    .content-centered {
-        padding: 30px 15px;
-    }
-    
-    .contact-cta-centered {
-        padding: 40px 25px;
-        margin: 30px 15px;
-    }
-    
-    .contact-cta-centered h2 {
-        font-size: 1.6rem;
-    }
-    
-    .cta-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .cta-buttons .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -465,5 +344,29 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(statsPreview);
     }
 });
+
+// FAQ Toggle
+function toggleAnswer(button) {
+    const faqItem = button.parentElement;
+    const answer = faqItem.querySelector('.faq-answer');
+    const isActive = button.classList.contains('active');
+    
+    // بستن همه سوالات دیگر
+    document.querySelectorAll('.faq-question').forEach(q => {
+        if (q !== button) {
+            q.classList.remove('active');
+            q.parentElement.querySelector('.faq-answer').classList.remove('active');
+        }
+    });
+    
+    // باز/بسته کردن سوال فعلی
+    if (isActive) {
+        button.classList.remove('active');
+        answer.classList.remove('active');
+    } else {
+        button.classList.add('active');
+        answer.classList.add('active');
+    }
+}
 </script>
 {% endblock %}

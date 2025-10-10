@@ -286,6 +286,52 @@
     transform: translateY(-2px);
 }
 
+/* سوالات متداول - Grid سه ستونی */
+.fraq {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.fraq-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.faq-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.faq-question {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.faq-answer.active {
+    max-height: 500px;
+    padding: 20px;
+}
+
+@media (max-width: 992px) {
+    .fraq-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .about-page .page-title {
         font-size: 2rem;
@@ -304,5 +350,13 @@
     .about-page .cta-buttons {
         flex-direction: column;
         align-items: center;
+    }
+    
+    .fraq-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .faq-question {
+        min-height: 60px;
     }
 }

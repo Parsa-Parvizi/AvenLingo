@@ -150,27 +150,7 @@
     color: #721c24;
 }
 
-.contact-page .btn {
-    display: inline-block;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.contact-page .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.contact-page .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-}
+/* دکمه‌ها از استایل global main.css استفاده می‌کنند */
 
 .contact-page .contact-sidebar {
     padding-right: 30px;

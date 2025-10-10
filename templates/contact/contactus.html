@@ -261,10 +261,28 @@ textarea.form-control {
     margin-top: 5px;
 }
 
-.btn-primary {
-    width: 100%;
-    padding: 14px 24px;
-    font-size: 1rem;
+.contact-page .btn-primary {
+    width: 100% !important;
+    padding: 14px 24px !important;
+    font-size: 1rem !important;
+    background: var(--color-accent, #FFD700) !important;
+    color: #333 !important;
+    border: 2px solid var(--color-accent, #FFD700) !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+.contact-page .btn-primary:hover {
+    background: white !important;
+    color: var(--color-primary, #1F3A93) !important;
+    border-color: var(--color-accent, #FFD700) !important;
 }
 
 .info-box {
@@ -347,28 +365,28 @@ textarea.form-control {
             <h1> تماس با ما</h1>
             <p>با ما در ارتباط باشید و از مشاوره رایگان بهره‌مند شوید</p>
         </div>
-
-        <!-- Contact Cards -->
+                
+                <!-- Contact Cards -->
         <div class="contact-cards-grid">
             <!-- تلفن همراه -->
             <div class="contact-card mobile">
-                <div class="contact-icon">
+                        <div class="contact-icon">
                     📞
-                </div>
-                <h4>تلفن همراه</h4>
-                <p>{{ contact_info.mobile|default:"09123456789"|persian_numbers }}</p>
+                        </div>
+                        <h4>تلفن همراه</h4>
+                        <p>{{ contact_info.mobile|default:"09123456789"|persian_numbers }}</p>
                 <a href="tel:{{ contact_info.mobile|default:'09123456789' }}" class="contact-link">
                     تماس بگیرید
                 </a>
-            </div>
+                </div>
 
             <!-- ایمیل -->
             <div class="contact-card email">
-                <div class="contact-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <h4>ایمیل</h4>
-                <p>{{ contact_info.email|default:"info@academy.com" }}</p>
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h4>ایمیل</h4>
+                        <p>{{ contact_info.email|default:"info@academy.com" }}</p>
                 <a href="mailto:{{ contact_info.email|default:'info@academy.com' }}" class="contact-link">
                     <i class="fas fa-envelope"></i>
                     ایمیل بفرستید
@@ -418,7 +436,7 @@ textarea.form-control {
                     <i class="fas fa-camera"></i>
                     مشاهده پیج
                 </a>
-            </div>
+                    </div>
 
             <!-- یوتیوب -->
             <div class="contact-card youtube">
@@ -455,99 +473,99 @@ textarea.form-control {
                     {% endif %}
 
                     <div class="info-box">
-                        <div class="info-item">
-                            <i class="fas fa-clock"></i>
-                            <span>زمان پاسخگویی: حداکثر {{ "24"|persian_numbers }} ساعت</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>پشتیبانی {{ "6"|persian_numbers }} روز هفته</span>
-                        </div>
-                    </div>
-
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        <!-- اطلاعات تماس -->
-                        <div class="step-header">
-                            <h3>
-                                <i class="fas fa-user"></i>
-                                اطلاعات تماس
-                            </h3>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>زمان پاسخگویی: حداکثر {{ "24"|persian_numbers }} ساعت</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>پشتیبانی {{ "6"|persian_numbers }} روز هفته</span>
+                            </div>
                         </div>
                         
-                        <div class="form-row">
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- اطلاعات تماس -->
+                            <div class="step-header">
+                                <h3>
+                                    <i class="fas fa-user"></i>
+                                    اطلاعات تماس
+                                </h3>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}">
+                                        {{ form.name.label }}
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="form-error">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="{{ form.email.id_for_label }}">
+                                        {{ form.email.label }}
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="form-error">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
                             <div class="form-group">
-                                <label for="{{ form.name.id_for_label }}">
-                                    {{ form.name.label }}
+                                <label for="{{ form.phone.id_for_label }}">
+                                    {{ form.phone.label }}
+                                    <span class="optional">(اختیاری)</span>
+                                </label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="form-error">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- جزئیات پیام -->
+                            <div class="step-header" style="margin-top: 30px;">
+                                <h3>
+                                    <i class="fas fa-file-alt"></i>
+                                    جزئیات پیام
+                                </h3>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.subject.id_for_label }}">
+                                    {{ form.subject.label }}
                                     <span class="required">*</span>
                                 </label>
-                                {{ form.name }}
-                                {% if form.name.errors %}
-                                    <div class="form-error">{{ form.name.errors.0 }}</div>
+                                {{ form.subject }}
+                                <div class="help-text">مثال: سوال درباره دوره، مشکل فنی، پیشنهاد</div>
+                                {% if form.subject.errors %}
+                                    <div class="form-error">{{ form.subject.errors.0 }}</div>
                                 {% endif %}
                             </div>
                             
                             <div class="form-group">
-                                <label for="{{ form.email.id_for_label }}">
-                                    {{ form.email.label }}
+                                <label for="{{ form.message.id_for_label }}">
+                                    {{ form.message.label }}
                                     <span class="required">*</span>
                                 </label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="form-error">{{ form.email.errors.0 }}</div>
+                                {{ form.message }}
+                                <div class="help-text">لطفاً پیام خود را به صورت کامل و واضح بنویسید</div>
+                                {% if form.message.errors %}
+                                    <div class="form-error">{{ form.message.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="{{ form.phone.id_for_label }}">
-                                {{ form.phone.label }}
-                                <span class="optional">(اختیاری)</span>
-                            </label>
-                            {{ form.phone }}
-                            {% if form.phone.errors %}
-                                <div class="form-error">{{ form.phone.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- جزئیات پیام -->
-                        <div class="step-header" style="margin-top: 30px;">
-                            <h3>
-                                <i class="fas fa-file-alt"></i>
-                                جزئیات پیام
-                            </h3>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="{{ form.subject.id_for_label }}">
-                                {{ form.subject.label }}
-                                <span class="required">*</span>
-                            </label>
-                            {{ form.subject }}
-                            <div class="help-text">مثال: سوال درباره دوره، مشکل فنی، پیشنهاد</div>
-                            {% if form.subject.errors %}
-                                <div class="form-error">{{ form.subject.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="{{ form.message.id_for_label }}">
-                                {{ form.message.label }}
-                                <span class="required">*</span>
-                            </label>
-                            {{ form.message }}
-                            <div class="help-text">لطفاً پیام خود را به صورت کامل و واضح بنویسید</div>
-                            {% if form.message.errors %}
-                                <div class="form-error">{{ form.message.errors.0 }}</div>
-                            {% endif %}
-                        </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i>
-                            ارسال پیام
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                ارسال پیام به پشتیبانی
+                            </button>
+                        </form>
                 </div>
             </div>
         </div>

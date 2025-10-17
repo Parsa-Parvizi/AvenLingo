@@ -1,6 +1,6 @@
 # ==============================================================================
-# Docker Compose Configuration
-# English Teacher Academy - Django + Nginx + PostgreSQL
+# Docker Compose Configuration - DEVELOPMENT
+# English Teacher Academy - Optimized for Local Development
 # ==============================================================================
 
 version: '3.9'
@@ -11,7 +11,7 @@ services:
   # =============================================================================
   db:
     image: postgres:15-alpine
-    container_name: englishteacher_db
+    container_name: englishteacher_db_dev
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-englishteacher_db}
@@ -20,7 +20,7 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups  # For database backups
+      - ./backups:/backups
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
@@ -30,8 +30,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-
+      start_period: 10s
 
   # =============================================================================
   # Django Application Service
@@ -40,21 +39,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: englishteacher_web
+      target: development
+      cache_from:
+        - englishteacher_web:latest
+    image: englishteacher_web:dev
+    container_name: englishteacher_web_dev
     restart: unless-stopped
     environment:
-      # Django settings
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-your-very-long-secret-key-change-this}
+      # Django Core Settings
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-secret-key-change-in-production}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      DJANGO_SETTINGS_MODULE: EnglishTeacher.dev_settings
       
-      # Database configuration
+      # Database Configuration
       DATABASE_URL: postgresql://${POSTGRES_USER:-englishteacher_user}:${POSTGRES_PASSWORD:-secure_password_change_me}@db:5432/${POSTGRES_DB:-englishteacher_db}
       
-      # Cache configuration (Django's default cache)
-      CACHE_BACKEND: ${CACHE_BACKEND:-django.core.cache.backends.locmem.LocMemCache}
+      # Cache Configuration (Disabled for Development)
+      CACHE_BACKEND: ${CACHE_BACKEND:-django.core.cache.backends.dummy.DummyCache}
       
-      # Email configuration
+      # Email Configuration (Console backend for development)
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
       EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
       EMAIL_PORT: ${EMAIL_PORT:-587}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
@@ -62,7 +67,7 @@ services:
       EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-noreply@academy.com}
       
-      # Security settings - HTTPS Disabled
+      # Security Settings - Development (Relaxed)
       SECURE_SSL_REDIRECT: False
       SECURE_HSTS_SECONDS: 0
       SECURE_HSTS_INCLUDE_SUBDOMAINS: False
@@ -70,39 +75,40 @@ services:
       SECURE_BROWSER_XSS_FILTER: False
       SECURE_CONTENT_TYPE_NOSNIFF: False
       
-      # Session security
-      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-False}
-      SESSION_COOKIE_HTTPONLY: ${SESSION_COOKIE_HTTPONLY:-True}
-      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-Lax}
+      # Session Security
+      SESSION_COOKIE_SECURE: False
+      SESSION_COOKIE_HTTPONLY: True
+      SESSION_COOKIE_SAMESITE: Lax
       SESSION_COOKIE_AGE: ${SESSION_COOKIE_AGE:-3600}
       
-      # CSRF security
-      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-False}
-      CSRF_COOKIE_HTTPONLY: ${CSRF_COOKIE_HTTPONLY:-True}
-      CSRF_COOKIE_SAMESITE: ${CSRF_COOKIE_SAMESITE:-Lax}
+      # CSRF Security
+      CSRF_COOKIE_SECURE: False
+      CSRF_COOKIE_HTTPONLY: True
+      CSRF_COOKIE_SAMESITE: Lax
       
-      # Authentication & Security
-      MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-5242880}  # 5MB
-      CHECK_SESSION_IP: ${CHECK_SESSION_IP:-False}
-      RATELIMIT_ENABLE: ${RATELIMIT_ENABLE:-True}
+      # Rate Limiting (Disabled for Development)
+      RATELIMIT_ENABLE: ${RATELIMIT_ENABLE:-False}
       
       # Logging
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
-      SECURITY_LOG_LEVEL: ${SECURITY_LOG_LEVEL:-WARNING}
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-DEBUG}
+      SECURITY_LOG_LEVEL: ${SECURITY_LOG_LEVEL:-INFO}
       
       # Internationalization
       LANGUAGE_CODE: fa
       TIME_ZONE: Asia/Tehran
       USE_I18N: True
-      USE_L10N: True
       USE_TZ: True
       
+      # Development Mode
+      DEVELOPMENT_MODE: True
+      
     volumes:
+      # Mount source code for hot-reload
+      - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - ./logs:/app/logs
-      - security_logs:/app/logs/security  # Dedicated security logs volume
     ports:
       - "${DJANGO_PORT:-8000}:8000"
     depends_on:
@@ -111,27 +117,23 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/", "--max-time", "10"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/", "--max-time", "10"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Security: Limit resources to prevent DoS
     deploy:
       resources:
         limits:
           memory: 512M
           cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
 
   # =============================================================================
-  # Nginx Reverse Proxy Service
+  # Nginx Reverse Proxy Service (Optional for Development)
   # =============================================================================
   nginx:
     image: nginx:1.25-alpine
-    container_name: englishteacher_nginx
+    container_name: englishteacher_nginx_dev
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-80}:80"
@@ -151,33 +153,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    # Security: Limit resources
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.25'
-
-  # =============================================================================
-  # Log Management Service (Optional)
-  # =============================================================================
-  logrotate:
-    image: alpine:3.18
-    container_name: englishteacher_logrotate
-    restart: unless-stopped
-    volumes:
-      - ./logs:/logs
-      - security_logs:/logs/security
-    command: >
-      sh -c "
-        echo '0 0 * * * find /logs -name \"*.log\" -size +50M -exec gzip {} \;' | crontab - &&
-        echo '0 1 * * * find /logs -name \"*.log.gz\" -mtime +30 -delete' | crontab - &&
-        crond -f
-      "
-    networks:
-      - app_network
-
-
+    profiles:
+      - with-nginx  # Only start with: docker-compose --profile with-nginx up
 
 # =============================================================================
 # Named Volumes
@@ -189,8 +166,6 @@ volumes:
     driver: local
   media_volume:
     driver: local
-  security_logs:
-    driver: local
 
 # =============================================================================
 # Networks
@@ -198,12 +173,3 @@ volumes:
 networks:
   app_network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
-    # Security: Enable network isolation
-    driver_opts:
-      com.docker.network.bridge.enable_icc: "true"
-      com.docker.network.bridge.enable_ip_masquerade: "true"
-      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0" 

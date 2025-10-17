@@ -42,6 +42,12 @@ urlpatterns = [
     path('admin/calendar/', views.AdminCalendarView.as_view(), name='admin_calendar'),
     path('student/calendar/', views.StudentCalendarView.as_view(), name='student_calendar'),
     
+    # Certificate Download for Students
+    path('student/enrollment/<int:enrollment_id>/certificate/download/', views.student_download_certificate, name='student_download_certificate'),
+    
+    # Smart Course Recommendations
+    path('student/recommended-courses/', views.StudentRecommendedCoursesView.as_view(), name='student_recommended_courses'),
+    
     # Security & Settings
     path('admin/login-history/', views.AdminLoginHistoryView.as_view(), name='admin_login_history'),
     path('admin/sessions/', views.AdminSessionsView.as_view(), name='admin_sessions'),

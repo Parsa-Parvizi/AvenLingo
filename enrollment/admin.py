@@ -4,13 +4,46 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count, Q
 from django.contrib.admin import DateFieldListFilter
+from django import forms
+from django.contrib import messages
 
 from .models import Enrollment, EnrollmentHistory
+
+
+class EnrollmentAdminForm(forms.ModelForm):
+    """فرم سفارشی برای اعتبارسنجی ثبت‌نام"""
+    
+    class Meta:
+        model = Enrollment
+        fields = '__all__'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        payment_status = cleaned_data.get('payment_status')
+        course = cleaned_data.get('course')
+        
+        # بررسی هماهنگی ثبت‌نام و پرداخت
+        if course and not course.is_free:
+            if status == 'confirmed' and payment_status not in ['paid', 'partial']:
+                raise forms.ValidationError({
+                    'status': 'برای تأیید ثبت‌نام در دوره غیر رایگان، ابتدا باید پرداخت تأیید شود.',
+                    'payment_status': 'وضعیت پرداخت باید "پرداخت شده" یا "پرداخت جزئی" باشد.'
+                })
+        
+        # برای دوره‌های رایگان، خودکار payment را تنظیم می‌کنیم
+        if course and course.is_free and status == 'confirmed':
+            cleaned_data['payment_status'] = 'paid'
+            cleaned_data['amount_paid'] = 0
+        
+        return cleaned_data
 
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
     """Enhanced admin interface for Enrollment model"""
+    
+    form = EnrollmentAdminForm
     
     list_display = [
         'id', 'student_name', 'course_title', 'colored_status', 
@@ -217,10 +250,14 @@ class EnrollmentAdmin(admin.ModelAdmin):
     actions_column.short_description = 'عملیات'
     
     def confirm_enrollments(self, request, queryset):
-        """Bulk confirm enrollments"""
+        """Bulk confirm enrollments - با بررسی پرداخت"""
         updated = 0
+        failed = 0
+        failed_names = []
+        
         for enrollment in queryset.filter(status='pending'):
-            if enrollment.confirm_enrollment():
+            success, message = enrollment.confirm_enrollment()
+            if success:
                 updated += 1
                 # Create history record
                 admin_name = request.user.get_full_name() or 'ادمین'
@@ -231,8 +268,24 @@ class EnrollmentAdmin(admin.ModelAdmin):
                     changed_by=admin_name,
                     reason='تأیید توسط مدیریت'
                 )
+            else:
+                failed += 1
+                student_name = enrollment.student.user.get_full_name()
+                failed_names.append(f"{student_name} ({message})")
         
-        self.message_user(request, f'{updated} ثبت‌نام تأیید شد.')
+        if updated > 0:
+            self.message_user(
+                request, 
+                f'✅ {updated} ثبت‌نام با موفقیت تأیید شد.', 
+                messages.SUCCESS
+            )
+        
+        if failed > 0:
+            self.message_user(
+                request, 
+                f'⚠️ {failed} ثبت‌نام تأیید نشد: {", ".join(failed_names)}',
+                messages.WARNING
+            )
     confirm_enrollments.short_description = 'تأیید ثبت‌نام‌های انتخاب شده'
     
     def cancel_enrollments(self, request, queryset):

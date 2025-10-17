@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}آپلود مدرک - {{ student.user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .certificate-upload-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+    
+    .student-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-certificate {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-info {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        color: #1976d2;
+    }
+    
+    .alert-warning {
+        background: #fff3e0;
+        border: 1px solid #ff9800;
+        color: #f57c00;
+    }
+    
+    .alert-success {
+        background: #e8f5e9;
+        border: 1px solid #4caf50;
+        color: #2e7d32;
+    }
+    
+    .file-upload-area {
+        border: 2px dashed #667eea;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .file-upload-area:hover {
+        background: #e9ecef;
+        border-color: #764ba2;
+    }
+    
+    .file-upload-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-upload {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .btn-upload:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+    
+    .btn-upload:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        margin-left: 1rem;
+    }
+    
+    .existing-certificate {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <div class="certificate-upload-card">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: #333;">
+            <i class="fas fa-certificate"></i> آپلود مدرک دوره
+        </h2>
+        
+        <!-- اطلاعات دانش‌آموز -->
+        <div class="student-info">
+            <h3 style="margin: 0 0 0.5rem 0;">
+                <i class="fas fa-user-graduate"></i> {{ student.user.get_full_name }}
+            </h3>
+            <p style="margin: 0.3rem 0; opacity: 0.9;">
+                <i class="fas fa-book"></i> دوره: {{ course.title }}
+            </p>
+            <p style="margin: 0.3rem 0; opacity: 0.9;">
+                <i class="fas fa-envelope"></i> ایمیل: {{ student.user.email }}
+            </p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-certificate alert-{{ message.tags }}">
+                    <i class="fas fa-info-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if not has_final_grade %}
+            <div class="alert-certificate alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>توجه:</strong> نمره نهایی برای این دانش‌آموز هنوز وارد نشده است. 
+                ابتدا باید نمره امتحان نهایی را وارد کنید.
+            </div>
+        {% elif not can_upload %}
+            <div class="alert-certificate alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>توجه:</strong> امکان آپلود مدرک وجود ندارد. 
+                لطفاً ابتدا نمره نهایی را وارد کرده و وضعیت ثبت‌نام را بررسی کنید.
+            </div>
+        {% endif %}
+        
+        {% if enrollment.certificate %}
+            <div class="existing-certificate">
+                <h4 style="color: #28a745; margin-bottom: 1rem;">
+                    <i class="fas fa-check-circle"></i> مدرک قبلاً آپلود شده
+                </h4>
+                <p style="margin-bottom: 0.5rem;">
+                    <strong>تاریخ آپلود:</strong> 
+                    {{ enrollment.certificate_uploaded_at|date:"Y/m/d H:i" }}
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>نام فایل:</strong> 
+                    {{ enrollment.certificate.name|slice:":50" }}...
+                </p>
+                <form method="post" action="{% url 'teacher:delete_certificate' enrollment.id %}" 
+                      onsubmit="return confirm('آیا از حذف این مدرک اطمینان دارید؟');" 
+                      style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> حذف مدرک
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        
+        <!-- فرم آپلود -->
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            
+            <div class="file-upload-area" onclick="document.getElementById('certificateFile').click();">
+                <div class="file-upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h4 style="color: #667eea; margin-bottom: 0.5rem;">
+                    {% if enrollment.certificate %}
+                        انتخاب مدرک جدید (جایگزین مدرک قبلی)
+                    {% else %}
+                        فایل PDF مدرک را انتخاب کنید
+                    {% endif %}
+                </h4>
+                <p style="color: #6c757d; margin: 0;">
+                    کلیک کنید یا فایل را اینجا بکشید
+                </p>
+                <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">
+                    فقط فایل‌های PDF - حداکثر 10 مگابایت
+                </p>
+            </div>
+            
+            <input type="file" 
+                   name="certificate" 
+                   id="certificateFile" 
+                   accept=".pdf" 
+                   style="display: none;" 
+                   {% if not can_upload %}disabled{% endif %}
+                   onchange="updateFileName(this)">
+            
+            <div id="selectedFileName" style="margin-top: 1rem; text-align: center; color: #28a745; display: none;">
+                <i class="fas fa-file-pdf"></i> <strong>فایل انتخاب شده:</strong> <span id="fileName"></span>
+            </div>
+            
+            <div class="alert-certificate alert-info" style="margin-top: 1.5rem;">
+                <i class="fas fa-info-circle"></i>
+                <strong>نکته مهم:</strong> 
+                <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                    <li>مدرک باید به صورت PDF باشد</li>
+                    <li>نام دانش‌آموز در مدرک به صورت صحیح درج شده باشد</li>
+                    <li>مدرک دارای امضای معتبر باشد</li>
+                    <li>حجم فایل نباید بیشتر از ۱۰ مگابایت باشد</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button type="submit" 
+                        class="btn-upload" 
+                        {% if not can_upload %}disabled{% endif %}>
+                    <i class="fas fa-upload"></i> آپلود مدرک
+                </button>
+                <a href="{% url 'teacher:course_grades' course.id %}" class="btn-back">
+                    <i class="fas fa-arrow-right"></i> بازگشت
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function updateFileName(input) {
+    const fileName = input.files[0]?.name;
+    if (fileName) {
+        document.getElementById('fileName').textContent = fileName;
+        document.getElementById('selectedFileName').style.display = 'block';
+    } else {
+        document.getElementById('selectedFileName').style.display = 'none';
+    }
+}
+
+// Drag and drop functionality
+const uploadArea = document.querySelector('.file-upload-area');
+const fileInput = document.getElementById('certificateFile');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+        uploadArea.style.borderColor = '#764ba2';
+        uploadArea.style.background = '#e9ecef';
+    }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+        uploadArea.style.borderColor = '#667eea';
+        uploadArea.style.background = '#f8f9fa';
+    }, false);
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    
+    if (files.length > 0 && files[0].type === 'application/pdf') {
+        fileInput.files = files;
+        updateFileName(fileInput);
+    } else {
+        alert('لطفاً فقط فایل PDF انتخاب کنید.');
+    }
+}, false);
+</script>
+{% endblock %}
+

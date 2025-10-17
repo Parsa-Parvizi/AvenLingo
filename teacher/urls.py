@@ -10,7 +10,7 @@ from .views import (
     TeacherExamParticipantsView, TeacherGradeExamView,
     TeacherCourseVideosView, TeacherCreateVideoView, TeacherEditVideoView, TeacherDeleteVideoView,
     TeacherCourseResourcesView, TeacherCreateResourceView, TeacherEditResourceView, TeacherDeleteResourceView,
-    TeacherCourseGradesView
+    TeacherCourseGradesView, TeacherUploadCertificateView, teacher_delete_certificate
 )
 app_name = 'teacher'
 
@@ -55,6 +55,10 @@ urlpatterns = [
     
     # Grades URLs
     path('courses/<int:course_id>/grades/', TeacherCourseGradesView.as_view(), name='course_grades'),
+    
+    # Certificate URLs
+    path('enrollment/<int:enrollment_id>/certificate/upload/', TeacherUploadCertificateView.as_view(), name='upload_certificate'),
+    path('enrollment/<int:enrollment_id>/certificate/delete/', teacher_delete_certificate, name='delete_certificate'),
     
     # Additional URLs
     path('activities/', TeacherActivitiesView.as_view(), name='activities'),

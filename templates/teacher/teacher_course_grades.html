@@ -155,13 +155,70 @@
     border-radius: 4px;
 }
 
+.btn-certificate {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+}
+
+.btn-upload-cert {
+    background: #28a745;
+    color: white;
+}
+
+.btn-upload-cert:hover:not(.disabled) {
+    background: #218838;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-upload-cert.disabled {
+    background: #6c757d;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-view-cert {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-view-cert:hover {
+    background: #138496;
+    color: white;
+    text-decoration: none;
+}
+
+.certificate-status {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.cert-uploaded {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cert-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
 @media (max-width: 992px) {
     .grades-table-wrapper {
         overflow-x: auto;
     }
     
     .grades-table {
-        min-width: 800px;
+        min-width: 900px;
     }
 }
 </style>
@@ -218,6 +275,7 @@
                     <th rowspan="2">میانگین تکالیف</th>
                     {% endif %}
                     <th rowspan="2">میانگین کل</th>
+                    <th rowspan="2">مدرک</th>
                 </tr>
                 <tr>
                     {% for exam in exams %}
@@ -307,6 +365,44 @@
                             {{ data.overall_average|floatformat:1|persian_numbers }}%
                         {% else %}
                             <span class="grade-na">—</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Certificate Column -->
+                    <td style="text-align: center;">
+                        {% if data.enrollment.can_upload_certificate %}
+                            {% if data.enrollment.certificate %}
+                                <a href="{% url 'teacher:upload_certificate' data.enrollment.id %}" 
+                                   class="btn-certificate btn-upload-cert" 
+                                   title="مشاهده/جایگزینی مدرک">
+                                    <i class="fas fa-check-circle"></i>
+                                    آپلود شده
+                                </a>
+                                <br>
+                                <span class="certificate-status cert-uploaded">
+                                    <i class="fas fa-calendar"></i>
+                                    {{ data.enrollment.certificate_uploaded_at|date:"Y/m/d" }}
+                                </span>
+                            {% else %}
+                                <a href="{% url 'teacher:upload_certificate' data.enrollment.id %}" 
+                                   class="btn-certificate btn-upload-cert" 
+                                   title="آپلود مدرک">
+                                    <i class="fas fa-upload"></i>
+                                    آپلود مدرک
+                                </a>
+                            {% endif %}
+                        {% elif data.enrollment.has_final_grade %}
+                            <span class="btn-certificate btn-upload-cert disabled" 
+                                  title="نمره نهایی وارد شده است">
+                                <i class="fas fa-upload"></i>
+                                آپلود مدرک
+                            </span>
+                        {% else %}
+                            <span class="certificate-status cert-pending" 
+                                  title="ابتدا نمره نهایی را وارد کنید">
+                                <i class="fas fa-clock"></i>
+                                در انتظار نمره نهایی
+                            </span>
                         {% endif %}
                     </td>
                 </tr>

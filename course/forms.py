@@ -2,7 +2,7 @@ from django import forms
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .models import Course, Assignment, AssignmentSubmission, Exam, ExamParticipation
-from datetime import datetime
+from datetime import datetime, date
 import re
 
 # Try to import jdatetime, with fallback
@@ -10,72 +10,203 @@ try:
     import jdatetime
     JDATETIME_AVAILABLE = True
 except ImportError:
+    jdatetime = None
     JDATETIME_AVAILABLE = False
-    print("⚠️  Warning: jdatetime not available. Persian date conversion disabled.")
+    print("⚠️  Warning: jdatetime not available. Using manual Persian date conversion.")
+
+
+def clean_persian_date_string(date_str):
+    """پاک‌سازی و استخراج تاریخ از رشته فارسی"""
+    if not date_str:
+        return None
+    
+    # تبدیل نام ماه‌های فارسی به عدد
+    persian_months = {
+        'فروردین': '01', 'اردیبهشت': '02', 'خرداد': '03',
+        'تیر': '04', 'مرداد': '05', 'شهریور': '06',
+        'مهر': '07', 'آبان': '08', 'آذر': '09',
+        'دی': '10', 'بهمن': '11', 'اسفند': '12'
+    }
+    
+    for month_name, month_num in persian_months.items():
+        if month_name in date_str:
+            date_str = date_str.replace(month_name, f'/{month_num}/')
+            break
+    
+    # تبدیل اعداد فارسی به انگلیسی
+    persian_nums = '۰۱۲۳۴۵۶۷۸۹'
+    english_nums = '0123456789'
+    trans_table = str.maketrans(persian_nums, english_nums)
+    date_str = date_str.translate(trans_table)
+    
+    # سعی در یافتن فرمت YYYY/MM/DD
+    date_match = re.search(r'(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})', date_str)
+    if date_match:
+        year = date_match.group(1)
+        month = date_match.group(2).zfill(2)
+        day = date_match.group(3).zfill(2)
+        return f"{year}/{month}/{day}"
+    
+    # اگر فرمت اسلش ندارد، سعی در استخراج سه عدد
+    # فرمت: "۲۶ مهر ۱۴۰۴" یا "جمعه ۲۶ مهر ۱۴۰۴"
+    numbers = re.findall(r'\d+', date_str)
+    
+    # حذف اعداد ساعت (بیشتر از 2 رقم نیستند و بعد از ":" می‌آیند)
+    # اگر عدد بعد از : باشد، حذفش کن
+    filtered_numbers = []
+    for i, num in enumerate(numbers):
+        # چک کن آیا این عدد قبل یا بعد از : است
+        num_pos = date_str.find(num)
+        if num_pos > 0 and date_str[num_pos-1] == ':':
+            continue  # این عدد بخشی از ساعت است
+        if num_pos + len(num) < len(date_str) and date_str[num_pos + len(num)] == ':':
+            continue  # این عدد قبل از : است (ساعت)
+        filtered_numbers.append(num)
+    
+    if len(filtered_numbers) >= 3:
+        # فرض: اولی روز، دومی ماه (یا نام ماه بود که نادیده گرفتیم)، سومی سال
+        # اگر عدد اول > 31 باشد، احتمالاً سال است
+        if int(filtered_numbers[0]) > 31:
+            # فرمت: سال ماه روز (نامتعارف)
+            year = filtered_numbers[0]
+            month = filtered_numbers[1].zfill(2)
+            day = filtered_numbers[2].zfill(2)
+        else:
+            # فرمت متداول: روز ماه سال
+            day = filtered_numbers[0].zfill(2)
+            # ماه می‌تواند عدد یا نام باشد
+            if int(filtered_numbers[1]) <= 12:
+                month = filtered_numbers[1].zfill(2)
+            else:
+                # احتمالاً سال اشتباه گرفته شده
+                month = filtered_numbers[1].zfill(2)
+            year = filtered_numbers[2]
+        
+        return f"{year}/{month}/{day}"
+    
+    # اگر هیچ کدام کار نکرد، فقط اعداد و / را نگه دار
+    date_str = re.sub(r'[^\d/]', '', date_str)
+    date_str = re.sub(r'/+', '/', date_str).strip('/')
+    return date_str.strip() if date_str else None
+
+
+def manual_persian_to_gregorian(persian_year, persian_month, persian_day):
+    """تبدیل دستی تاریخ شمسی به میلادی (تقریبی)"""
+    from datetime import date, timedelta
+    
+    # تاریخ مرجع: 1 فروردین 1404 = 21 مارس 2025
+    base_persian = (1404, 1, 1)
+    base_gregorian = date(2025, 3, 21)
+    
+    # محاسبه تعداد روزهای گذشته از 1 فروردین 1404
+    days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29]  # سال عادی
+    
+    days_diff = 0
+    
+    # اگر سال متفاوت است
+    if persian_year != base_persian[0]:
+        year_diff = persian_year - base_persian[0]
+        days_diff += year_diff * 365  # تقریبی
+    
+    # اضافه کردن روزهای ماه‌های گذشته
+    for m in range(1, persian_month):
+        days_diff += days_in_month[m - 1]
+    
+    # اضافه کردن روزهای ماه جاری
+    days_diff += persian_day - 1
+    
+    # محاسبه تاریخ میلادی
+    gregorian_date = base_gregorian + timedelta(days=days_diff)
+    return gregorian_date
 
 
 def persian_to_gregorian_date(persian_date_str):
     """تبدیل تاریخ شمسی به میلادی"""
-    if not persian_date_str or not JDATETIME_AVAILABLE:
+    if not persian_date_str:
         return None
     
     try:
-        # فرمت: 1403/07/15 یا ۱۴۰۳/۰۷/۱۵
-        # ابتدا اعداد فارسی را به انگلیسی تبدیل می‌کنیم
-        persian_nums = '۰۱۲۳۴۵۶۷۸۹'
-        english_nums = '0123456789'
-        trans_table = str.maketrans(persian_nums, english_nums)
-        date_str = persian_date_str.translate(trans_table)
+        # پاک‌سازی رشته تاریخ
+        date_str = clean_persian_date_string(persian_date_str)
         
-        # حذف کاراکترهای اضافی
-        date_str = re.sub(r'[^\d/]', '', date_str)
+        if not date_str:
+            return None
         
         # تبدیل به تاریخ میلادی
         parts = date_str.split('/')
         if len(parts) == 3:
             year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
-            j_date = jdatetime.date(year, month, day)
-            return j_date.togregorian()
-    except:
-        pass
+            
+            if JDATETIME_AVAILABLE and jdatetime:
+                # استفاده از jdatetime (دقیق)
+                j_date = jdatetime.date(year, month, day)
+                return j_date.togregorian()
+            else:
+                # استفاده از تبدیل دستی (تقریبی)
+                return manual_persian_to_gregorian(year, month, day)
+    except Exception as e:
+        pass  # در صورت خطا، None برمی‌گرداند
     
     return None
 
 
 def persian_to_gregorian_datetime(persian_datetime_str):
     """تبدیل تاریخ و ساعت شمسی به میلادی"""
-    if not persian_datetime_str or not JDATETIME_AVAILABLE:
+    if not persian_datetime_str:
         return None
     
     try:
-        # فرمت: 1403/07/15 14:30 یا ۱۴۰۳/۰۷/۱۵ ۱۴:۳۰
+        # پاک‌سازی ابتدایی
+        datetime_str = str(persian_datetime_str).strip()
+        
+        # حذف نام روز‌ها
+        persian_days = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
+        for day in persian_days:
+            datetime_str = datetime_str.replace(day, '')
+        
+        # حذف ب.ظ و ق.ظ (ولی ساعت را نگه دار)
+        has_pm = 'ب.ظ' in datetime_str or 'ب ظ' in datetime_str
+        datetime_str = datetime_str.replace('ب.ظ', '').replace('ق.ظ', '').replace('ب ظ', '').replace('ق ظ', '')
+        
+        # تبدیل اعداد فارسی به انگلیسی
         persian_nums = '۰۱۲۳۴۵۶۷۸۹'
         english_nums = '0123456789'
         trans_table = str.maketrans(persian_nums, english_nums)
-        datetime_str = persian_datetime_str.translate(trans_table).strip()
+        datetime_str = datetime_str.translate(trans_table).strip()
         
-        # جدا کردن تاریخ و ساعت
-        parts = datetime_str.split(' ')
+        # استخراج تاریخ و ساعت با regex
+        # فرمت: 1404/7/26  21:34 یا 1404/07/26 21:34
+        date_match = re.search(r'(\d{4})/(\d{1,2})/(\d{1,2})', datetime_str)
+        time_match = re.search(r'(\d{1,2}):(\d{2})', datetime_str)
         
-        if len(parts) >= 1:
-            # پردازش تاریخ
-            date_parts = parts[0].split('/')
-            if len(date_parts) == 3:
-                year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+        if date_match:
+            year = int(date_match.group(1))
+            month = int(date_match.group(2))
+            day = int(date_match.group(3))
+            
+            # پردازش ساعت
+            hour, minute = 0, 0
+            if time_match:
+                hour = int(time_match.group(1))
+                minute = int(time_match.group(2))
                 
-                # پردازش ساعت (اگر وجود داشته باشد)
-                hour, minute = 0, 0
-                if len(parts) >= 2:
-                    time_parts = parts[1].split(':')
-                    if len(time_parts) >= 2:
-                        hour = int(time_parts[0])
-                        minute = int(time_parts[1])
-                
-                # تبدیل به datetime میلادی
+                # تبدیل به 24 ساعته اگر ب.ظ بود
+                if has_pm and hour < 12:
+                    hour += 12
+            
+            # تبدیل به datetime میلادی
+            from datetime import datetime, timedelta
+            
+            if JDATETIME_AVAILABLE and jdatetime:
                 j_datetime = jdatetime.datetime(year, month, day, hour, minute)
                 return timezone.make_aware(j_datetime.togregorian())
-    except:
-        pass
+            else:
+                # استفاده از تبدیل دستی
+                g_date = manual_persian_to_gregorian(year, month, day)
+                g_datetime = datetime.combine(g_date, datetime.min.time()) + timedelta(hours=hour, minutes=minute)
+                return timezone.make_aware(g_datetime)
+    except Exception as e:
+        pass  # در صورت خطا، None برمی‌گرداند
     
     return None
 
@@ -84,7 +215,7 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         exclude = [
-            'teacher', 'students', 'enrolled_count', 'slug', 'is_active', 'is_featured', 'created_at', 'updated_at', 'status'
+            'teacher', 'students', 'enrolled_count', 'slug', 'created_at', 'updated_at', 'status'
         ]
         widgets = {
             'start_date': forms.TextInput(attrs={
@@ -110,20 +241,72 @@ class CourseForm(forms.ModelForm):
             if self.instance.start_date:
                 try:
                     j_date = jdatetime.date.fromgregorian(date=self.instance.start_date)
-                    self.initial['start_date'] = j_date.strftime('%Y/%m/%d')
+                    persian_date = j_date.strftime('%Y/%m/%d')
+                    self.fields['start_date'].initial = persian_date
+                    # اگر داده‌ای در POST نیست، از initial استفاده کن
+                    if not args and not kwargs.get('data'):
+                        self.initial['start_date'] = persian_date
                 except:
                     pass
             
             if self.instance.end_date:
                 try:
                     j_date = jdatetime.date.fromgregorian(date=self.instance.end_date)
-                    self.initial['end_date'] = j_date.strftime('%Y/%m/%d')
+                    persian_date = j_date.strftime('%Y/%m/%d')
+                    self.fields['end_date'].initial = persian_date
+                    # اگر داده‌ای در POST نیست، از initial استفاده کن
+                    if not args and not kwargs.get('data'):
+                        self.initial['end_date'] = persian_date
                 except:
                     pass
     
     def clean_start_date(self):
         """تبدیل تاریخ شمسی به میلادی"""
+        from datetime import date as date_type
+        
         start_date_str = self.cleaned_data.get('start_date')
+        
+        # اگر تاریخ date object است، همان را برگردان (تغییری نکرده)
+        if isinstance(start_date_str, date_type):
+            return start_date_str
+        
+        # اگر در حال ویرایش است و تاریخ تغییر نکرده، از مقدار فعلی استفاده کن
+        if self.instance and self.instance.pk and self.instance.start_date:
+            if isinstance(start_date_str, str):
+                # بررسی کن آیا تاریخ تغییر کرده یا نه
+                try:
+                    if JDATETIME_AVAILABLE and jdatetime:
+                        j_date = jdatetime.date.fromgregorian(date=self.instance.start_date)
+                        current_persian = j_date.strftime('%Y/%m/%d')
+                    else:
+                        # تبدیل معکوس دستی
+                        g_date = self.instance.start_date
+                        # تاریخ مرجع
+                        base_gregorian = date_type(2025, 3, 21)
+                        base_persian = (1404, 1, 1)
+                        
+                        days_diff = (g_date - base_gregorian).days
+                        # محاسبه ساده
+                        persian_year = 1404 + (days_diff // 365)
+                        remaining_days = days_diff % 365
+                        
+                        days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29]
+                        persian_month = 1
+                        for month_days in days_in_month:
+                            if remaining_days < month_days:
+                                break
+                            remaining_days -= month_days
+                            persian_month += 1
+                        
+                        persian_day = remaining_days + 1
+                        current_persian = f"{persian_year}/{persian_month:02d}/{persian_day:02d}"
+                    
+                    # اگر تاریخ تغییر نکرده، از مقدار فعلی استفاده کن
+                    cleaned_input = clean_persian_date_string(start_date_str)
+                    if cleaned_input == current_persian or start_date_str == current_persian:
+                        return self.instance.start_date
+                except Exception as e:
+                    pass  # در صورت خطا، ادامه به تبدیل
         
         # اگر string است، تبدیل کن
         if isinstance(start_date_str, str):
@@ -131,16 +314,57 @@ class CourseForm(forms.ModelForm):
             if gregorian_date:
                 return gregorian_date
             else:
-                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید.')
+                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید (مثال: ۱۴۰۴/۰۷/۲۶)')
         
         return start_date_str
     
     def clean_end_date(self):
         """تبدیل تاریخ شمسی به میلادی"""
+        from datetime import date as date_type
+        
         end_date_str = self.cleaned_data.get('end_date')
         
         if not end_date_str:
             return None
+        
+        # اگر تاریخ date object است، همان را برگردان (تغییری نکرده)
+        if isinstance(end_date_str, date_type):
+            return end_date_str
+        
+        # اگر در حال ویرایش است و تاریخ تغییر نکرده، از مقدار فعلی استفاده کن
+        if self.instance and self.instance.pk and self.instance.end_date:
+            if isinstance(end_date_str, str):
+                # بررسی کن آیا تاریخ تغییر کرده یا نه
+                try:
+                    if JDATETIME_AVAILABLE and jdatetime:
+                        j_date = jdatetime.date.fromgregorian(date=self.instance.end_date)
+                        current_persian = j_date.strftime('%Y/%m/%d')
+                    else:
+                        # تبدیل معکوس دستی
+                        g_date = self.instance.end_date
+                        base_gregorian = date_type(2025, 3, 21)
+                        
+                        days_diff = (g_date - base_gregorian).days
+                        persian_year = 1404 + (days_diff // 365)
+                        remaining_days = days_diff % 365
+                        
+                        days_in_month = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29]
+                        persian_month = 1
+                        for month_days in days_in_month:
+                            if remaining_days < month_days:
+                                break
+                            remaining_days -= month_days
+                            persian_month += 1
+                        
+                        persian_day = remaining_days + 1
+                        current_persian = f"{persian_year}/{persian_month:02d}/{persian_day:02d}"
+                    
+                    # اگر تاریخ تغییر نکرده، از مقدار فعلی استفاده کن
+                    cleaned_input = clean_persian_date_string(end_date_str)
+                    if cleaned_input == current_persian or end_date_str == current_persian:
+                        return self.instance.end_date
+                except Exception as e:
+                    pass  # در صورت خطا، ادامه به تبدیل
         
         # اگر string است، تبدیل کن
         if isinstance(end_date_str, str):
@@ -148,7 +372,7 @@ class CourseForm(forms.ModelForm):
             if gregorian_date:
                 return gregorian_date
             else:
-                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید.')
+                raise ValidationError('فرمت تاریخ صحیح نیست. از فرمت YYYY/MM/DD استفاده کنید (مثال: ۱۴۰۴/۰۷/۲۶)')
         
         return end_date_str
 
@@ -449,24 +673,62 @@ class ExamForm(forms.ModelForm):
         fields = [
             'title', 'description', 'exam_type', 'question_file', 'instructions',
             'scheduled_start', 'scheduled_end', 'duration_minutes',
-            'is_visible', 'visibility_date',
-            'total_points', 'passing_score', 'auto_close', 'allow_late_submission', 'late_penalty_percent',
-            'randomize_questions', 'show_answers_after', 'max_attempts'
+            'total_points', 'passing_score', 'auto_close', 'allow_late_submission'
         ]
         
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان امتحان'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیحات امتحان'}),
             'exam_type': forms.Select(attrs={'class': 'form-control'}),
-            'instructions': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'scheduled_start': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
-            'scheduled_end': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
-            'visibility_date': forms.TextInput(attrs={'class': 'form-control persian-datetime', 'placeholder': 'روز/ماه/سال ساعت:دقیقه'}),
-            'duration_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'total_points': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'passing_score': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
-            'late_penalty_percent': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '100'}),
-            'max_attempts': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
+            'question_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf',
+                'required': True
+            }),
+            'instructions': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'دستورالعمل‌های امتحان'}),
+            'scheduled_start': forms.TextInput(attrs={
+                'class': 'form-control persian-datetime', 
+                'placeholder': 'روز/ماه/سال ساعت:دقیقه',
+                'required': True
+            }),
+            'scheduled_end': forms.TextInput(attrs={
+                'class': 'form-control persian-datetime', 
+                'placeholder': 'روز/ماه/سال ساعت:دقیقه',
+                'required': True
+            }),
+            'duration_minutes': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'min': '1',
+                'placeholder': 'مثال: 90',
+                'required': True
+            }),
+            'total_points': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'min': '1',
+                'placeholder': 'مثال: 100',
+                'required': True
+            }),
+            'passing_score': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'min': '0',
+                'placeholder': 'مثال: 50',
+                'required': True
+            }),
+        }
+        
+        labels = {
+            'title': 'عنوان امتحان',
+            'description': 'توضیحات',
+            'exam_type': 'نوع امتحان',
+            'question_file': 'فایل سوالات (PDF) *',
+            'instructions': 'دستورالعمل امتحان',
+            'scheduled_start': 'زمان شروع امتحان',
+            'scheduled_end': 'زمان پایان امتحان',
+            'duration_minutes': 'مدت امتحان (دقیقه)',
+            'total_points': 'نمره کل',
+            'passing_score': 'نمره قبولی',
+            'auto_close': 'بسته شدن خودکار در پایان زمان',
+            'allow_late_submission': 'اجازه ارسال بعد از پایان زمان',
         }
     
     def __init__(self, *args, **kwargs):
@@ -474,9 +736,16 @@ class ExamForm(forms.ModelForm):
         self.course = kwargs.pop('course', None)
         super().__init__(*args, **kwargs)
         
+        # فایل سوالات اجباری است فقط برای ایجاد
+        # در ویرایش اگر فایل قبلی وجود دارد، اجباری نیست
+        if not (self.instance and self.instance.pk and self.instance.question_file):
+            self.fields['question_file'].required = True
+        else:
+            self.fields['question_file'].required = False
+        
         # تبدیل تاریخ‌ها به شمسی برای ویرایش
         if JDATETIME_AVAILABLE and self.instance and self.instance.pk:
-            for field_name in ['scheduled_start', 'scheduled_end', 'visibility_date']:
+            for field_name in ['scheduled_start', 'scheduled_end']:
                 field_value = getattr(self.instance, field_name, None)
                 if field_value:
                     try:
@@ -505,26 +774,50 @@ class ExamForm(forms.ModelForm):
             raise ValidationError('فرمت تاریخ صحیح نیست')
         return scheduled_end
     
-    def clean_visibility_date(self):
-        """تبدیل تاریخ شمسی به میلادی"""
-        visibility_date = self.cleaned_data.get('visibility_date')
-        if not visibility_date:
-            return None
-        if isinstance(visibility_date, str):
-            gregorian_datetime = persian_to_gregorian_datetime(visibility_date)
-            if gregorian_datetime:
-                return gregorian_datetime
-            raise ValidationError('فرمت تاریخ صحیح نیست')
-        return visibility_date
+    def clean_question_file(self):
+        """اعتبارسنجی فایل سوالات"""
+        question_file = self.cleaned_data.get('question_file')
+        
+        # اگر در حال ویرایش است و فایل جدیدی آپلود نشده، فایل قبلی را نگه دار
+        if self.instance and self.instance.pk and not question_file:
+            return self.instance.question_file
+        
+        if not question_file:
+            raise ValidationError('لطفاً فایل سوالات امتحان را آپلود کنید.')
+        
+        # بررسی نوع فایل
+        if not question_file.name.lower().endswith('.pdf'):
+            raise ValidationError('فقط فایل‌های PDF مجاز هستند.')
+        
+        # بررسی حجم فایل (حداکثر 20MB)
+        max_size = 20 * 1024 * 1024  # 20MB
+        if question_file.size > max_size:
+            raise ValidationError('حجم فایل نباید بیشتر از 20 مگابایت باشد.')
+        
+        return question_file
     
     def clean(self):
         cleaned_data = super().clean()
         scheduled_start = cleaned_data.get('scheduled_start')
         scheduled_end = cleaned_data.get('scheduled_end')
+        auto_close = cleaned_data.get('auto_close')
+        allow_late_submission = cleaned_data.get('allow_late_submission')
+        passing_score = cleaned_data.get('passing_score')
+        total_points = cleaned_data.get('total_points')
         
+        # بررسی زمان شروع و پایان
         if scheduled_start and scheduled_end:
             if scheduled_end <= scheduled_start:
                 raise ValidationError('زمان پایان باید بعد از زمان شروع باشد')
+        
+        # بررسی نمره قبولی
+        if passing_score is not None and total_points is not None:
+            if passing_score > total_points:
+                raise ValidationError('نمره قبولی نمی‌تواند بیشتر از نمره کل باشد')
+        
+        # اگر هر دو فعال باشند، خطا بده
+        if auto_close and allow_late_submission:
+            raise ValidationError('نمی‌توان هم‌زمان "بسته شدن خودکار" و "اجازه ارسال دیرهنگام" را فعال کرد. لطفاً یکی را انتخاب کنید.')
         
         return cleaned_data
     
@@ -534,6 +827,17 @@ class ExamForm(forms.ModelForm):
             exam.course = self.course
         if self.teacher:
             exam.teacher = self.teacher
+        
+        # تنظیم مقادیر پیش‌فرض برای فیلدهای حذف شده
+        exam.max_attempts = 1  # فقط یک بار می‌تواند شرکت کند
+        exam.randomize_questions = False  # بدون ترتیب تصادفی
+        exam.show_answers_after = False  # بدون نمایش پاسخ
+        exam.late_penalty_percent = 0  # بدون جریمه
+        
+        # امتحان در زمان شروع قابل رویت است
+        exam.is_visible = True
+        exam.visibility_date = exam.scheduled_start
+        
         if commit:
             exam.save()
         return exam

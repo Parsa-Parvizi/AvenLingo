@@ -473,16 +473,6 @@ textarea.form-control {
                     {% endif %}
 
                     <div class="info-box">
-                            <div class="info-item">
-                                <i class="fas fa-clock"></i>
-                                <span>زمان پاسخگویی: حداکثر {{ "24"|persian_numbers }} ساعت</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>پشتیبانی {{ "6"|persian_numbers }} روز هفته</span>
-                            </div>
-                        </div>
-                        
                         <form method="post" novalidate>
                             {% csrf_token %}
                             
@@ -566,6 +556,7 @@ textarea.form-control {
                                 ارسال پیام به پشتیبانی
                             </button>
                         </form>
+                    </div>
                 </div>
             </div>
         </div>

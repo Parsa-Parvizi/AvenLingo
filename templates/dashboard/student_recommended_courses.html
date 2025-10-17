@@ -1,0 +1,578 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load persian_filters %}
+
+{% block title %} | دوره‌های پیشنهادی{% endblock %}
+
+{% block extra_css %}
+<style>
+.recommendations-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 15px;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 3rem;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.info-banner {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.info-banner-icon {
+    width: 50px;
+    height: 50px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.info-banner-content h4 {
+    color: #1e40af;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.info-banner-content p {
+    color: #1e3a8a;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.course-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 2px solid #f1f5f9;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.course-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.recommendation-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+
+.match-percentage {
+    font-size: 0.7rem;
+    display: block;
+    margin-top: -2px;
+}
+
+.course-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.course-image-placeholder {
+    width: 100%;
+    height: 220px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 4rem;
+}
+
+.course-content {
+    padding: 1.5rem;
+}
+
+.course-title {
+    color: #1f2937;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.course-description {
+    color: #6c757d;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    min-height: 60px;
+}
+
+.course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.meta-tag {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.meta-tag i {
+    color: #667eea;
+}
+
+.recommendation-reasons {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.recommendation-reasons h6 {
+    color: #92400e;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.reason-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #78350f;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+.reason-item:last-child {
+    margin-bottom: 0;
+}
+
+.reason-item i {
+    color: #f59e0b;
+}
+
+.course-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 2px solid #f1f5f9;
+}
+
+.course-price {
+    color: #10b981;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.course-price.free {
+    color: #059669;
+}
+
+.btn-enroll {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-enroll:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    color: #475569;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.8;
+}
+
+.suggestion-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.suggestion-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.suggestion-card:hover {
+    border-color: #667eea;
+    transform: translateY(-3px);
+}
+
+.suggestion-card i {
+    font-size: 2.5rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.suggestion-card h5 {
+    color: #1f2937;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.suggestion-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    
+    .course-card {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/student_navbar.html' %}
+
+<div class="recommendations-container" dir="rtl">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">
+                <i class="fas fa-lightbulb"></i> دوره‌های پیشنهادی برای شما
+            </h1>
+            <p class="page-subtitle">
+                بر اساس تحلیل هوشمند پروفایل، دوره‌های قبلی و اهداف یادگیری شما
+            </p>
+        </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <div class="info-banner-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="info-banner-content">
+            <h4>
+                <i class="fas fa-sparkles"></i> سیستم پیشنهاد هوشمند
+            </h4>
+            <p>
+                این دوره‌ها با تحلیل سطح زبان، سن، دوره‌های قبلی، اهداف یادگیری، 
+                و علاقه‌مندی‌های شما انتخاب شده‌اند تا بهترین مسیر یادگیری را برای شما فراهم کنند.
+                با تکمیل کردن پروفایل خود، سیستم هوشمند ما می‌تواند دوره‌های مناسب‌تر و دقیق‌تری را بر اساس نیازها و علاقه‌مندی‌های شما پیشنهاد دهد.
+            </p>
+            {% if not student.english_level or not student.date_of_birth or not student.goals %}
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: start; gap: 1rem;">
+                    <i class="fas fa-exclamation-circle" style="color: #92400e; font-size: 2rem; margin-top: 0.25rem;"></i>
+                    <div style="flex: 1; text-align: right;">
+                        <strong style="color: #92400e; display: block; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                            💡 نکته مهم: تکمیل پروفایل برای پیشنهادات بهتر
+                        </strong>
+                        <p style="color: #78350f; margin-bottom: 1rem; line-height: 1.6;">
+                            با تکمیل پروفایل خود (سطح زبان، تاریخ تولد و اهداف یادگیری)، 
+                            سیستم هوشمند ما می‌تواند دوره‌های مناسب‌تر و دقیق‌تری را 
+                            بر اساس نیازها و علاقه‌مندی‌های شما پیشنهاد دهد.
+                        </p>
+                        <a href="{% url 'account:student_profile' %}" 
+                           class="btn btn-warning" 
+                           style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-user-edit"></i> 
+                            تکمیل پروفایل
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if recommended_courses %}
+        <!-- Recommendations Grid -->
+        <div class="recommendations-grid">
+            {% for item in recommended_courses %}
+            {% with course=item.course %}
+            <div class="course-card">
+                <!-- Recommendation Badge -->
+                <div class="recommendation-badge">
+                    <i class="fas fa-star"></i>
+                    پیشنهاد ویژه
+                </div>
+                
+                <!-- Course Image -->
+                {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="course-image">
+                {% else %}
+                <div class="course-image-placeholder">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                {% endif %}
+                
+                <!-- Course Content -->
+                <div class="course-content">
+                    <h3 class="course-title">{{ course.title }}</h3>
+                    
+                    <p class="course-description">
+                        {{ course.short_description|default:course.description|truncatewords:20 }}
+                    </p>
+                    
+                    <!-- Meta Tags -->
+                    <div class="course-meta">
+                        {% if course.level %}
+                        <span class="meta-tag">
+                            <i class="fas fa-signal"></i>
+                            {{ course.get_level_display }}
+                        </span>
+                        {% endif %}
+                        
+                        {% if course.total_hours %}
+                        <span class="meta-tag">
+                            <i class="fas fa-book"></i>
+                            {{ course.total_hours|persian_numbers }} جلسه
+                        </span>
+                        {% endif %}
+                        
+                        {% if course.course_type == 'online' %}
+                        <span class="meta-tag">
+                            <i class="fas fa-video"></i>
+                            آنلاین
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Teacher Info -->
+                    {% if course.teacher %}
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
+                        <i class="fas fa-user-tie" style="color: #667eea; font-size: 1.2rem;"></i>
+                        <div>
+                            <strong style="color: #2c3e50; font-size: 0.9rem;">مدرس:</strong>
+                            <span style="color: #6c757d; font-size: 0.9rem;">{{ course.teacher.user.get_full_name }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Recommendation Reasons -->
+                    {% if item.reasons %}
+                    <div class="recommendation-reasons">
+                        <h6>
+                            <i class="fas fa-lightbulb"></i> چرا این دوره را پیشنهاد می‌دهیم؟
+                        </h6>
+                        {% for reason in item.reasons %}
+                        <div class="reason-item">
+                            {% if '📊' in reason %}
+                                <i class="fas fa-star" style="color: #f59e0b;"></i>
+                            {% else %}
+                                <i class="fas fa-check-circle"></i>
+                            {% endif %}
+                            <span>{{ reason }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Footer -->
+                    <div class="course-footer">
+                        <div class="course-price {% if course.is_free %}free{% endif %}">
+                            {% if course.is_free %}
+                                <i class="fas fa-gift"></i> رایگان
+                            {% else %}
+                                {{ course.price|floatformat:0|persian_numbers }} تومان
+                            {% endif %}
+                        </div>
+                        
+                        <a href="{% url 'course:detail' course.slug %}" class="btn-enroll">
+                            <i class="fas fa-eye"></i>
+                            مشاهده دوره
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        
+        <!-- Additional Info -->
+        <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <h4 style="color: #1f2937; margin-bottom: 1rem; text-align: center;">
+                <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                دوره مناسبی پیدا نکردید؟
+            </h4>
+            
+            <!-- Profile Completion Reminder -->
+            
+                
+            <p style="color: #64748b; margin-bottom: 1.5rem; text-align: center;">
+                می‌توانید تمام دوره‌های موجود را مشاهده کنید، درخواست دوره، کلاس خصوصی یا مشاوره بدهید، یا با پشتیبانی تماس بگیرید
+            </p>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{% url 'course:all-courses' %}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> مشاهده همه دوره‌ها
+                </a>
+                <a href="{% url 'core:request-course' %}" class="btn btn-success">
+                    <i class="fas fa-plus-circle"></i> درخواست دوره
+                </a>
+                <a href="{% url 'core:request-private-class' %}" class="btn btn-info">
+                    <i class="fas fa-user-graduate"></i> درخواست کلاس خصوصی
+                </a>
+                <a href="{% url 'core:determination' %}" class="btn btn-warning">
+                    <i class="fas fa-comments"></i> درخواست مشاوره و تعیین سطح
+                </a>
+                <a href="{% url 'contactus' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-headset"></i> تماس با پشتیبانی
+                </a>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3>در حال حاضر دوره پیشنهادی وجود ندارد</h3>
+            <p>
+                برای دریافت پیشنهادات بهتر، لطفاً پروفایل خود را تکمیل کنید و 
+                سطح زبان و اهداف یادگیری خود را مشخص نمایید.
+                همچنین با ثبت‌نام در دوره‌های مختلف، سیستم می‌تواند بهتر شما را بشناسد.
+            </p>
+            
+            <!-- Suggestions -->
+            <div class="suggestion-cards">
+                <div class="suggestion-card">
+                    <i class="fas fa-user-edit"></i>
+                    <h5>تکمیل پروفایل</h5>
+                    <p>سطح زبان و اهداف خود را مشخص کنید</p>
+                    <a href="{% url 'account:student_profile' %}" class="btn btn-sm btn-primary mt-2">
+                        ویرایش پروفایل
+                    </a>
+                </div>
+                
+                <div class="suggestion-card">
+                    <i class="fas fa-book-open"></i>
+                    <h5>مشاهده دوره‌ها</h5>
+                    <p>تمام دوره‌های موجود را ببینید</p>
+                    <a href="{% url 'course:all-courses' %}" class="btn btn-sm btn-primary mt-2">
+                        همه دوره‌ها
+                    </a>
+                </div>
+                
+                <div class="suggestion-card">
+                    <i class="fas fa-compass"></i>
+                    <h5>دوره‌های ویژه</h5>
+                    <p>دوره‌های برگزیده را بررسی کنید</p>
+                    <a href="{% url 'course:featured' %}" class="btn btn-sm btn-primary mt-2">
+                        دوره‌های ویژه
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -2,250 +2,716 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Course Details{% endblock %}
+{% block title %} | {{ course.title }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-/* Assignment Styles */
-.assignment-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 20px;
-    transition: all 0.3s ease;
+:root {
+    --primary-color: #1F3A93;
+    --secondary-color: #667eea;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
 }
 
-.assignment-card:hover {
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
+.course-header {
+    background: linear-gradient(135deg, #1F3A93 0%, #2c5aa0 100%);
+    color: white;
+    margin-bottom: 2rem;
 }
 
-.assignment-header {
-    margin-bottom: 15px;
+.course-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-.assignment-title {
-    color: var(--color-primary);
-    font-weight: 600;
-    font-size: 1.1rem;
+.course-meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    opacity: 0.95;
 }
 
-.assignment-type-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 5px;
-}
-
-.assignment-type-homework {
-    background: #d4edda;
-    color: #155724;
-}
-
-.assignment-type-quiz {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-
-.assignment-type-project {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.assignment-type-exam {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.assignment-points {
-    color: #ffc107;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.assignment-description {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-}
-
-.assignment-info .info-item {
+.meta-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 8px;
+    gap: 0.5rem;
 }
 
-.assignment-info .info-item i {
-    color: var(--color-primary);
-    width: 16px;
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px 3rem;
 }
 
-.assignment-actions {
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+}
+
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.section-header {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
 }
 
-.assignment-actions .btn {
-    font-size: 0.8rem;
-    padding: 6px 12px;
+.section-title {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.submission-status {
-    margin-top: 10px;
+.section-badge {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
 }
 
-.submission-status .badge {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-}
-
-.empty-assignments {
-    background: #f8f9fa;
-    border-radius: 10px;
-    border: 2px dashed #dee2e6;
-}
-.course-header {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    color: white;
-    padding: 40px 0;
-    margin-bottom: 30px;
-}
-
-.course-info-card {
+/* Teacher Card - مشابه course detail */
+.teacher-card-clickable {
+    display: block;
+    text-decoration: none;
+    color: inherit;
     background: white;
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.teacher-card-clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.teacher-card-clickable h3 {
+    color: #1f2937;
+    font-size: 1.3rem;
+    font-weight: 700;
     margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+
+.teacher-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 20px auto;
+    border: 4px solid #f8fafc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-image-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    border: 4px solid #f8fafc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: #64748b;
+    font-size: 2.5rem;
 }
 
 .teacher-info {
+    text-align: center;
+}
+
+.teacher-info h4 {
+    color: #1f2937;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.teacher-expertise {
+    color: #3b82f6;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    background: #eff6ff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.teacher-bio {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Quick Info Card */
+.quick-info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.info-item {
     display: flex;
     align-items: center;
-    padding: 20px;
+    gap: 1rem;
+    padding: 1rem;
     background: #f8f9fa;
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 0.75rem;
 }
 
-.teacher-avatar {
-    width: 80px;
-    height: 80px;
+.info-icon {
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    object-fit: cover;
-    margin-left: 20px;
-    border: 4px solid white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.course-schedule {
-    background: var(--color-background);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.schedule-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    padding: 10px;
-    background: white;
-    border-radius: 8px;
-}
-
-.schedule-item:last-child {
-    margin-bottom: 0;
-}
-
-.schedule-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--color-primary);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 15px;
+    font-size: 1.1rem;
 }
 
-.course-content {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+.info-content strong {
+    display: block;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
 }
 
-.content-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e9ecef;
+.info-content span {
+    color: #6c757d;
+    font-size: 0.9rem;
 }
 
-.content-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+/* Assignment Card */
+.assignment-item {
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
 }
 
-.progress-card {
-    background: linear-gradient(135deg, var(--color-highlight), var(--color-primary));
-    color: white;
-    border-radius: 15px;
-    padding: 25px;
+.assignment-item:hover {
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+
+.assignment-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.assignment-title {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.type-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.type-homework { background: #d4edda; color: #155724; }
+.type-quiz { background: #d1ecf1; color: #0c5460; }
+.type-project { background: #f8d7da; color: #721c24; }
+.type-exam { background: #fff3cd; color: #856404; }
+.type-essay { background: #e2e3e5; color: #383d41; }
+
+.assignment-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meta-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.meta-info i {
+    color: var(--primary-color);
+}
+
+.assignment-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-submitted { background: #cfe2ff; color: #084298; }
+.status-graded { background: #d1e7dd; color: #0f5132; }
+.status-pending { background: #fff3cd; color: #664d03; }
+
+/* Exam Card */
+.exam-item {
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-left: 5px solid;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.exam-item.final { border-left-color: #dc3545; }
+.exam-item.midterm { border-left-color: #ffc107; }
+.exam-item.quiz { border-left-color: #17a2b8; }
+
+.exam-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.exam-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.exam-title {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.exam-type-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.exam-type-icon.final { background: #dc3545; color: white; }
+.exam-type-icon.midterm { background: #ffc107; color: white; }
+.exam-type-icon.quiz { background: #17a2b8; color: white; }
+
+.exam-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.exam-detail-item {
     text-align: center;
 }
 
-.progress-circle {
+.exam-detail-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.exam-detail-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.exam-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.exam-status.upcoming { background: #e7f3ff; color: #004085; }
+.exam-status.active { background: #d4edda; color: #155724; }
+.exam-status.ended { background: #f8d7da; color: #721c24; }
+.exam-status.graded { background: #d1ecf1; color: #0c5460; }
+
+/* Resource Card */
+.resource-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.resource-item:hover {
+    background: white;
+    border-color: var(--secondary-color);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.resource-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.resource-icon.pdf { background: #dc3545; color: white; }
+.resource-icon.video { background: #17a2b8; color: white; }
+.resource-icon.link { background: #28a745; color: white; }
+.resource-icon.document { background: #ffc107; color: white; }
+
+.resource-info {
+    flex: 1;
+}
+
+.resource-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.resource-desc {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Video Card */
+.video-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s;
+}
+
+.video-item:hover {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.video-thumbnail {
     width: 120px;
-    height: 120px;
-    margin: 0 auto 20px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+}
+
+.video-info {
+    flex: 1;
+}
+
+.video-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.video-duration {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+/* Buttons */
+.btn-take-exam {
+    background: linear-gradient(135deg, var(--success-color) 0%, #218838 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-take-exam:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    color: white;
+}
+
+.btn-take-exam:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-view-result {
+    background: var(--info-color);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-download {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-download:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.class-link-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
     position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
 }
 
-.progress-ring {
-    transform: rotate(-90deg);
+.class-link-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 3s linear infinite;
 }
 
-.progress-text {
+@keyframes shimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.class-link-card.disabled {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    opacity: 0.8;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.class-link-card h4 {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.class-link-card h4 i {
+    font-size: 1.6rem;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+}
+
+.btn-join-class {
+    background: white;
+    color: #28a745;
+    border: none;
+    padding: 1.2rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    width: 100%;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-join-class::before {
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(40, 167, 69, 0.1);
     transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-join-class.active:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-join-class.active:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(40, 167, 69, 0.4);
+    color: #1e7e34;
+}
+
+.btn-join-class.disabled {
+    background: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-join-class i {
     font-size: 1.5rem;
-    font-weight: 700;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
+.btn-join-class.active i {
+    animation: cameraShake 3s ease-in-out infinite;
 }
 
-@media (max-width: 768px) {
-    .course-header {
-        padding: 20px 0;
-        text-align: center;
+@keyframes cameraShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg) scale(1.1); }
+    75% { transform: rotate(5deg) scale(1.1); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes liveBadge {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.6);
+    }
+}
+
+@media (max-width: 992px) {
+    .content-grid {
+        grid-template-columns: 1fr;
     }
     
-    .teacher-info {
-        flex-direction: column;
-        text-align: center;
+    .course-title {
+        font-size: 1.8rem;
     }
     
-    .teacher-avatar {
-        margin: 0 0 15px 0;
+    .teacher-card-clickable {
+        padding: 20px;
     }
     
-    .action-buttons {
-        flex-direction: column;
+    .teacher-card-clickable h3 {
+        font-size: 1.1rem;
+    }
+    
+    .teacher-image,
+    .teacher-image-placeholder {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .teacher-info h4 {
+        font-size: 1.2rem;
+    }
+    
+    .teacher-expertise {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+    
+    .teacher-bio {
+        font-size: 0.85rem;
     }
 }
 </style>
@@ -257,353 +723,715 @@
 <!-- Course Header -->
 <div class="course-header">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="mb-3">{{ course.title }}</h1>
-                <p class="lead mb-0">{{ course.short_description|default:course.description|truncatewords:20 }}</p>
-            </div>
-            <div class="col-lg-4 text-lg-end">
-                <div class="course-status">
-                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                        <i class="fas fa-check-circle me-2"></i>دوره فعال
-                    </span>
-                </div>
-            </div>
-        </div>
+        <h1 class="course-title">{{ course.title }}</h1>
+        {% if course.short_description %}
+        <p style="font-size: 1.1rem; opacity: 0.95; margin: 0;">{{ course.short_description }}</p>
+        {% endif %}
     </div>
 </div>
 
-<div class="container">
-    <div class="row">
+<div class="main-container" dir="rtl">
+    <div class="content-grid">
         <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Course Information -->
-            <div class="course-info-card">
-                <h4 class="mb-4">
-                    <i class="fas fa-info-circle me-2"></i>
-                    اطلاعات دوره
-                </h4>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-calendar me-2"></i>تاریخ شروع:</strong>
-                            <span class="text-muted">
-                                {% if course.start_date %}
-                                    {{ course.start_date|jalali_short }}
-                                {% else %}
-                                    تعیین نشده
-                                {% endif %}
-                            </span>
-                        </div>
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-clock me-2"></i>زمان کلاس:</strong>
-                            <span class="text-muted">
-                                {% if course.class_time %}
-                                    {{ course.class_time|persian_numbers }}
-                                {% else %}
-                                    تعیین نشده
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item mb-3">
-                            <strong><i class="fas fa-users me-2"></i>ظرفیت:</strong>
-                            <span class="text-muted">{{ course.capacity }} نفر</span>
-                        </div>
-                    </div>
+        <div class="main-content">
+            
+            <!-- Course Description -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        درباره دوره
+                    </h3>
+                </div>
+                <div class="course-description" style="line-height: 1.8; color: #495057;">
+                    {{ course.description|linebreaks|default:"توضیحاتی برای این دوره ثبت نشده است." }}
                 </div>
             </div>
 
-            <!-- Course Content -->
-            <div class="course-content">
-                <h4 class="mb-4">
-                    <i class="fas fa-book me-2"></i>
-                    محتوای دوره
-                </h4>
+            <!-- Assignments Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-tasks"></i>
+                        تکالیف دوره
+                    </h3>
+                    <span class="section-badge">{{ assignments.count|persian_numbers }} تکلیف</span>
+                </div>
                 
-                <div class="content-section">
-                    <h5><i class="fas fa-clipboard-list me-2"></i>توضیحات دوره</h5>
-                    <div class="course-description">
-                        {{ course.description|linebreaks }}
-                    </div>
-                </div>
-
-                <div class="content-section">
-                    <h5><i class="fas fa-tasks me-2"></i>اهداف دوره</h5>
-                    <p class="text-muted">اهداف این دوره به زودی اضافه خواهد شد...</p>
-                </div>
-
-                <div class="content-section">
-                    <h5><i class="fas fa-play-circle me-2"></i>ویدیوهای آموزشی</h5>
-                    <p class="text-muted">ویدیوهای آموزشی به زودی در دسترس خواهد بود...</p>
-                </div>
-
-                <div class="content-section">
-                    <h5><i class="fas fa-file-alt me-2"></i>فایل‌های آموزشی</h5>
-                    <p class="text-muted">فایل‌های آموزشی به زودی در دسترس خواهد بود...</p>
-                </div>
-
-                <!-- Assignments Section -->
-                <div class="content-section">
-                    <h5><i class="fas fa-tasks me-2"></i>تکالیف و آزمون‌ها</h5>
-                    {% if assignments %}
-                        <div class="assignments-list">
-                            {% for assignment in assignments %}
-                            <div class="assignment-card mb-3">
-                                <div class="assignment-header">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="assignment-title mb-1">{{ assignment.title }}</h6>
-                                            <span class="assignment-type-badge assignment-type-{{ assignment.assignment_type }}">
-                                                {% if assignment.assignment_type == 'homework' %}
-                                                    <i class="fas fa-home me-1"></i>تکلیف خانگی
-                                                {% elif assignment.assignment_type == 'quiz' %}
-                                                    <i class="fas fa-question-circle me-1"></i>آزمون کوتاه
-                                                {% elif assignment.assignment_type == 'project' %}
-                                                    <i class="fas fa-project-diagram me-1"></i>پروژه
-                                                {% elif assignment.assignment_type == 'exam' %}
-                                                    <i class="fas fa-clipboard-check me-1"></i>امتحان
-                                                {% else %}
-                                                    <i class="fas fa-tasks me-1"></i>{{ assignment.get_assignment_type_display }}
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                        <span class="assignment-points">
-                                            <i class="fas fa-star me-1"></i>{{ assignment.total_points }} امتیاز
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="assignment-body">
-                                    {% if assignment.description %}
-                                        <p class="assignment-description">{{ assignment.description|truncatechars:150 }}</p>
-                                    {% endif %}
-                                    
-                                    <div class="assignment-info">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-calendar-alt"></i>
-                                                    <span>مهلت ارسال: {{ assignment.due_date|jalali_datetime }}</span>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-check-circle"></i>
-                                                    <span>نمره قبولی: {{ assignment.passing_score }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="assignment-actions mt-3">
-                                        <a href="{% url 'course:assignment_detail' assignment.id %}" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-eye me-1"></i>مشاهده جزئیات
-                                        </a>
-                                        
-                                        {% if assignment.instruction_file %}
-                                            <a href="{% url 'course:assignment_download' assignment.id %}" class="btn btn-outline-info btn-sm">
-                                                <i class="fas fa-download me-1"></i>دانلود فایل
-                                            </a>
-                                        {% endif %}
-                                        
-                                        {% if assignment.can_submit %}
-                                            <a href="{% url 'course:assignment_submit' assignment.id %}" class="btn btn-success btn-sm">
-                                                <i class="fas fa-upload me-1"></i>ارسال تکلیف
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    {% if assignment.submission_status %}
-                                        <div class="submission-status mt-2">
-                                            {% if assignment.submission_status == 'submitted' %}
-                                                <span class="badge bg-info">
-                                                    <i class="fas fa-clock me-1"></i>در انتظار تصحیح
-                                                </span>
-                                            {% elif assignment.submission_status == 'graded' %}
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check me-1"></i>تصحیح شده
-                                                    {% if assignment.submission_score %}
-                                                        ({{ assignment.submission_score }}/{{ assignment.total_points }})
-                                                    {% endif %}
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                {% if assignments %}
+                    {% for assignment in assignments %}
+                    <div class="assignment-item">
+                        <div class="assignment-header-flex">
+                            <div>
+                                <h5 class="assignment-title">{{ assignment.title }}</h5>
+                                <span class="type-badge type-{{ assignment.assignment_type }}">
+                                    {{ assignment.get_assignment_type_display }}
+                                </span>
                             </div>
-                            {% endfor %}
+                            <div style="text-align: left;">
+                                <div style="color: #ffc107; font-weight: 700; font-size: 1.1rem;">
+                                    <i class="fas fa-star"></i> {{ assignment.total_points|persian_numbers }}
+                                </div>
+                                <small style="color: #6c757d;">امتیاز</small>
+                            </div>
                         </div>
-                    {% else %}
-                        <div class="empty-assignments text-center py-4">
-                            <i class="fas fa-clipboard-list text-muted mb-3" style="font-size: 3rem;"></i>
-                            <h6 class="text-muted">هنوز تکلیفی تعریف نشده است</h6>
-                            <p class="text-muted">تکالیف این دوره به زودی اضافه خواهد شد</p>
+                        
+                        {% if assignment.description %}
+                        <p style="color: #6c757d; margin: 1rem 0; line-height: 1.6;">
+                            {{ assignment.description|truncatechars:200 }}
+                        </p>
+                        {% endif %}
+                        
+                        <div class="assignment-meta">
+                            <div class="meta-info">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>مهلت: {{ assignment.due_date|jalali_datetime }}</span>
+                            </div>
+                            <div class="meta-info">
+                                <i class="fas fa-check-circle"></i>
+                                <span>قبولی: {{ assignment.passing_score|persian_numbers }}</span>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
+                        
+                        <!-- Submission Status -->
+                        {% if assignment.submission_status %}
+                        <div style="margin-top: 1rem;">
+                            {% if assignment.submission_status == 'submitted' %}
+                                <span class="status-badge status-submitted">
+                                    <i class="fas fa-clock"></i> در انتظار تصحیح
+                                </span>
+                            {% elif assignment.submission_status == 'graded' %}
+                                <span class="status-badge status-graded">
+                                    <i class="fas fa-check-circle"></i> 
+                                    نمره: {{ assignment.submission_score|persian_numbers }}/{{ assignment.total_points|persian_numbers }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="assignment-actions" style="margin-top: 1rem;">
+                            <a href="{% url 'course:assignment_detail' assignment.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> مشاهده جزئیات
+                            </a>
+                            
+                            {% if assignment.instruction_file %}
+                            <a href="{% url 'course:assignment_download' assignment.id %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-download"></i> دانلود فایل
+                            </a>
+                            {% endif %}
+                            
+                            {% if assignment.can_submit %}
+                            <a href="{% url 'course:assignment_submit' assignment.id %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-upload"></i> ارسال تکلیف
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h5>تکلیفی تعریف نشده است</h5>
+                        <p>تکالیف این دوره به زودی توسط معلم اضافه خواهد شد</p>
+                    </div>
+                {% endif %}
             </div>
+
+            <!-- Exams Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        امتحانات
+                    </h3>
+                </div>
+                
+                <!-- Final Exam -->
+                <h5 style="color: #dc3545; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-graduation-cap"></i> امتحان پایان ترم
+                </h5>
+                {% if final_exam %}
+                    <div class="exam-item final">
+                        <div class="exam-header-flex">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="exam-type-icon final">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <h5 class="exam-title">{{ final_exam.title }}</h5>
+                            </div>
+                            {% if final_exam.is_ended %}
+                                <span class="exam-status ended">
+                                    <i class="fas fa-flag-checkered"></i> پایان یافته
+                                </span>
+                            {% elif final_exam.is_started %}
+                                <span class="exam-status active">
+                                    <i class="fas fa-play-circle"></i> در حال برگزاری
+                                </span>
+                            {% else %}
+                                <span class="exam-status upcoming">
+                                    <i class="fas fa-clock"></i> آینده
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if final_exam.description %}
+                        <p style="color: #6c757d; margin: 1rem 0;">{{ final_exam.description }}</p>
+                        {% endif %}
+                        
+                        <div class="exam-details">
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">زمان شروع</div>
+                                <div class="exam-detail-value">{{ final_exam.scheduled_start|jalali_short }}</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">مدت امتحان</div>
+                                <div class="exam-detail-value">{{ final_exam.duration_minutes|persian_numbers }} دقیقه</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">نمره کل</div>
+                                <div class="exam-detail-value">{{ final_exam.total_points|persian_numbers }}</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">نمره قبولی</div>
+                                <div class="exam-detail-value">{{ final_exam.passing_score|persian_numbers }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if final_exam.participation %}
+                            {% if final_exam.participation.status == 'graded' %}
+                                <div style="background: #d1e7dd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong style="color: #0f5132;">
+                                            <i class="fas fa-check-circle"></i> نمره شما: 
+                                            {{ final_exam.participation.score|persian_numbers }}/{{ final_exam.total_points|persian_numbers }}
+                                        </strong>
+                                        <a href="{% url 'course:exam_result' final_exam.id final_exam.participation.id %}" 
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-eye"></i> مشاهده نتیجه
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif final_exam.participation.status == 'submitted' %}
+                                <div style="background: #cfe2ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <i class="fas fa-clock"></i> پاسخ شما ارسال شده - در انتظار نمره‌دهی
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if final_exam.can_participate %}
+                                <a href="{% url 'course:take_exam' final_exam.id %}" class="btn btn-take-exam" style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-pen"></i> شرکت در امتحان
+                                </a>
+                            {% else %}
+                                <button class="btn btn-take-exam" disabled style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-lock"></i> {{ final_exam.participate_message }}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem;">
+                        <i class="fas fa-graduation-cap"></i>
+                        <p style="margin: 0;">امتحان پایان ترم هنوز تعریف نشده است</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Midterm Exam -->
+                <h5 style="color: #ffc107; font-weight: 700; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-file-alt"></i> امتحان میان ترم
+                </h5>
+                {% if midterm_exam %}
+                    <div class="exam-item midterm">
+                        <div class="exam-header-flex">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="exam-type-icon midterm">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <h5 class="exam-title">{{ midterm_exam.title }}</h5>
+                            </div>
+                            {% if midterm_exam.is_ended %}
+                                <span class="exam-status ended">
+                                    <i class="fas fa-flag-checkered"></i> پایان یافته
+                                </span>
+                            {% elif midterm_exam.is_started %}
+                                <span class="exam-status active">
+                                    <i class="fas fa-play-circle"></i> در حال برگزاری
+                                </span>
+                            {% else %}
+                                <span class="exam-status upcoming">
+                                    <i class="fas fa-clock"></i> آینده
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if midterm_exam.description %}
+                        <p style="color: #6c757d; margin: 1rem 0;">{{ midterm_exam.description }}</p>
+                        {% endif %}
+                        
+                        <div class="exam-details">
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">زمان شروع</div>
+                                <div class="exam-detail-value">{{ midterm_exam.scheduled_start|jalali_short }}</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">مدت امتحان</div>
+                                <div class="exam-detail-value">{{ midterm_exam.duration_minutes|persian_numbers }} دقیقه</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">نمره کل</div>
+                                <div class="exam-detail-value">{{ midterm_exam.total_points|persian_numbers }}</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">نمره قبولی</div>
+                                <div class="exam-detail-value">{{ midterm_exam.passing_score|persian_numbers }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if midterm_exam.participation %}
+                            {% if midterm_exam.participation.status == 'graded' %}
+                                <div style="background: #d1e7dd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong style="color: #0f5132;">
+                                            <i class="fas fa-check-circle"></i> نمره شما: 
+                                            {{ midterm_exam.participation.score|persian_numbers }}/{{ midterm_exam.total_points|persian_numbers }}
+                                        </strong>
+                                        <a href="{% url 'course:exam_result' midterm_exam.id midterm_exam.participation.id %}" 
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-eye"></i> مشاهده نتیجه
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif midterm_exam.participation.status == 'submitted' %}
+                                <div style="background: #cfe2ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <i class="fas fa-clock"></i> پاسخ شما ارسال شده - در انتظار نمره‌دهی
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if midterm_exam.can_participate %}
+                                <a href="{% url 'course:take_exam' midterm_exam.id %}" class="btn btn-take-exam" style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-pen"></i> شرکت در امتحان
+                                </a>
+                            {% else %}
+                                <button class="btn btn-take-exam" disabled style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-lock"></i> {{ midterm_exam.participate_message }}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem;">
+                        <i class="fas fa-file-alt"></i>
+                        <p style="margin: 0;">امتحان میان ترم هنوز تعریف نشده است</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Quizzes -->
+                <h5 style="color: #17a2b8; font-weight: 700; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-question-circle"></i> کوییزها
+                </h5>
+                {% if quizzes %}
+                    {% for quiz in quizzes %}
+                    <div class="exam-item quiz">
+                        <div class="exam-header-flex">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="exam-type-icon quiz">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <h5 class="exam-title">{{ quiz.title }}</h5>
+                            </div>
+                            {% if quiz.is_ended %}
+                                <span class="exam-status ended">
+                                    <i class="fas fa-flag-checkered"></i> پایان یافته
+                                </span>
+                            {% elif quiz.is_started %}
+                                <span class="exam-status active">
+                                    <i class="fas fa-play-circle"></i> در حال برگزاری
+                                </span>
+                            {% else %}
+                                <span class="exam-status upcoming">
+                                    <i class="fas fa-clock"></i> آینده
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="exam-details">
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">زمان شروع</div>
+                                <div class="exam-detail-value">{{ quiz.scheduled_start|jalali_short }}</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">مدت</div>
+                                <div class="exam-detail-value">{{ quiz.duration_minutes|persian_numbers }} دقیقه</div>
+                            </div>
+                            <div class="exam-detail-item">
+                                <div class="exam-detail-label">نمره</div>
+                                <div class="exam-detail-value">{{ quiz.total_points|persian_numbers }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if quiz.participation %}
+                            {% if quiz.participation.status == 'graded' %}
+                                <div style="background: #d1e7dd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong style="color: #0f5132;">
+                                            <i class="fas fa-check-circle"></i> نمره شما: 
+                                            {{ quiz.participation.score|persian_numbers }}/{{ quiz.total_points|persian_numbers }}
+                                        </strong>
+                                        <a href="{% url 'course:exam_result' quiz.id quiz.participation.id %}" 
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-eye"></i> مشاهده نتیجه
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif quiz.participation.status == 'submitted' %}
+                                <div style="background: #cfe2ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                    <i class="fas fa-clock"></i> پاسخ شما ارسال شده - در انتظار نمره‌دهی
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if quiz.can_participate %}
+                                <a href="{% url 'course:take_exam' quiz.id %}" class="btn btn-take-exam" style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-pen"></i> شرکت در کوییز
+                                </a>
+                            {% else %}
+                                <button class="btn btn-take-exam" disabled style="margin-top: 1rem; width: 100%;">
+                                    <i class="fas fa-lock"></i> {{ quiz.participate_message }}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem;">
+                        <i class="fas fa-question-circle"></i>
+                        <p style="margin: 0;">کوییزی تعریف نشده است</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Resources Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-folder-open"></i>
+                        منابع آموزشی
+                    </h3>
+                    <span class="section-badge">{{ resources.count|persian_numbers }} منبع</span>
+                </div>
+                
+                {% if resources %}
+                    {% for resource in resources %}
+                    <div class="resource-item">
+                        <div class="resource-icon {{ resource.resource_type }}">
+                            {% if resource.resource_type == 'pdf' %}
+                                <i class="fas fa-file-pdf"></i>
+                            {% elif resource.resource_type == 'video' %}
+                                <i class="fas fa-video"></i>
+                            {% elif resource.resource_type == 'link' %}
+                                <i class="fas fa-link"></i>
+                            {% elif resource.resource_type == 'document' %}
+                                <i class="fas fa-file-word"></i>
+                            {% elif resource.resource_type == 'presentation' %}
+                                <i class="fas fa-file-powerpoint"></i>
+                            {% else %}
+0                                <i class="fas fa-file"></i>
+                            {% endif %}
+                        </div>
+                        <div class="resource-info">
+                            <h6 class="resource-title">{{ resource.title }}</h6>
+                            {% if resource.description %}
+                            <p class="resource-desc">{{ resource.description|truncatechars:100 }}</p>
+                            {% endif %}
+                        </div>
+                        {% if resource.file %}
+                        <a href="{{ resource.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> دانلود
+                        </a>
+                        {% elif resource.link %}
+                        <a href="{{ resource.link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt"></i> مشاهده
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h5>منبعی موجود نیست</h5>
+                        <p>منابع آموزشی به زودی اضافه خواهد شد</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Videos Section - فقط برای دوره‌های آفلاین یا ترکیبی -->
+            {% if course.course_type != 'online' %}
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-play-circle"></i>
+                        ویدیوهای آموزشی
+                        {% if course.course_type == 'hybrid' %}
+                        <small style="font-size: 0.8rem; color: #6c757d; font-weight: 400;">(برای مرور کلاس‌های آنلاین)</small>
+                        {% endif %}
+                    </h3>
+                    <span class="section-badge">{{ videos.count|persian_numbers }} ویدیو</span>
+                </div>
+                
+                {% if videos %}
+                    {% for video in videos %}
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="video-info">
+                            <h6 class="video-title">{{ video.title }}</h6>
+                            {% if video.description %}
+                            <p style="font-size: 0.875rem; color: #6c757d; margin: 0.25rem 0;">
+                                {{ video.description|truncatechars:80 }}
+                            </p>
+                            {% endif %}
+                            {% if video.duration %}
+                            <div class="video-duration">
+                                <i class="fas fa-clock"></i> {{ video.duration }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if video.video_url %}
+                        <a href="{{ video.video_url }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-play"></i> پخش
+                        </a>
+                        {% elif video.video_file %}
+                        <a href="{{ video.video_file.url }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-play"></i> پخش
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-video"></i>
+                        <h5>ویدیویی موجود نیست</h5>
+                        <p>ویدیوهای آموزشی به زودی اضافه خواهد شد</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Teacher Information -->
-            <div class="teacher-info">
-                <img src="{% if teacher.profile_picture %}{{ teacher.profile_picture.url }}{% else %}{% static 'images/default-teacher.png' %}{% endif %}" 
-                     alt="{{ teacher.user.get_full_name }}" class="teacher-avatar">
-                <div>
-                    <h5 class="mb-1">{{ teacher.user.get_full_name }}</h5>
-                    <p class="text-muted mb-2">{{ teacher.specialization|default:"مدرس زبان انگلیسی" }}</p>
-                    <div class="teacher-rating">
-                        <i class="fas fa-star text-warning"></i>
-                        <i class="fas fa-star text-warning"></i>
-                        <i class="fas fa-star text-warning"></i>
-                        <i class="fas fa-star text-warning"></i>
-                        <i class="fas fa-star text-warning"></i>
-                        <span class="ms-2">5.0</span>
-                    </div>
+        <div class="sidebar">
+            <!-- Teacher Card - مشابه course detail -->
+            <a href="{% url 'teacher:detail' teacher.id %}" class="teacher-card-clickable">
+                <h3>مدرس دوره</h3>
+                {% if teacher.image %}
+                <img src="{{ teacher.image.url }}" alt="{{ teacher.user.get_full_name }}" class="teacher-image">
+                {% else %}
+                <div class="teacher-image-placeholder">
+                    <i class="fas fa-user"></i>
                 </div>
-            </div>
-
-            <!-- Course Schedule -->
-            <div class="course-schedule">
-                <h5 class="mb-3">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    برنامه زمانی
-                </h5>
+                {% endif %}
                 
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-play"></i>
-                    </div>
-                    <div>
-                        <strong>شروع دوره</strong>
-                        <p class="mb-0 text-muted">
-                            {% if course.start_date %}
-                                {{ course.start_date|jalali_short }}
-                            {% else %}
-                                تعیین نشده
-                            {% endif %}
-                        </p>
-                    </div>
+                <div class="teacher-info">
+                    <h4>{{ teacher.user.get_full_name }}</h4>
+                    {% if teacher.specialization %}
+                    <p class="teacher-expertise">{{ teacher.specialization }}</p>
+                    {% endif %}
+                    {% if teacher.bio %}
+                    <p class="teacher-bio">{{ teacher.bio|truncatewords:25 }}</p>
+                    {% endif %}
                 </div>
+            </a>
 
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div>
-                        <strong>زمان کلاس</strong>
-                        <p class="mb-0 text-muted">
-                            {% if course.class_time %}
-                                {{ course.class_time|persian_numbers }}
-                            {% else %}
-                                تعیین نشده
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-stop"></i>
-                    </div>
-                    <div>
-                        <strong>پایان دوره</strong>
-                        <p class="mb-0 text-muted">
-                            {% if course.end_date %}
-                                {{ course.end_date|jalali_short }}
-                            {% else %}
-                                تعیین نشده
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Class Room Link -->
-                {% if course.class_room_link and course.is_online and enrollment.status == 'confirmed' %}
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-video"></i>
-                    </div>
-                    <div>
-                        <strong>لینک کلاس آنلاین</strong>
-                        <div class="mt-2">
+            <!-- Class Link - برای دوره‌های آنلاین یا ترکیبی -->
+            {% if course.course_type == 'online' or course.course_type == 'hybrid' %}
+                {% if course.class_room_link %}
+                <div class="class-link-card {% if not course.is_class_time_active %}disabled{% endif %}">
+                    <h4>
+                        <i class="fas fa-camera"></i> کلاس آنلاین
+                        {% if course.course_type == 'hybrid' %}
+                        <span style="font-size: 0.75rem; background: rgba(255,255,255,0.3); padding: 0.25rem 0.5rem; border-radius: 12px;">ترکیبی</span>
+                        {% endif %}
+                    </h4>
+                    
+                    {% if course.is_class_time_active %}
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -10px; right: 10px; background: #ef4444; color: white; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; animation: liveBadge 2s ease-in-out infinite;">
+                                <i class="fas fa-circle" style="font-size: 0.5rem; margin-left: 5px; animation: pulse 1.5s infinite;"></i>
+                                زنده
+                            </div>
                             <a href="{{ course.class_room_link }}" 
                                target="_blank" 
-                               class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-external-link-alt me-2"></i>
-                                ورود به کلاس
+                               class="btn-join-class active">
+                                <i class="fas fa-camera"></i> ورود به کلاس
                             </a>
                         </div>
-                        <small class="text-muted d-block mt-1">
-                            <i class="fas fa-info-circle me-1"></i>
-                            روی دکمه کلیک کنید تا وارد کلاس آنلاین شوید
-                        </small>
-                    </div>
-                </div>
-                {% elif course.class_room_link and not course.is_online %}
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div>
-                        <strong>لینک کلاس</strong>
-                        <p class="mb-0 text-muted">
-                            همه کلاس‌ها به صورت آنلاین برگزار می‌شوند
+                        <p style="margin-top: 1rem; opacity: 0.95; font-size: 0.9rem; position: relative; z-index: 1;">
+                            <i class="fas fa-circle" style="color: #4ade80; animation: pulse 2s infinite;"></i>
+                            {{ course.get_class_status_message }}
                         </p>
+                    {% else %}
+                        <button class="btn-join-class disabled" disabled>
+                            <i class="fas fa-lock"></i> کلاس غیرفعال
+                        </button>
+                        <p style="margin-top: 1rem; opacity: 0.9; font-size: 0.875rem;">
+                            <i class="fas fa-info-circle"></i> 
+                            {{ course.get_class_status_message }}
+                        </p>
+                    {% endif %}
+                    
+                    {% if course.schedule_time and course.schedule_days %}
+                    <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-size: 0.85rem;">
+                        <div style="margin-bottom: 0.5rem;">
+                            <i class="fas fa-calendar-week"></i> 
+                            <strong>روزها:</strong> {{ course.schedule_days }}
+                        </div>
+                        <div>
+                            <i class="fas fa-clock"></i> 
+                            <strong>ساعت:</strong> {{ course.schedule_time|persian_numbers }}
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% elif course.is_online and enrollment.status != 'confirmed' %}
-                <div class="schedule-item">
-                    <div class="schedule-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <div>
-                        <strong>لینک کلاس آنلاین</strong>
-                        <p class="mb-0 text-muted">
-                            پس از تأیید ثبت‌نام، لینک کلاس در دسترس خواهد بود
+                {% else %}
+                <!-- پیام برای دوره‌های آنلاین بدون لینک -->
+                <div class="class-link-card" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+                    <h4><i class="fas fa-exclamation-triangle"></i> لینک کلاس</h4>
+                    <div style="background: rgba(255,255,255,0.9); color: #92400e; padding: 1.5rem; border-radius: 10px; line-height: 1.8;">
+                        <p style="margin: 0; font-weight: 600;">
+                            <i class="fas fa-info-circle"></i> 
+                            لینک کلاس آنلاین هنوز توسط معلم قرار داده نشده است.
+                        </p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+                            لطفاً با معلم یا پشتیبانی تماس بگیرید.
                         </p>
                     </div>
                 </div>
                 {% endif %}
+            {% endif %}
+
+            <!-- Debug Info (موقت) - حذف بعد از تست -->
+            {% if user.is_superuser %}
+            <div style="background: #fef2f2; border: 2px solid #dc3545; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem;">
+                <strong>🔍 Debug Info (فقط برای ادمین):</strong><br>
+                Course Type: {{ course.course_type }}<br>
+                Class Room Link: {% if course.class_room_link %}موجود ({{ course.class_room_link|slice:":30" }}...){% else %}خالی❌{% endif %}<br>
+                Is Online: {{ course.is_online }}<br>
+                Is Offline: {{ course.is_offline }}<br>
+                Schedule Time: {{ course.schedule_time|default:"خالی" }}<br>
+                Schedule Days: {{ course.schedule_days|default:"خالی" }}<br>
+                Is Class Time Active: {{ course.is_class_time_active }}
             </div>
+            {% endif %}
+            
+            <!-- Quick Info -->
+            <div class="quick-info-card">
+                <h5 style="color: var(--primary-color); font-weight: 700; margin-bottom: 1.5rem;">
+                    <i class="fas fa-info-circle"></i> اطلاعات دوره
+                </h5>
+                
+                {% if course.level %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-signal"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>سطح دوره</strong>
+                        <span>{{ course.get_level_display }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if course.course_type %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>نوع برگزاری</strong>
+                        <span>{{ course.get_course_type_display }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if course.total_hours %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>تعداد جلسات</strong>
+                        <span>{{ course.total_hours|persian_numbers }} جلسه</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>شروع دوره</strong>
+                        <span>{{ course.start_date|jalali_short|default:"تعیین نشده" }}</span>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-stop"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>پایان دوره</strong>
+                        <span>{{ course.end_date|jalali_short|default:"تعیین نشده" }}</span>
+                    </div>
+                </div>
+                
+                {% if course.schedule_days %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>روزهای برگزاری</strong>
+                        <span>{{ course.schedule_days }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if course.schedule_time %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>ساعت کلاس</strong>
+                        <span>{{ course.schedule_time|persian_numbers }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="info-item" style="margin-bottom: 0;">
+                    <div class="info-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="info-content">
+                        <strong>وضعیت ثبت‌نام</strong>
+                        <span style="color: #28a745; font-weight: 600;">{{ enrollment.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-outline-light w-100">
-                    <i class="fas fa-arrow-right me-2"></i>بازگشت به داشبورد
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="{% url 'dashboard:student_calendar' %}" class="btn btn-secondary" style="width: 100%;">
+                    <i class="fas fa-arrow-right"></i> بازگشت به داشبورد
                 </a>
                 
-                {% if enrollment.status == 'completed' %}
-                    <a href="{% url 'enrollment:enrollment_certificate' enrollment.id %}" class="btn btn-light w-100">
-                        <i class="fas fa-certificate me-2"></i>دانلود گواهی
-                    </a>
+                {% if enrollment.can_download_certificate %}
+                <a href="{% url 'dashboard:student_download_certificate' enrollment.id %}" class="btn btn-success" style="width: 100%;">
+                    <i class="fas fa-download"></i> دانلود مدرک
+                </a>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Simple progress animation
-document.addEventListener('DOMContentLoaded', function() {
-    const progressCircle = document.querySelector('.progress-ring circle:last-child');
-    const progressText = document.querySelector('.progress-text');
-    const percentage = parseInt(progressText.textContent);
-    
-    if (progressCircle && percentage > 0) {
-        const circumference = 2 * Math.PI * 54;
-        const offset = circumference - (percentage / 100) * circumference;
-        progressCircle.style.strokeDashoffset = circumference;
-        
-        setTimeout(() => {
-            progressCircle.style.transition = 'stroke-dashoffset 1s ease-in-out';
-            progressCircle.style.strokeDashoffset = offset;
-        }, 500);
-    }
-});
-</script>
 {% endblock %}

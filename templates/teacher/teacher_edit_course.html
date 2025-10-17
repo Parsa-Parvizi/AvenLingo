@@ -303,6 +303,16 @@
             فیلدهای دارای علامت <span class="required">*</span> الزامی هستند.
         </div>
 
+        {% if form.errors %}
+            <div class="error-message">
+                <h4><i class="fas fa-exclamation-triangle"></i> خطاهای فرم:</h4>
+                {{ form.errors }}
+                {% if form.non_field_errors %}
+                    <p><strong>خطاهای عمومی:</strong> {{ form.non_field_errors }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
@@ -570,6 +580,34 @@
                     {% if form.class_room_link.errors %}
                         <span class="invalid-feedback">{{ form.class_room_link.errors.0 }}</span>
                     {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.schedule_days.id_for_label }}">
+                            {{ form.schedule_days.label }}
+                        </label>
+                        {{ form.schedule_days }}
+                        {% if form.schedule_days.help_text %}
+                            <small class="form-help-text">{{ form.schedule_days.help_text }}</small>
+                        {% endif %}
+                        {% if form.schedule_days.errors %}
+                            <span class="invalid-feedback">{{ form.schedule_days.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.schedule_time.id_for_label }}">
+                            {{ form.schedule_time.label }}
+                        </label>
+                        {{ form.schedule_time }}
+                        {% if form.schedule_time.help_text %}
+                            <small class="form-help-text">{{ form.schedule_time.help_text }}</small>
+                        {% endif %}
+                        {% if form.schedule_time.errors %}
+                            <span class="invalid-feedback">{{ form.schedule_time.errors.0 }}</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 

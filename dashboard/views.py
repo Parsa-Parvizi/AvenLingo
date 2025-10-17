@@ -5,12 +5,13 @@ from django.views.generic import TemplateView, DetailView
 from django.db.models import Count, Sum, Q, Avg
 from django.utils import timezone
 from datetime import timedelta, datetime
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+import os
 
 from account.models import Student, Teacher, User, TeacherApplication
 from course.models import Course, Category, Assignment
@@ -1910,3 +1911,319 @@ def export_financial_pdf(request):
     except ImportError:
         messages.error(request, 'برای تولید PDF باید کتابخانه WeasyPrint نصب شود: pip install weasyprint')
         return redirect('dashboard:admin_financial')
+
+
+# ============================
+# Certificate Download for Students
+# ============================
+
+@login_required
+def student_download_certificate(request, enrollment_id):
+    """دانلود مدرک توسط دانش‌آموز"""
+    
+    # بررسی نوع کاربر
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'student':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    try:
+        student = Student.objects.get(user=request.user)
+    except Student.DoesNotExist:
+        messages.error(request, 'پروفایل دانش‌آموز یافت نشد.')
+        return redirect('dashboard:student_calendar')
+    
+    # دریافت enrollment
+    enrollment = get_object_or_404(
+        Enrollment, 
+        id=enrollment_id, 
+        student=student
+    )
+    
+    # بررسی امکان دانلود
+    if not enrollment.can_download_certificate:
+        if not enrollment.has_final_grade:
+            messages.error(request, 'مدرک هنوز آماده نیست. ابتدا باید نمره نهایی وارد شود.')
+        elif not enrollment.certificate:
+            messages.error(request, 'مدرکی برای این دوره آپلود نشده است.')
+        else:
+            messages.error(request, 'امکان دانلود مدرک وجود ندارد.')
+        return redirect('dashboard:student_calendar')
+    
+    # بررسی وجود فایل
+    if not os.path.isfile(enrollment.certificate.path):
+        messages.error(request, 'فایل مدرک یافت نشد.')
+        logger.error(f'Certificate file not found: {enrollment.certificate.path}')
+        return redirect('dashboard:student_calendar')
+    
+    # ارسال فایل
+    try:
+        response = FileResponse(
+            open(enrollment.certificate.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = f'attachment; filename="certificate_{enrollment.course.slug}_{student.user.username}.pdf"'
+        return response
+    except Exception as e:
+        logger.error(f'Error downloading certificate: {str(e)}')
+        messages.error(request, 'خطا در دانلود مدرک.')
+        return redirect('dashboard:student_calendar')
+
+
+# ============================
+# Smart Course Recommendations
+# ============================
+
+class StudentRecommendedCoursesView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """نمایش دوره‌های پیشنهادی هوشمند برای دانش‌آموز"""
+    template_name = 'dashboard/student_recommended_courses.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'student'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        try:
+            student = Student.objects.get(user=self.request.user)
+        except Student.DoesNotExist:
+            context['recommended_courses'] = []
+            return context
+        
+        # دریافت دوره‌های پیشنهادی با الگوریتم هوشمند
+        recommended_courses = self._get_smart_recommendations(student)
+        
+        context['student'] = student
+        context['recommended_courses'] = recommended_courses
+        
+        return context
+    
+    def _get_smart_recommendations(self, student):
+        """الگوریتم هوشمند پیشنهاد دوره"""
+        from django.db.models import Q, Count, Case, When, IntegerField
+        
+        # دوره‌های ثبت‌نام شده
+        enrolled_course_ids = Enrollment.objects.filter(
+            student=student
+        ).values_list('course_id', flat=True)
+        
+        # دوره‌های قبلی (تکمیل شده یا تأیید شده)
+        past_enrollments = Enrollment.objects.filter(
+            student=student,
+            status__in=['confirmed', 'completed']
+        ).select_related('course')
+        
+        # استخراج ویژگی‌های دوره‌های قبلی
+        past_levels = set()
+        past_categories = set()
+        past_class_types = set()
+        past_teachers = set()
+        past_age_groups = set()
+        
+        for enrollment in past_enrollments:
+            course = enrollment.course
+            if course.level:
+                past_levels.add(course.level)
+            if course.category:
+                past_categories.add(course.category.id)
+            if course.class_type:
+                past_class_types.add(course.class_type)
+            if course.teacher:
+                past_teachers.add(course.teacher.id)
+            if course.age_group:
+                past_age_groups.add(course.age_group)
+            # دسته‌بندی‌های چندگانه
+            for cat in course.categories.all():
+                past_categories.add(cat.id)
+            for ct in course.class_types.all():
+                past_class_types.add(ct.code)
+        
+        # سطح فعلی دانش‌آموز
+        student_level = student.english_level.lower() if student.english_level else None
+        
+        # تعیین گروه سنی دانش‌آموز
+        student_age_group = None
+        if student.date_of_birth:
+            from datetime import date
+            today = date.today()
+            age = today.year - student.date_of_birth.year - ((today.month, today.day) < (student.date_of_birth.month, student.date_of_birth.day))
+            
+            if age < 13:
+                student_age_group = 'kids'
+            elif age < 18:
+                student_age_group = 'teens'
+            else:
+                student_age_group = 'adults'
+        
+        # دوره‌های موجود (غیر از دوره‌های ثبت‌نام شده)
+        available_courses_query = Course.objects.filter(
+            is_active=True,
+            status='published'
+        ).exclude(
+            id__in=enrolled_course_ids
+        ).select_related('teacher', 'category').prefetch_related('categories', 'class_types')
+        
+        # فیلتر بر اساس گروه سنی (مهم!)
+        # اگر دانش‌آموز گروه سنی مشخصی دارد، فقط دوره‌های مناسب یا بدون محدودیت سنی را نشان بده
+        if student_age_group:
+            available_courses = available_courses_query.filter(
+                Q(age_group=student_age_group) | Q(age_group__isnull=True) | Q(age_group='')
+            )
+        else:
+            available_courses = available_courses_query
+        
+        # امتیازدهی به دوره‌ها
+        scored_courses = []
+        for course in available_courses:
+            score = 0
+            reasons = []
+            matched_criteria = {
+                'level': False,
+                'category': False,
+                'age_group': False,
+                'goals': False
+            }
+            
+            # 1. سطح دوره (40 امتیاز) - بسیار مهم
+            if student_level and course.level:
+                if course.level == student_level:
+                    score += 40
+                    matched_criteria['level'] = True
+                    reasons.append(f'✓ سطح شما: {course.get_level_display()}')
+                elif student_level == 'beginner' and course.level == 'intermediate':
+                    score += 20
+                    matched_criteria['level'] = True
+                    reasons.append('✓ سطح بعدی مناسب برای پیشرفت شما')
+                elif student_level == 'intermediate' and course.level == 'advanced':
+                    score += 20
+                    matched_criteria['level'] = True
+                    reasons.append('✓ سطح پیشرفته برای ادامه مسیر')
+            elif course.level in past_levels:
+                score += 30
+                matched_criteria['level'] = True
+                reasons.append(f'✓ سطح مشابه دوره‌های قبلی ({course.get_level_display()})')
+            
+            # 2. گروه سنی (30 امتیاز) - خیلی مهم برای فیلتر
+            if student_age_group and course.age_group:
+                if course.age_group == student_age_group:
+                    score += 30
+                    matched_criteria['age_group'] = True
+                    age_display = 'کودکان' if student_age_group == 'kids' else 'نوجوانان' if student_age_group == 'teens' else 'بزرگسالان'
+                    reasons.append(f'✓ مناسب سن شما ({age_display})')
+                else:
+                    # اگر گروه سنی مناسب نیست، امتیاز کم می‌کنیم
+                    score -= 20
+            elif not course.age_group or course.age_group == '':
+                # دوره بدون محدودیت سنی
+                score += 10
+            
+            # 3. دسته‌بندی مشابه (25 امتیاز)
+            course_category_ids = [cat.id for cat in course.categories.all()]
+            if course.category and course.category.id in past_categories:
+                score += 25
+                matched_criteria['category'] = True
+                reasons.append(f'✓ دسته‌بندی مورد علاقه: {course.category.name}')
+            elif any(cat_id in past_categories for cat_id in course_category_ids):
+                score += 25
+                matched_criteria['category'] = True
+                matching_cats = [cat.name for cat in course.categories.all() if cat.id in past_categories]
+                if matching_cats:
+                    reasons.append(f'✓ دسته‌بندی محبوب شما: {matching_cats[0]}')
+            
+            # 4. اهداف دانش‌آموز (20 امتیاز) - افزایش اهمیت
+            if student.goals:
+                goals_lower = student.goals.lower()
+                title_lower = course.title.lower() if course.title else ''
+                desc_lower = course.description.lower() if course.description else ''
+                
+                # کلمات کلیدی مشترک
+                keywords = {
+                    'ielts': 'آیلتس',
+                    'toefl': 'تافل', 
+                    'آیلتس': 'آیلتس',
+                    'تافل': 'تافل',
+                    'speaking': 'مکالمه',
+                    'مکالمه': 'مکالمه',
+                    'grammar': 'گرامر',
+                    'گرامر': 'گرامر',
+                    'writing': 'نوشتار',
+                    'نوشتاری': 'نوشتار',
+                    'business': 'تجاری',
+                    'تجاری': 'تجاری',
+                    'conversation': 'گفتگو'
+                }
+                
+                for keyword, display in keywords.items():
+                    if keyword in goals_lower and (keyword in title_lower or keyword in desc_lower):
+                        score += 20
+                        matched_criteria['goals'] = True
+                        reasons.append(f'✓ مطابق با هدف شما: {display}')
+                        break
+            
+            # 5. نوع کلاس مشابه (15 امتیاز)
+            course_class_type_codes = [ct.code for ct in course.class_types.all()]
+            if course.class_type and course.class_type in past_class_types:
+                score += 15
+                reasons.append(f'✓ نوع کلاس مورد علاقه شما')
+            elif any(ct_code in past_class_types for ct_code in course_class_type_codes):
+                score += 15
+                matching_types = [ct.name for ct in course.class_types.all() if ct.code in past_class_types]
+                if matching_types:
+                    reasons.append(f'✓ نوع کلاس محبوب: {matching_types[0]}')
+            
+            # 6. معلم مشابه (15 امتیاز)
+            if course.teacher and course.teacher.id in past_teachers:
+                score += 15
+                reasons.append(f'✓ معلم محبوب: {course.teacher.user.get_full_name()}')
+            
+            # 7. دوره‌های پرطرفدار (5 امتیاز)
+            if course.is_featured:
+                score += 5
+                reasons.append('✓ دوره ویژه و پرطرفدار')
+            
+            # 8. دوره‌های با جا خالی (5 امتیاز)
+            if course.available_seats > 5:
+                score += 5
+            
+            # 9. دوره‌های جدید (3 امتیاز)
+            if course.created_at:
+                days_old = (timezone.now() - course.created_at).days
+                if days_old < 30:
+                    score += 3
+            
+            # فقط دوره‌هایی که:
+            # 1. امتیاز مثبت دارند (score > 0)
+            # 2. حداقل امتیاز 20 دارند
+            # 3. گروه سنی نامناسب ندارند
+            if score >= 20:
+                # ساخت خلاصه تطابق
+                summary_parts = []
+                if matched_criteria['level']:
+                    summary_parts.append('سطح')
+                if matched_criteria['age_group']:
+                    summary_parts.append('سن')
+                if matched_criteria['category']:
+                    summary_parts.append('دسته‌بندی')
+                if matched_criteria['goals']:
+                    summary_parts.append('اهداف')
+                
+                if summary_parts:
+                    summary = ' + '.join(summary_parts) + ' شما را در نظر گرفتیم'
+                    # اضافه کردن خلاصه به ابتدای دلایل
+                    reasons.insert(0, f'📊 {summary}')
+                
+                scored_courses.append({
+                    'course': course,
+                    'score': min(score, 100),  # حداکثر 100
+                    'reasons': reasons[:4],  # حداکثر 4 دلیل
+                    'matched_criteria': matched_criteria
+                })
+        
+        # مرتب‌سازی بر اساس امتیاز
+        scored_courses.sort(key=lambda x: x['score'], reverse=True)
+        
+        # بازگشت 3 دوره برتر
+        return scored_courses[:3]

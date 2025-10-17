@@ -409,6 +409,8 @@ def student_course_detail_view(request, course_id):
     try:
         from account.models import Student
         from enrollment.models import Enrollment
+        from course.models import Exam, ExamParticipation, CourseResource, CourseVideo
+        
         student = Student.objects.get(user=request.user)
         enrollment = Enrollment.objects.get(student=student, course=course, status='confirmed')
     except (Student.DoesNotExist, Enrollment.DoesNotExist):
@@ -419,7 +421,7 @@ def student_course_detail_view(request, course_id):
     assignments = Assignment.objects.filter(
         course=course,
         is_active=True
-    ).order_by('-created_at')
+    ).order_by('due_date')
     
     # بررسی وضعیت ارسال تکالیف برای دانش‌آموز
     assignment_submissions = {}
@@ -450,6 +452,38 @@ def student_course_detail_view(request, course_id):
         assignment.can_submit = can_submit
         assignment.submit_message = message
     
+    # دریافت امتحانات دوره
+    exams = Exam.objects.filter(course=course, is_active=True).order_by('scheduled_start')
+    
+    # جداسازی انواع امتحانات
+    final_exam = exams.filter(exam_type='final').first()
+    midterm_exam = exams.filter(exam_type='midterm').first()
+    quizzes = exams.filter(exam_type='quiz').order_by('scheduled_start')
+    
+    # بررسی شرکت در امتحانات
+    for exam in [final_exam, midterm_exam] + list(quizzes):
+        if exam:
+            participation = ExamParticipation.objects.filter(
+                exam=exam,
+                student=student
+            ).first()
+            
+            exam.participation = participation
+            exam.can_participate, exam.participate_message = exam.can_student_participate(student)
+            exam.can_see, exam.see_message = exam.can_student_see(student)
+    
+    # دریافت منابع دوره
+    resources = CourseResource.objects.filter(
+        course=course,
+        is_active=True
+    ).order_by('order', '-created_at')
+    
+    # دریافت ویدیوهای دوره
+    videos = CourseVideo.objects.filter(
+        course=course,
+        is_active=True
+    ).order_by('order', '-created_at')
+    
     # اطلاعات دوره و مدرس
     teacher = course.teacher
     
@@ -460,6 +494,11 @@ def student_course_detail_view(request, course_id):
         'student': student,
         'assignments': assignments,
         'assignment_submissions': assignment_submissions,
+        'final_exam': final_exam,
+        'midterm_exam': midterm_exam,
+        'quizzes': quizzes,
+        'resources': resources,
+        'videos': videos,
     }
     
     return render(request, 'course/student_course_detail.html', context)

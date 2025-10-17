@@ -272,6 +272,21 @@
                                     </a>
                                 {% endif %}
                                 
+                                <!-- Certificate Download Button -->
+                                {% if enrollment.can_download_certificate %}
+                                    <a href="{% url 'dashboard:student_download_certificate' enrollment.id %}" 
+                                       class="btn btn-success btn-sm" 
+                                       title="دانلود مدرک دوره">
+                                        <i class="fas fa-download me-1"></i>دانلود مدرک
+                                    </a>
+                                {% elif enrollment.has_final_grade %}
+                                    <span class="btn btn-outline-secondary btn-sm" 
+                                          style="cursor: not-allowed; opacity: 0.6;" 
+                                          title="مدرک هنوز توسط معلم آپلود نشده است">
+                                        <i class="fas fa-clock me-1"></i>مدرک در حال آماده‌سازی
+                                    </span>
+                                {% endif %}
+                                
                                 {% if enrollment.can_be_cancelled %}
                                     <button class="btn btn-outline-danger btn-sm cancel-enrollment" 
                                             data-enrollment-id="{{ enrollment.id }}"

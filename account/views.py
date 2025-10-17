@@ -889,9 +889,21 @@ class StudentProfileView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         student = self.get_object()
         
         # Add profile edit limitation info to context
-        context['can_edit_profile'] = student.can_edit_profile_today()
-        context['remaining_edits'] = student.get_remaining_edits_today()
+        can_edit = student.can_edit_profile_today()
+        remaining = student.get_remaining_edits_today()
+        
+        context['can_edit_profile'] = can_edit
+        context['remaining_edits'] = remaining if remaining is not None else 5
         context['daily_edits_used'] = student.daily_profile_edits
+        
+        # Add profile stats
+        from enrollment.models import Enrollment
+        context['active_courses_count'] = Enrollment.objects.filter(
+            student=student,
+            status='confirmed'
+        ).count()
+        context['total_enrollments'] = Enrollment.objects.filter(student=student).count()
+        context['edits_used_today'] = 5 - context['remaining_edits']
         
         return context
     

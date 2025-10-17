@@ -41,6 +41,7 @@ LEVEL_CHOICES = [
 ONLINE_CHOICES = [
     ('online', 'آنلاین'),
     ('offline', 'آفلاین'),
+    ('hybrid', 'ترکیبی (آنلاین و آفلاین)'),
 ]
 
 AGE_GROUP_CHOICES = [
@@ -65,6 +66,7 @@ CLASS_TYPE_CHOICES = [
     ('ept', 'ای پی تی (EPT)'),
     ('msrt', 'ام اس آر تی (MSRT)'),
     ('gre', 'جی آر ای (GRE)'),
+    ('workshop', 'کارگاه (Workshop)'),
     ('other', 'سایر'),
 ]
 
@@ -210,12 +212,158 @@ class Course(models.Model):
     @property
     def is_online(self):
         """برای سازگاری با کدهای قدیمی"""
-        return self.course_type == 'online'
+        return self.course_type in ['online', 'hybrid']
     
     @property
     def is_offline(self):
         """آیا دوره آفلاین است"""
-        return self.course_type == 'offline'
+        return self.course_type in ['offline', 'hybrid']
+    
+    @property
+    def is_hybrid(self):
+        """آیا دوره ترکیبی است"""
+        return self.course_type == 'hybrid'
+    
+    @property
+    def is_workshop(self):
+        """آیا این دوره یک کارگاه است"""
+        return self.class_type == 'workshop'
+    
+    def is_class_time_active(self):
+        """بررسی اینکه آیا الان زمان ورود به کلاس است (10 دقیقه قبل تا پایان کلاس)"""
+        if not self.schedule_time or not self.schedule_days:
+            # اگر زمان‌بندی مشخص نیست، همیشه فعال است
+            return True
+        
+        from django.utils import timezone
+        import re
+        from datetime import datetime, timedelta
+        
+        now = timezone.now()
+        current_weekday = now.weekday()  # 0=Monday, 6=Sunday
+        
+        # نقشه روزهای فارسی به شماره
+        persian_days = {
+            'شنبه': 5,    # Saturday
+            'یکشنبه': 6,  # Sunday  
+            'دوشنبه': 0,  # Monday
+            'سه‌شنبه': 1, # Tuesday
+            'سه شنبه': 1,
+            'سه': 1,
+            'چهارشنبه': 2, # Wednesday
+            'چهار‌شنبه': 2,
+            'چهار': 2,
+            'پنجشنبه': 3, # Thursday
+            'پنج‌شنبه': 3,
+            'پنج': 3,
+            'جمعه': 4,    # Friday
+        }
+        
+        # بررسی روز کلاس
+        schedule_days_lower = self.schedule_days.lower()
+        is_class_day = False
+        
+        for day_name, day_num in persian_days.items():
+            if day_name in schedule_days_lower and current_weekday == day_num:
+                is_class_day = True
+                break
+        
+        if not is_class_day:
+            return False
+        
+        # Parse زمان کلاس (مثال: "18:00-19:30" یا "۱۸:۰۰-۱۹:۳۰")
+        try:
+            # تبدیل اعداد فارسی به انگلیسی
+            persian_nums = '۰۱۲۳۴۵۶۷۸۹'
+            english_nums = '0123456789'
+            trans_table = str.maketrans(persian_nums, english_nums)
+            time_str = self.schedule_time.translate(trans_table)
+            
+            # استخراج زمان شروع و پایان
+            time_pattern = r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})'
+            match = re.search(time_pattern, time_str)
+            
+            if match:
+                start_hour = int(match.group(1))
+                start_minute = int(match.group(2))
+                end_hour = int(match.group(3))
+                end_minute = int(match.group(4))
+                
+                # ساخت datetime برای شروع و پایان کلاس
+                class_start = now.replace(hour=start_hour, minute=start_minute, second=0, microsecond=0)
+                class_end = now.replace(hour=end_hour, minute=end_minute, second=0, microsecond=0)
+                
+                # 10 دقیقه قبل از کلاس
+                early_access = class_start - timedelta(minutes=10)
+                
+                # بررسی آیا الان بین 10 دقیقه قبل و پایان کلاس است
+                return early_access <= now <= class_end
+            else:
+                # اگر فرمت زمان صحیح نیست، همیشه فعال است
+                return True
+                
+        except:
+            # در صورت خطا، همیشه فعال است
+            return True
+    
+    def get_class_status_message(self):
+        """پیام وضعیت کلاس"""
+        if not self.schedule_time or not self.schedule_days:
+            return "لینک کلاس همیشه فعال است"
+        
+        from django.utils import timezone
+        import re
+        from datetime import timedelta
+        
+        now = timezone.now()
+        current_weekday = now.weekday()
+        
+        persian_days = {
+            'شنبه': 5, 'یکشنبه': 6, 'دوشنبه': 0, 'سه‌شنبه': 1, 'سه شنبه': 1, 'سه': 1,
+            'چهارشنبه': 2, 'چهار‌شنبه': 2, 'چهار': 2, 'پنجشنبه': 3, 'پنج‌شنبه': 3, 'پنج': 3, 'جمعه': 4,
+        }
+        
+        schedule_days_lower = self.schedule_days.lower()
+        is_class_day = False
+        
+        for day_name, day_num in persian_days.items():
+            if day_name in schedule_days_lower and current_weekday == day_num:
+                is_class_day = True
+                break
+        
+        if not is_class_day:
+            return f"کلاس در روزهای {self.schedule_days} برگزار می‌شود"
+        
+        try:
+            persian_nums = '۰۱۲۳۴۵۶۷۸۹'
+            english_nums = '0123456789'
+            trans_table = str.maketrans(persian_nums, english_nums)
+            time_str = self.schedule_time.translate(trans_table)
+            
+            time_pattern = r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})'
+            match = re.search(time_pattern, time_str)
+            
+            if match:
+                start_hour = int(match.group(1))
+                start_minute = int(match.group(2))
+                
+                class_start = now.replace(hour=start_hour, minute=start_minute, second=0, microsecond=0)
+                early_access = class_start - timedelta(minutes=10)
+                
+                if now < early_access:
+                    time_diff = early_access - now
+                    minutes = int(time_diff.total_seconds() / 60)
+                    if minutes < 60:
+                        return f"لینک {minutes} دقیقه دیگر فعال می‌شود"
+                    else:
+                        hours = minutes // 60
+                        return f"لینک {hours} ساعت دیگر فعال می‌شود"
+                else:
+                    return "کلاس در حال برگزاری است - وارد شوید"
+        except:
+            pass
+        
+        return "زمان کلاس گذشته است"
     
     def has_completed_prerequisites(self, student):
         """بررسی اینکه آیا دانشجو پیش‌نیازها را گذرانده است"""

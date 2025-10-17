@@ -1,0 +1,250 @@
+# ==============================================================================
+# Docker Compose Configuration - PRODUCTION
+# English Teacher Academy - Optimized for Production Deployment
+# ==============================================================================
+
+version: '3.9'
+
+services:
+  # =============================================================================
+  # PostgreSQL Database Service
+  # =============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: englishteacher_db_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups:ro
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    # Security: Don't expose port to host in production
+    # Only accessible via internal network
+
+  # =============================================================================
+  # Django Application Service
+  # =============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: englishteacher_web:latest
+    container_name: englishteacher_web_prod
+    restart: always
+    environment:
+      # Django Core Settings
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      DJANGO_SETTINGS_MODULE: EnglishTeacher.settings
+      
+      # Database Configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DB_CONN_MAX_AGE: 600
+      
+      # Cache Configuration
+      CACHE_BACKEND: ${CACHE_BACKEND:-django.core.cache.backends.locmem.LocMemCache}
+      
+      # Email Configuration
+      EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      
+      # Security Settings - Production
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
+      SECURE_HSTS_INCLUDE_SUBDOMAINS: ${SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
+      SECURE_HSTS_PRELOAD: ${SECURE_HSTS_PRELOAD:-False}
+      SECURE_BROWSER_XSS_FILTER: True
+      SECURE_CONTENT_TYPE_NOSNIFF: True
+      X_FRAME_OPTIONS: DENY
+      
+      # Session Security
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-False}
+      SESSION_COOKIE_HTTPONLY: True
+      SESSION_COOKIE_SAMESITE: Strict
+      SESSION_COOKIE_AGE: ${SESSION_COOKIE_AGE:-7200}
+      
+      # CSRF Security
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-False}
+      CSRF_COOKIE_HTTPONLY: True
+      CSRF_COOKIE_SAMESITE: Strict
+      
+      # Rate Limiting & Security
+      RATELIMIT_ENABLE: True
+      MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-5242880}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-WARNING}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+      SECURITY_LOG_LEVEL: ${SECURITY_LOG_LEVEL:-WARNING}
+      
+      # Internationalization
+      LANGUAGE_CODE: fa
+      TIME_ZONE: Asia/Tehran
+      USE_I18N: True
+      USE_TZ: True
+      
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/", "--max-time", "10"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    # Don't expose port to host - only accessible via Nginx
+
+  # =============================================================================
+  # Nginx Reverse Proxy Service
+  # =============================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: englishteacher_nginx_prod
+    restart: always
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+  # =============================================================================
+  # Log Rotation Service
+  # =============================================================================
+  logrotate:
+    image: alpine:3.18
+    container_name: englishteacher_logrotate_prod
+    restart: always
+    volumes:
+      - logs_volume:/logs
+      - nginx_logs:/logs/nginx
+    command: >
+      sh -c "
+        apk add --no-cache logrotate &&
+        echo '/logs/*.log {
+          daily
+          rotate 14
+          compress
+          delaycompress
+          missingok
+          notifempty
+          create 0640 root root
+          sharedscripts
+        }' > /etc/logrotate.d/app &&
+        echo '/logs/nginx/*.log {
+          daily
+          rotate 7
+          compress
+          delaycompress
+          missingok
+          notifempty
+          create 0640 root root
+          sharedscripts
+          postrotate
+            kill -USR1 \$(cat /var/run/nginx.pid 2>/dev/null) 2>/dev/null || true
+          endscript
+        }' > /etc/logrotate.d/nginx &&
+        while true; do
+          logrotate -f /etc/logrotate.d/app
+          logrotate -f /etc/logrotate.d/nginx
+          sleep 86400
+        done
+      "
+    networks:
+      - app_network
+
+# =============================================================================
+# Named Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+  logs_volume:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"
+

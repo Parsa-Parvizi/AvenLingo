@@ -2,39 +2,413 @@
 {% load static %}
 {% load persian_filters %}
 
-{% block title %} | Create Exam{% endblock %}
+{% block title %} | ایجاد امتحان جدید{% endblock %}
+
+{% block extra_css %}
+<style>
+.exam-form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section-title {
+    color: #1F3A93;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-label .required {
+    color: #dc3545;
+    margin-left: 3px;
+}
+
+.form-help {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.toggle-group {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle-option:hover {
+    border-color: #1F3A93;
+}
+
+.toggle-option.active {
+    border-color: #1F3A93;
+    background: #f0f4ff;
+}
+
+.toggle-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.toggle-content {
+    flex: 1;
+}
+
+.toggle-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.toggle-desc {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+.alert-info {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    color: #004085;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #1F3A93 0%, #2c5aa0 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(31, 58, 147, 0.3);
+    color: white;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 {% include 'dashboard/teacher_navbar.html' %}
-<div class="container py-4" dir="rtl">
-    <h2 class="mb-4">📊 ایجاد امتحان جدید - {{ course.title }}</h2>
+
+<div class="container py-4 exam-form-container" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #1F3A93; margin: 0;">
+            <i class="fas fa-clipboard-list"></i> ایجاد امتحان جدید
+        </h2>
+        <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت
+        </a>
+    </div>
     
-    <form method="post" enctype="multipart/form-data">
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>دوره:</strong> {{ course.title }}
+    </div>
+    
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data" id="examForm">
         {% csrf_token %}
         
-        <div class="card">
-            <div class="card-body">
-                {% for field in form %}
-                <div class="mb-3">
-                    <label class="form-label"><strong>{{ field.label }}</strong></label>
-                    {{ field }}
-                    {% if field.help_text %}
-                        <small class="form-text text-muted">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% if field.errors %}
-                        <div class="text-danger">{{ field.errors }}</div>
-                    {% endif %}
+        <!-- اطلاعات اصلی -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-info-circle"></i> اطلاعات اصلی
+            </h3>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.title.label }} <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="error-message">{{ form.title.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.exam_type.label }} <span class="required">*</span></label>
+                {{ form.exam_type }}
+                <div class="form-help">نوع امتحان را انتخاب کنید (نهایی، میان‌ترم یا کوییز)</div>
+                {% if form.exam_type.errors %}
+                    <div class="error-message">{{ form.exam_type.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+                <div class="form-help">توضیحات کوتاه درباره امتحان</div>
+                {% if form.description.errors %}
+                    <div class="error-message">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.instructions.label }}</label>
+                {{ form.instructions }}
+                <div class="form-help">دستورالعمل‌های امتحان برای دانش‌آموزان</div>
+                {% if form.instructions.errors %}
+                    <div class="error-message">{{ form.instructions.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.question_file.label }} <span class="required">*</span></label>
+                {{ form.question_file }}
+                <div class="form-help">
+                    <strong>فایل PDF حاوی سوالات امتحان (اجباری)</strong><br>
+                    حداکثر حجم: ۲۰ مگابایت - فقط فایل PDF
                 </div>
-                {% endfor %}
+                {% if form.question_file.errors %}
+                    <div class="error-message">{{ form.question_file.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- زمان‌بندی -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-clock"></i> زمان‌بندی
+            </h3>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.scheduled_start.label }} <span class="required">*</span></label>
+                        {{ form.scheduled_start }}
+                        <div class="form-help">مثال: ۱۴۰۳/۰۸/۱۵ ۱۴:۰۰</div>
+                        {% if form.scheduled_start.errors %}
+                            <div class="error-message">{{ form.scheduled_start.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
                 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> ذخیره امتحان
-                    </button>
-                    <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-secondary">انصراف</a>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.scheduled_end.label }} <span class="required">*</span></label>
+                        {{ form.scheduled_end }}
+                        <div class="form-help">مثال: ۱۴۰۳/۰۸/۱۵ ۱۶:۰۰</div>
+                        {% if form.scheduled_end.errors %}
+                            <div class="error-message">{{ form.scheduled_end.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-stopwatch"></i> {{ form.duration_minutes.label }} <span class="required">*</span>
+                </label>
+                {{ form.duration_minutes }}
+                <div class="form-help">
+                    <strong>مدت امتحان به دقیقه (این مقدار به دانش‌آموزان نمایش داده می‌شود)</strong><br>
+                    مثال: برای امتحان ۹۰ دقیقه‌ای عدد ۹۰ را وارد کنید
+                </div>
+                {% if form.duration_minutes.errors %}
+                    <div class="error-message">{{ form.duration_minutes.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>توجه:</strong> امتحان به طور خودکار در زمان شروع برای دانش‌آموزان قابل رویت می‌شود
+            </div>
+        </div>
+        
+        <!-- نمره‌دهی -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-star"></i> نمره‌دهی
+            </h3>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.total_points.label }} <span class="required">*</span></label>
+                        {{ form.total_points }}
+                        <div class="form-help">مجموع نمره امتحان (معمولاً ۱۰۰)</div>
+                        {% if form.total_points.errors %}
+                            <div class="error-message">{{ form.total_points.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.passing_score.label }} <span class="required">*</span></label>
+                        {{ form.passing_score }}
+                        <div class="form-help">حداقل نمره قبولی (معمولاً ۵۰)</div>
+                        {% if form.passing_score.errors %}
+                            <div class="error-message">{{ form.passing_score.errors.0 }}</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- تنظیمات ارسال -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <i class="fas fa-cog"></i> تنظیمات ارسال
+            </h3>
+            
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle"></i>
+                <strong>توجه:</strong> فقط یکی از گزینه‌های زیر را می‌توانید انتخاب کنید
+            </div>
+            
+            <div class="toggle-group">
+                <div class="toggle-option" onclick="toggleOption('auto_close')">
+                    <input type="checkbox" 
+                           name="auto_close" 
+                           id="id_auto_close" 
+                           {% if form.auto_close.value %}checked{% endif %}
+                           onchange="handleToggleChange('auto_close')">
+                    <div class="toggle-content">
+                        <div class="toggle-title">
+                            <i class="fas fa-lock"></i> بسته شدن خودکار در پایان زمان
+                        </div>
+                        <p class="toggle-desc">
+                            امتحان به محض پایان زمان، به طور خودکار بسته می‌شود و دانش‌آموز نمی‌تواند پاسخ ارسال کند
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="toggle-option" onclick="toggleOption('allow_late')">
+                    <input type="checkbox" 
+                           name="allow_late_submission" 
+                           id="id_allow_late_submission" 
+                           {% if form.allow_late_submission.value %}checked{% endif %}
+                           onchange="handleToggleChange('allow_late')">
+                    <div class="toggle-content">
+                        <div class="toggle-title">
+                            <i class="fas fa-unlock"></i> اجازه ارسال بعد از پایان زمان
+                        </div>
+                        <p class="toggle-desc">
+                            دانش‌آموز می‌تواند حتی بعد از پایان زمان امتحان، پاسخ خود را ارسال کند
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- دکمه‌های عملیات -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-submit">
+                <i class="fas fa-save"></i> ایجاد امتحان
+            </button>
+            <a href="{% url 'teacher:course_exams' course.id %}" class="btn btn-secondary me-2">
+                <i class="fas fa-times"></i> انصراف
+            </a>
+        </div>
     </form>
 </div>
+
+<script>
+function handleToggleChange(option) {
+    const autoClose = document.getElementById('id_auto_close');
+    const allowLate = document.getElementById('id_allow_late_submission');
+    
+    if (option === 'auto_close' && autoClose.checked) {
+        allowLate.checked = false;
+        updateToggleStyles();
+    } else if (option === 'allow_late' && allowLate.checked) {
+        autoClose.checked = false;
+        updateToggleStyles();
+    }
+    
+    updateToggleStyles();
+}
+
+function toggleOption(option) {
+    const checkbox = option === 'auto_close' ? 
+        document.getElementById('id_auto_close') : 
+        document.getElementById('id_allow_late_submission');
+    
+    checkbox.checked = !checkbox.checked;
+    handleToggleChange(option);
+}
+
+function updateToggleStyles() {
+    const autoCloseOption = document.querySelector('[onclick="toggleOption(\'auto_close\')"]');
+    const allowLateOption = document.querySelector('[onclick="toggleOption(\'allow_late\')"]');
+    const autoClose = document.getElementById('id_auto_close');
+    const allowLate = document.getElementById('id_allow_late_submission');
+    
+    if (autoClose.checked) {
+        autoCloseOption.classList.add('active');
+    } else {
+        autoCloseOption.classList.remove('active');
+    }
+    
+    if (allowLate.checked) {
+        allowLateOption.classList.add('active');
+    } else {
+        allowLateOption.classList.remove('active');
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateToggleStyles();
+    
+    // Prevent both checkboxes from being checked
+    document.getElementById('id_auto_close').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    document.getElementById('id_allow_late_submission').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
 {% endblock %}

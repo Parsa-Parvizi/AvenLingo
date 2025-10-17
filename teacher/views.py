@@ -6,13 +6,14 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, FileResponse, Http404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from course.models import Course, Assignment, AssignmentSubmission, CourseResource, CourseVideo, Exam, ExamParticipation
 from account.models import Teacher, Student
 from course.forms import CourseForm, AssignmentForm
 from enrollment.models import Enrollment
+import os
 
 
 class TeacherDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -436,8 +437,11 @@ class TeacherCreateCourseView(View):
 
 
 @method_decorator(login_required, name='dispatch')
-class TeacherEditCourseView(View):
+class TeacherEditCourseView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'teacher/teacher_edit_course.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
 
     def get(self, request, course_id):
         teacher = get_object_or_404(Teacher, user=request.user)
@@ -450,9 +454,13 @@ class TeacherEditCourseView(View):
         course = get_object_or_404(Course, id=course_id, teacher=teacher)
         form = CourseForm(request.POST, request.FILES, instance=course)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'دوره با موفقیت ویرایش شد.')
+            updated_course = form.save()
+            messages.success(request, f'دوره "{updated_course.title}" با موفقیت ویرایش شد.')
             return redirect('teacher:teacher_courses')
+        else:
+            # نمایش خطاها در console/log
+            print("Form errors:", form.errors)
+            messages.error(request, 'لطفاً خطاهای فرم را بررسی و تصحیح کنید.')
         return render(request, self.template_name, {'form': form, 'course': course})
 
 
@@ -1398,3 +1406,108 @@ class TeacherCourseGradesView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         context['grades_data'] = grades_data
         
         return context
+
+
+# ============================
+# Certificate Management
+# ============================
+
+class TeacherUploadCertificateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """آپلود مدرک برای دانش‌آموز"""
+    template_name = 'teacher/teacher_upload_certificate.html'
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.user_type == 'teacher'
+    
+    def get(self, request, enrollment_id):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        enrollment = get_object_or_404(
+            Enrollment, 
+            id=enrollment_id, 
+            course__teacher=teacher
+        )
+        
+        context = {
+            'enrollment': enrollment,
+            'student': enrollment.student,
+            'course': enrollment.course,
+            'can_upload': enrollment.can_upload_certificate,
+            'has_final_grade': enrollment.has_final_grade,
+        }
+        
+        return render(request, self.template_name, context)
+    
+    def post(self, request, enrollment_id):
+        teacher = get_object_or_404(Teacher, user=request.user)
+        enrollment = get_object_or_404(
+            Enrollment, 
+            id=enrollment_id, 
+            course__teacher=teacher
+        )
+        
+        # بررسی امکان آپلود مدرک
+        if not enrollment.can_upload_certificate:
+            messages.error(request, 'امکان آپلود مدرک وجود ندارد. ابتدا باید نمره نهایی وارد شود.')
+            return redirect('teacher:upload_certificate', enrollment_id=enrollment_id)
+        
+        # دریافت فایل
+        certificate_file = request.FILES.get('certificate')
+        
+        if not certificate_file:
+            messages.error(request, 'لطفاً فایل مدرک را انتخاب کنید.')
+            return redirect('teacher:upload_certificate', enrollment_id=enrollment_id)
+        
+        # بررسی فرمت فایل
+        if not certificate_file.name.endswith('.pdf'):
+            messages.error(request, 'فقط فایل‌های PDF مجاز هستند.')
+            return redirect('teacher:upload_certificate', enrollment_id=enrollment_id)
+        
+        # حذف مدرک قبلی اگر وجود دارد
+        if enrollment.certificate:
+            if os.path.isfile(enrollment.certificate.path):
+                os.remove(enrollment.certificate.path)
+        
+        # ذخیره مدرک جدید
+        enrollment.certificate = certificate_file
+        enrollment.certificate_uploaded_at = timezone.now()
+        enrollment.save()
+        
+        messages.success(
+            request, 
+            f'مدرک {enrollment.student.user.get_full_name()} با موفقیت آپلود شد.'
+        )
+        return redirect('teacher:course_grades', course_id=enrollment.course.id)
+
+
+@login_required
+def teacher_delete_certificate(request, enrollment_id):
+    """حذف مدرک دانش‌آموز"""
+    if request.method != 'POST':
+        return redirect('teacher:teacher_courses')
+    
+    if not hasattr(request.user, 'user_type') or request.user.user_type != 'teacher':
+        messages.error(request, 'دسترسی غیرمجاز.')
+        return redirect('core:home')
+    
+    teacher = get_object_or_404(Teacher, user=request.user)
+    enrollment = get_object_or_404(
+        Enrollment, 
+        id=enrollment_id, 
+        course__teacher=teacher
+    )
+    
+    if enrollment.certificate:
+        # حذف فایل از سیستم
+        if os.path.isfile(enrollment.certificate.path):
+            os.remove(enrollment.certificate.path)
+        
+        # حذف از دیتابیس
+        enrollment.certificate = None
+        enrollment.certificate_uploaded_at = None
+        enrollment.save()
+        
+        messages.success(request, 'مدرک با موفقیت حذف شد.')
+    else:
+        messages.warning(request, 'مدرکی برای حذف وجود ندارد.')
+    
+    return redirect('teacher:course_grades', course_id=enrollment.course.id)

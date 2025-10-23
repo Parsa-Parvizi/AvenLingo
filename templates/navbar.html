@@ -2,50 +2,81 @@
 <header>
   <nav class="navbar">
     <div class="container">
-      <div class="nav-center">
-        <a href="/" class="brand-link">
-          <h1 href="/" class="brand-text">Aven Lingo Academy</h1>
+      <!-- Desktop Layout -->
+      <div class="desktop-nav">
+        <div class="nav-center">
+          <a href="/" class="brand-link">
+            <h1 href="/" class="brand-text">Aven Lingo Academy</h1>
+          </a>
+        </div>
+
+        <div class="auth-buttons">
+          {% if user.is_authenticated %}
+          {% if request.resolver_match.app_name != 'dashboard' %}
+          <a href="{% url 'dashboard:dashboard_home' %}" class="nav-link dashboard-btn"
+            >داشبورد</a
+          >
+          {% endif %}
+          {% if request.resolver_match.app_name == 'dashboard' %}
+          {% if user.user_type == 'student' and request.resolver_match.url_name != 'student_profile' %}
+          <a href="{% url 'account:student_profile' %}" class="nav-link profile-btn"
+            ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
+          >
+          {% elif user.user_type == 'teacher' and request.resolver_match.url_name != 'teacher_profile' %}
+          <a href="{% url 'account:teacher_profile' %}" class="nav-link profile-btn"
+            ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
+          >
+          {% endif %}
+          {% endif %}
+          <a href="{% url 'account:logout' %}" class="nav-link logout-btn"
+            ><i class="fas fa-sign-out-alt"></i> خروج</a
+          >
+          {% else %}
+          <a href="{% url 'account:login' %}" class="nav-link login-btn">ورود</a>
+          <a href="{% url 'account:student_register' %}" class="nav-link register-btn"
+            >ثبت نام</a
+          >
+          {% endif %}
+        </div>
       </div>
 
-      <button
-          class="hamburger"
-          onclick="toggleMenu()"
-          aria-label="منو"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-      <div
-        class="auth-buttons"
-        style="display: flex; gap: 10px; align-items: center">
-        {% if user.is_authenticated %}
-        {% if request.resolver_match.app_name != 'dashboard' %}
-        <a href="{% url 'dashboard:dashboard_home' %}" class="nav-link dashboard-btn"
-          >داشبورد</a
-        >
-        {% endif %}
-        {% if request.resolver_match.app_name == 'dashboard' %}
-        {% if user.user_type == 'student' and request.resolver_match.url_name != 'student_profile' %}
-        <a href="{% url 'account:student_profile' %}" class="nav-link profile-btn"
-          ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
-        >
-        {% elif user.user_type == 'teacher' and request.resolver_match.url_name != 'teacher_profile' %}
-        <a href="{% url 'account:teacher_profile' %}" class="nav-link profile-btn"
-          ><i class="fas fa-user-edit"></i> ویرایش پروفایل</a
-        >
-        {% endif %}
-        {% endif %}
-        <a href="{% url 'account:logout' %}" class="nav-link logout-btn"
-          ><i class="fas fa-sign-out-alt"></i> خروج</a
-        >
-        {% else %}
-        <a href="{% url 'account:login' %}" class="nav-link login-btn">ورود</a>
-        <a href="{% url 'account:student_register' %}" class="nav-link register-btn"
-          >ثبت نام</a
-        >
-        {% endif %}
+      <!-- Mobile Layout -->
+      <div class="mobile-nav">
+        <!-- Row 1: Brand -->
+        <div class="mobile-brand">
+          <a href="/" class="brand-link">
+            <h1 class="brand-text">Aven Lingo Academy</h1>
+          </a>
+        </div>
+        
+        <!-- Row 2: Auth buttons + Hamburger -->
+        <div class="mobile-controls">
+          <div class="mobile-auth-buttons">
+            {% if user.is_authenticated %}
+              {% if request.resolver_match.app_name != 'dashboard' %}
+                <a href="{% url 'dashboard:dashboard_home' %}" class="mobile-nav-link dashboard-btn">
+                  داشبورد
+                </a>
+              {% endif %}
+              <a href="{% url 'account:logout' %}" class="mobile-nav-link logout-btn">
+                خروج
+              </a>
+            {% else %}
+              <a href="{% url 'account:login' %}" class="mobile-nav-link login-btn">
+                ورود
+              </a>
+              <a href="{% url 'account:student_register' %}" class="mobile-nav-link register-btn">
+                ثبت نام
+              </a>
+            {% endif %}
+          </div>
+          
+          <button class="hamburger" onclick="toggleMenu()" aria-label="منو">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -125,58 +156,7 @@
               >
             </li>
             
-            <!-- Mobile Auth Links (Hidden on Desktop) -->
-            <li class="mobile-auth-links">
-              {% if user.is_authenticated %}
-                {% if request.resolver_match.app_name != 'dashboard' %}
-                  <a href="{% url 'dashboard:dashboard_home' %}" class="nav-link dashboard-btn">
-                    <i class="fas fa-tachometer-alt"></i> داشبورد
-                  </a>
-                {% endif %}
-                {% if request.resolver_match.app_name == 'dashboard' %}
-                  {% if user.user_type == 'student' and request.resolver_match.url_name != 'student_profile' %}
-                    <a href="{% url 'account:student_profile' %}" class="nav-link profile-btn">
-                      <i class="fas fa-user-edit"></i> ویرایش پروفایل
-                    </a>
-                  {% elif user.user_type == 'teacher' and request.resolver_match.url_name != 'teacher_profile' %}
-                    <a href="{% url 'account:teacher_profile' %}" class="nav-link profile-btn">
-                      <i class="fas fa-user-edit"></i> ویرایش پروفایل
-                    </a>
-                  {% endif %}
-                {% endif %}
-                <a href="{% url 'account:logout' %}" class="nav-link logout-btn">
-                  <i class="fas fa-sign-out-alt"></i> خروج
-                </a>
-              {% else %}
-                <a href="{% url 'account:login' %}" class="nav-link login-btn">
-                  <i class="fas fa-sign-in-alt"></i> ورود
-                </a>
-                <a href="{% url 'account:student_register' %}" class="nav-link register-btn">
-                  <i class="fas fa-user-plus"></i> ثبت نام
-                </a>
-              {% endif %}
-            </li>
           </ul>
-        </div>
-        {% comment %} <div class="nav-right">
-          <button
-            class="search-btn"
-            onclick="toggleSearch()"
-            aria-label="جستجو"
-          >
-            <img
-              src="{% static 'icon/search.png' %}"
-              alt=""
-              class="search-icon"
-            />
-          </button> {% endcomment %}
-          {% comment %} <button
-            onclick="toggleDarkMode()"
-            id="darkmode-toggle"
-            aria-label="تغییر تم"
-          >
-            🌓
-          </button> {% endcomment %}
         </div>
       </div>
     </div>

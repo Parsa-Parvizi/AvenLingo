@@ -1,9 +1,31 @@
 function toggleMenu() {
   const menu = document.getElementById('navbarMenu');
   const hamburger = document.querySelector('.hamburger');
+  const body = document.body;
+  
   menu.classList.toggle('active');
   hamburger.classList.toggle('active');
+  
+  // Prevent body scroll when menu is open
+  if (menu.classList.contains('active')) {
+    body.style.overflow = 'hidden';
+  } else {
+    body.style.overflow = '';
+  }
 }
+
+// Close menu when clicking outside
+document.addEventListener('click', function(event) {
+  const menu = document.getElementById('navbarMenu');
+  const hamburger = document.querySelector('.hamburger');
+  const isMenuOpen = menu.classList.contains('active');
+  
+  if (isMenuOpen && !menu.contains(event.target) && !hamburger.contains(event.target)) {
+    menu.classList.remove('active');
+    hamburger.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+});
 
 // Font Awesome fallback
 function checkFontAwesomeLoaded() {

@@ -142,6 +142,16 @@
     text-align: center;
   }
   
+  /* Fix footer positioning on mobile */
+  .content {
+    min-height: auto !important;
+    padding-bottom: 40px;
+  }
+  
+  body {
+    padding-bottom: 20px;
+  }
+  
   .social-links,
   .quick-links {
     align-items: center;
@@ -613,7 +623,7 @@
     box-shadow: 0 2px 8px rgba(30,60,114,0.13);
     position: absolute;
     right: 20px;
-    top: 50%;
+    top: 68%;
     transform: translateY(-50%);
     z-index: 3001;
   }

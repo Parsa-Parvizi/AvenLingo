@@ -742,11 +742,11 @@
                         <i class="fas fa-info-circle"></i>
                         درباره دوره
                     </h3>
-                </div>
+                    </div>
                 <div class="course-description" style="line-height: 1.8; color: #495057;">
                     {{ course.description|linebreaks|default:"توضیحاتی برای این دوره ثبت نشده است." }}
                 </div>
-            </div>
+                </div>
 
             <!-- Assignments Section -->
             <div class="section-card">
@@ -757,41 +757,41 @@
                     </h3>
                     <span class="section-badge">{{ assignments.count|persian_numbers }} تکلیف</span>
                 </div>
-                
-                {% if assignments %}
-                    {% for assignment in assignments %}
+
+                    {% if assignments %}
+                            {% for assignment in assignments %}
                     <div class="assignment-item">
                         <div class="assignment-header-flex">
-                            <div>
+                                        <div>
                                 <h5 class="assignment-title">{{ assignment.title }}</h5>
                                 <span class="type-badge type-{{ assignment.assignment_type }}">
                                     {{ assignment.get_assignment_type_display }}
-                                </span>
-                            </div>
+                                            </span>
+                                        </div>
                             <div style="text-align: left;">
                                 <div style="color: #ffc107; font-weight: 700; font-size: 1.1rem;">
                                     <i class="fas fa-star"></i> {{ assignment.total_points|persian_numbers }}
                                 </div>
                                 <small style="color: #6c757d;">امتیاز</small>
-                            </div>
-                        </div>
-                        
-                        {% if assignment.description %}
+                                    </div>
+                                </div>
+                                
+                                    {% if assignment.description %}
                         <p style="color: #6c757d; margin: 1rem 0; line-height: 1.6;">
                             {{ assignment.description|truncatechars:200 }}
                         </p>
-                        {% endif %}
-                        
+                                    {% endif %}
+                                    
                         <div class="assignment-meta">
                             <div class="meta-info">
-                                <i class="fas fa-calendar-alt"></i>
+                                                    <i class="fas fa-calendar-alt"></i>
                                 <span>مهلت: {{ assignment.due_date|jalali_datetime }}</span>
-                            </div>
+                                                </div>
                             <div class="meta-info">
-                                <i class="fas fa-check-circle"></i>
+                                                    <i class="fas fa-check-circle"></i>
                                 <span>قبولی: {{ assignment.passing_score|persian_numbers }}</span>
-                            </div>
-                        </div>
+                                                </div>
+                                            </div>
                         
                         <!-- Submission Status -->
                         {% if assignment.submission_status %}
@@ -806,22 +806,22 @@
                                     نمره: {{ assignment.submission_score|persian_numbers }}/{{ assignment.total_points|persian_numbers }}
                                 </span>
                             {% endif %}
-                        </div>
+                                        </div>
                         {% endif %}
-                        
+                                    
                         <div class="assignment-actions" style="margin-top: 1rem;">
-                            <a href="{% url 'course:assignment_detail' assignment.id %}" class="btn btn-primary btn-sm">
+                                        <a href="{% url 'course:assignment_detail' assignment.id %}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-eye"></i> مشاهده جزئیات
-                            </a>
-                            
-                            {% if assignment.instruction_file %}
-                            <a href="{% url 'course:assignment_download' assignment.id %}" class="btn btn-outline-info btn-sm">
+                                        </a>
+                                        
+                                        {% if assignment.instruction_file %}
+                                            <a href="{% url 'course:assignment_download' assignment.id %}" class="btn btn-outline-info btn-sm">
                                 <i class="fas fa-download"></i> دانلود فایل
-                            </a>
-                            {% endif %}
-                            
-                            {% if assignment.can_submit %}
-                            <a href="{% url 'course:assignment_submit' assignment.id %}" class="btn btn-success btn-sm">
+                                            </a>
+                                        {% endif %}
+                                        
+                                        {% if assignment.can_submit %}
+                                            <a href="{% url 'course:assignment_submit' assignment.id %}" class="btn btn-success btn-sm">
                                 <i class="fas fa-upload"></i> ارسال تکلیف
                             </a>
                             {% endif %}
@@ -834,9 +834,9 @@
                         <h5>تکلیفی تعریف نشده است</h5>
                         <p>تکالیف این دوره به زودی توسط معلم اضافه خواهد شد</p>
                     </div>
-                {% endif %}
-            </div>
-
+                                        {% endif %}
+                                    </div>
+                                    
             <!-- Exams Section -->
             <div class="section-card">
                 <div class="section-header">
@@ -862,7 +862,7 @@
                             {% if final_exam.is_ended %}
                                 <span class="exam-status ended">
                                     <i class="fas fa-flag-checkered"></i> پایان یافته
-                                </span>
+                                                </span>
                             {% elif final_exam.is_started %}
                                 <span class="exam-status active">
                                     <i class="fas fa-play-circle"></i> در حال برگزاری
@@ -870,19 +870,19 @@
                             {% else %}
                                 <span class="exam-status upcoming">
                                     <i class="fas fa-clock"></i> آینده
-                                </span>
-                            {% endif %}
-                        </div>
+                                                </span>
+                                            {% endif %}
+                                        </div>
                         
                         {% if final_exam.description %}
                         <p style="color: #6c757d; margin: 1rem 0;">{{ final_exam.description }}</p>
-                        {% endif %}
+                                    {% endif %}
                         
                         <div class="exam-details">
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">زمان شروع</div>
                                 <div class="exam-detail-value">{{ final_exam.scheduled_start|jalali_short }}</div>
-                            </div>
+                                </div>
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">مدت امتحان</div>
                                 <div class="exam-detail-value">{{ final_exam.duration_minutes|persian_numbers }} دقیقه</div>
@@ -890,7 +890,7 @@
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">نمره کل</div>
                                 <div class="exam-detail-value">{{ final_exam.total_points|persian_numbers }}</div>
-                            </div>
+                        </div>
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">نمره قبولی</div>
                                 <div class="exam-detail-value">{{ final_exam.passing_score|persian_numbers }}</div>
@@ -916,7 +916,7 @@
                                     <i class="fas fa-clock"></i> پاسخ شما ارسال شده - در انتظار نمره‌دهی
                                 </div>
                             {% endif %}
-                        {% else %}
+                    {% else %}
                             {% if final_exam.can_participate %}
                                 <a href="{% url 'course:take_exam' final_exam.id %}" class="btn btn-take-exam" style="margin-top: 1rem; width: 100%;">
                                     <i class="fas fa-pen"></i> شرکت در امتحان
@@ -932,8 +932,8 @@
                     <div class="empty-state" style="padding: 2rem;">
                         <i class="fas fa-graduation-cap"></i>
                         <p style="margin: 0;">امتحان پایان ترم هنوز تعریف نشده است</p>
-                    </div>
-                {% endif %}
+                        </div>
+                    {% endif %}
                 
                 <!-- Midterm Exam -->
                 <h5 style="color: #ffc107; font-weight: 700; margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -945,9 +945,9 @@
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="exam-type-icon midterm">
                                     <i class="fas fa-file-alt"></i>
-                                </div>
+                </div>
                                 <h5 class="exam-title">{{ midterm_exam.title }}</h5>
-                            </div>
+            </div>
                             {% if midterm_exam.is_ended %}
                                 <span class="exam-status ended">
                                     <i class="fas fa-flag-checkered"></i> پایان یافته
@@ -961,8 +961,8 @@
                                     <i class="fas fa-clock"></i> آینده
                                 </span>
                             {% endif %}
-                        </div>
-                        
+        </div>
+
                         {% if midterm_exam.description %}
                         <p style="color: #6c757d; margin: 1rem 0;">{{ midterm_exam.description }}</p>
                         {% endif %}
@@ -971,7 +971,7 @@
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">زمان شروع</div>
                                 <div class="exam-detail-value">{{ midterm_exam.scheduled_start|jalali_short }}</div>
-                            </div>
+                    </div>
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">مدت امتحان</div>
                                 <div class="exam-detail-value">{{ midterm_exam.duration_minutes|persian_numbers }} دقیقه</div>
@@ -983,9 +983,9 @@
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">نمره قبولی</div>
                                 <div class="exam-detail-value">{{ midterm_exam.passing_score|persian_numbers }}</div>
-                            </div>
-                        </div>
-                        
+                </div>
+            </div>
+
                         {% if midterm_exam.participation %}
                             {% if midterm_exam.participation.status == 'graded' %}
                                 <div style="background: #d1e7dd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
@@ -1035,7 +1035,7 @@
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="exam-type-icon quiz">
                                     <i class="fas fa-question-circle"></i>
-                                </div>
+                    </div>
                                 <h5 class="exam-title">{{ quiz.title }}</h5>
                             </div>
                             {% if quiz.is_ended %}
@@ -1065,9 +1065,9 @@
                             <div class="exam-detail-item">
                                 <div class="exam-detail-label">نمره</div>
                                 <div class="exam-detail-value">{{ quiz.total_points|persian_numbers }}</div>
-                            </div>
-                        </div>
-                        
+                    </div>
+                </div>
+
                         {% if quiz.participation %}
                             {% if quiz.participation.status == 'graded' %}
                                 <div style="background: #d1e7dd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
@@ -1080,14 +1080,14 @@
                                            class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-eye"></i> مشاهده نتیجه
                                         </a>
-                                    </div>
+                    </div>
                                 </div>
                             {% elif quiz.participation.status == 'submitted' %}
                                 <div style="background: #cfe2ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
                                     <i class="fas fa-clock"></i> پاسخ شما ارسال شده - در انتظار نمره‌دهی
                                 </div>
                             {% endif %}
-                        {% else %}
+                            {% else %}
                             {% if quiz.can_participate %}
                                 <a href="{% url 'course:take_exam' quiz.id %}" class="btn btn-take-exam" style="margin-top: 1rem; width: 100%;">
                                     <i class="fas fa-pen"></i> شرکت در کوییز
@@ -1106,7 +1106,7 @@
                         <p style="margin: 0;">کوییزی تعریف نشده است</p>
                     </div>
                 {% endif %}
-            </div>
+                </div>
 
             <!-- Resources Section -->
             <div class="section-card">
@@ -1116,7 +1116,7 @@
                         منابع آموزشی
                     </h3>
                     <span class="section-badge">{{ resources.count|persian_numbers }} منبع</span>
-                </div>
+                    </div>
                 
                 {% if resources %}
                     {% for resource in resources %}
@@ -1135,7 +1135,7 @@
                             {% else %}
 0                                <i class="fas fa-file"></i>
                             {% endif %}
-                        </div>
+                    </div>
                         <div class="resource-info">
                             <h6 class="resource-title">{{ resource.title }}</h6>
                             {% if resource.description %}
@@ -1160,7 +1160,7 @@
                         <p>منابع آموزشی به زودی اضافه خواهد شد</p>
                     </div>
                 {% endif %}
-            </div>
+                </div>
 
             <!-- Videos Section - فقط برای دوره‌های آفلاین یا ترکیبی -->
             {% if course.course_type != 'online' %}
@@ -1273,7 +1273,7 @@
                             <i class="fas fa-lock"></i> کلاس غیرفعال
                         </button>
                         <p style="margin-top: 1rem; opacity: 0.9; font-size: 0.875rem;">
-                            <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                             {{ course.get_class_status_message }}
                         </p>
                     {% endif %}
@@ -1283,14 +1283,14 @@
                         <div style="margin-bottom: 0.5rem;">
                             <i class="fas fa-calendar-week"></i> 
                             <strong>روزها:</strong> {{ course.schedule_days }}
-                        </div>
-                        <div>
+                    </div>
+                    <div>
                             <i class="fas fa-clock"></i> 
                             <strong>ساعت:</strong> {{ course.schedule_time|persian_numbers }}
-                        </div>
                     </div>
-                    {% endif %}
                 </div>
+                    {% endif %}
+                    </div>
                 {% else %}
                 <!-- پیام برای دوره‌های آنلاین بدون لینک -->
                 <div class="class-link-card" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
@@ -1428,7 +1428,7 @@
                 {% if enrollment.can_download_certificate %}
                 <a href="{% url 'dashboard:student_download_certificate' enrollment.id %}" class="btn btn-success" style="width: 100%;">
                     <i class="fas fa-download"></i> دانلود مدرک
-                </a>
+                    </a>
                 {% endif %}
             </div>
         </div>

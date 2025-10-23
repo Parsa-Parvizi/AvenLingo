@@ -34,6 +34,79 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mobile responsive padding for slides */
+@media (max-width: 768px) {
+  .hero-slider {
+    height: 400px;
+    margin: 10px;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  
+  .slides {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .slide {
+    padding: 20px 15px;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .slide h1 {
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  
+  .slide p {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    max-width: 100%;
+  }
+  
+  .slide .btn {
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    margin-top: 10px;
+  }
+  
+  /* Hide navigation buttons on mobile */
+  .slider-nav {
+    display: none;
+  }
+  
+  /* Enhance dots for mobile */
+  .slider-dots {
+    bottom: 15px;
+    gap: 8px;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  .dot.active {
+    background: white;
+    transform: scale(1.2);
+  }
+  
+  .dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+  }
 }
 
 .slide.active {
